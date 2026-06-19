@@ -1,0 +1,265 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model banner {
+  id       Int         @id @default(autoincrement())
+  url      String      @db.VarChar(255)
+  type     banner_type
+  position String      @db.VarChar(255)
+}
+
+model booking {
+  id                Int           @id @default(autoincrement())
+  user_id           Int
+  showtime_id       Int
+  total_seat        Int
+  total_price_movie Float
+  created_at        DateTime      @default(now())
+  updated_at        DateTime @updatedAt
+  showtime          showtime      @relation(fields: [showtime_id], references: [id], onDelete: Cascade, map: "Booking_showtime_id_fkey")
+  user              user          @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "Booking_user_id_fkey")
+  bookingseat       bookingseat[]
+  payment           payment[]
+
+  @@index([showtime_id], map: "Booking_showtime_id_fkey")
+  @@index([user_id], map: "Booking_user_id_fkey")
+}
+
+model bookingseat {
+  id         Int      @id @default(autoincrement())
+  booking_id Int
+  seat_id    Int
+  quantity   Int      @default(1)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  booking    booking  @relation(fields: [booking_id], references: [id], onDelete: Cascade, map: "BookingSeat_booking_id_fkey")
+  seat       seat     @relation(fields: [seat_id], references: [id], onDelete: Cascade, map: "BookingSeat_seat_id_fkey")
+
+  @@index([booking_id], map: "BookingSeat_booking_id_fkey")
+  @@index([seat_id], map: "BookingSeat_seat_id_fkey")
+}
+
+model festival {
+  id         Int      @id @default(autoincrement())
+  title      String   @db.VarChar(255)
+  image      String?  @db.VarChar(255)
+  start_time DateTime
+  end_time   DateTime
+  news       news[]
+}
+
+model genre {
+  id         Int          @id @default(autoincrement())
+  genre_name String       @db.VarChar(255)
+  moviegenre moviegenre[]
+}
+
+model movie {
+  id           Int          @id @default(autoincrement())
+  title        String       @db.VarChar(255)
+  descriptions String?      @db.Text
+  author       String?      @db.VarChar(100)
+  image        String?      @db.Text
+  trailer      String?      @db.VarChar(255)
+  type         movie_type   @default(TYPE_2D)
+  duration     Int
+  release_date DateTime
+  created_at   DateTime     @default(now())
+  updated_at   DateTime @updatedAt
+  actors       String?      @db.VarChar(255)
+  age_limit    String?      @db.VarChar(10)
+  moviegenre   moviegenre[]
+  showtime     showtime[]
+}
+
+model moviegenre {
+  movie_id Int
+  genre_id Int
+  genre    genre @relation(fields: [genre_id], references: [id], onDelete: Cascade, map: "MovieGenre_genre_id_fkey")
+  movie    movie @relation(fields: [movie_id], references: [id], onDelete: Cascade, map: "MovieGenre_movie_id_fkey")
+
+  @@id([movie_id, genre_id])
+  @@index([genre_id], map: "MovieGenre_genre_id_fkey")
+}
+
+model news {
+  id          Int       @id @default(autoincrement())
+  title       String    @db.VarChar(255)
+  content     String    @db.LongText
+  festival_id Int?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime @updatedAt
+  festival    festival? @relation(fields: [festival_id], references: [id], map: "News_festival_id_fkey")
+
+  @@index([festival_id], map: "News_festival_id_fkey")
+}
+
+model payment {
+  id             Int                    @id @default(autoincrement())
+  booking_id     Int
+  payment_method payment_payment_method
+  payment_status payment_payment_status
+  payment_time   DateTime?
+  amount         Float
+  transaction_id String?                @db.VarChar(255)
+  booking        booking                @relation(fields: [booking_id], references: [id], onDelete: Cascade, map: "Payment_booking_id_fkey")
+
+  @@index([booking_id], map: "Payment_booking_id_fkey")
+}
+
+model role {
+  id        Int            @id @default(autoincrement())
+  role_name role_role_name @unique(map: "Role_role_name_key")
+  userrole  userrole[]
+}
+
+model screen {
+  id            Int        @id @default(autoincrement())
+  name          String     @db.VarChar(100)
+  seat_capacity Int
+  theater_id    Int
+  created_at    DateTime   @default(now())
+  updated_at    DateTime @updatedAt
+  theater       theater    @relation(fields: [theater_id], references: [id], onDelete: Cascade, map: "Screen_theater_id_fkey")
+  seat          seat[]
+  showtime      showtime[]
+
+  @@index([theater_id], map: "Screen_theater_id_fkey")
+}
+
+model seat {
+  id          Int           @id @default(autoincrement())
+  screen_id   Int
+  seat_number String        @db.VarChar(50)
+  is_booked   Boolean       @default(false)
+  type        seat_type
+  created_at  DateTime      @default(now())
+  updated_at  DateTime @updatedAt
+  bookingseat bookingseat[]
+  screen      screen        @relation(fields: [screen_id], references: [id], onDelete: Cascade, map: "Seat_screen_id_fkey")
+
+  @@index([screen_id], map: "Seat_screen_id_fkey")
+}
+
+model showtime {
+  id         Int       @id @default(autoincrement())
+  screen_id  Int
+  movie_id   Int
+  start_time DateTime
+  end_time   DateTime
+  created_at DateTime  @default(now())
+  updated_at DateTime @updatedAt
+  booking    booking[]
+  movie      movie     @relation(fields: [movie_id], references: [id], onDelete: Cascade, map: "ShowTime_movie_id_fkey")
+  screen     screen    @relation(fields: [screen_id], references: [id], onDelete: Cascade, map: "ShowTime_screen_id_fkey")
+
+  @@index([movie_id], map: "ShowTime_movie_id_fkey")
+  @@index([screen_id], map: "ShowTime_screen_id_fkey")
+}
+
+model theater {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(100)
+  location   String   @db.VarChar(255)
+  phone      String?  @db.VarChar(11)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  screen     screen[]
+}
+
+model ticketprice {
+  id         Int                    @id @default(autoincrement())
+  type_seat  ticketprice_type_seat
+  type_movie ticketprice_type_movie
+  price      Float
+  day_type   Boolean
+  start_time DateTime               @db.Time(0)
+  end_time   DateTime               @db.Time(0)
+}
+
+model user {
+  id         Int         @id @default(autoincrement())
+  first_name String      @db.VarChar(100)
+  last_name  String      @db.VarChar(100)
+  email      String      @unique(map: "User_email_key") @db.VarChar(255)
+  password   String      @db.VarChar(255)
+  avatar     String?     @db.Text
+  phone      String?     @unique(map: "User_phone_key") @db.VarChar(11)
+  address    String?     @db.VarChar(255)
+  created_at DateTime    @default(now())
+  updated_at DateTime @updatedAt
+  status     user_status @default(ACTIVE)
+  booking    booking[]
+  userrole   userrole[]
+}
+
+model userrole {
+  user_id Int
+  role_id Int
+  role    role @relation(fields: [role_id], references: [id], onDelete: Cascade, map: "UserRole_role_id_fkey")
+  user    user @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "UserRole_user_id_fkey")
+
+  @@id([user_id, role_id])
+  @@index([role_id], map: "UserRole_role_id_fkey")
+}
+
+enum role_role_name {
+  ROLE_ADMIN
+  ROLE_USER
+}
+
+enum ticketprice_type_seat {
+  STANDARD
+  VIP
+  SWEETBOX
+}
+
+enum banner_type {
+  IMAGE
+  VIDEO
+}
+
+enum payment_payment_method {
+  VIETQR
+  VNPAY
+  VIETTEL_PAY
+  PAYPAL
+  CASH
+  TRANSFER
+  CARD
+  EWALLET
+}
+
+enum ticketprice_type_movie {
+  TYPE_2D @map("2D")
+  TYPE_3D @map("3D")
+}
+
+enum payment_payment_status {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum seat_type {
+  STANDARD
+  VIP
+  SWEETBOX
+}
+
+enum movie_type {
+  TYPE_2D @map("2D")
+  TYPE_3D @map("3D")
+}
+
+enum user_status {
+  ACTIVE
+  BLOCKED
+}

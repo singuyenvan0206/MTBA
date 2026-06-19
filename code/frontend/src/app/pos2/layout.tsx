@@ -1,0 +1,65 @@
+'use client';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+export default function Pos2Layout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  return (
+    <>
+      <header className="navbar">
+          <div className="container nav-container">
+              <div className="logo">
+                  <Link href="/pos2"><img src="https://placehold.co/100x40/ff4d4f/FFF?text=LOGO" alt="Logo" /></Link>
+              </div>
+              <nav className="nav-links">
+                  <Link href="/pos2" className={pathname === '/pos2' ? 'active' : ''} style={pathname === '/pos2' ? { color: 'var(--primary-color)' } : {}}>Trang chủ</Link>
+                  <Link href="/pos2/calendar" className={pathname === '/pos2/calendar' ? 'active' : ''} style={pathname === '/pos2/calendar' ? { color: 'var(--primary-color)' } : {}}>Lịch chiếu</Link>
+                  <Link href="/pos2/news" className={pathname === '/pos2/news' ? 'active' : ''} style={pathname === '/pos2/news' ? { color: 'var(--primary-color)' } : {}}>Tin tức</Link>
+                  <Link href="/pos2/promotions" className={pathname === '/pos2/promotions' ? 'active' : ''} style={pathname === '/pos2/promotions' ? { color: 'var(--primary-color)' } : {}}>Khuyến mãi</Link>
+                  <Link href="/pos2/prices" className={pathname === '/pos2/prices' ? 'active' : ''} style={pathname === '/pos2/prices' ? { color: 'var(--primary-color)' } : {}}>Giá vé</Link>
+                  <Link href="/pos2/festivals" className={pathname === '/pos2/festivals' ? 'active' : ''} style={pathname === '/pos2/festivals' ? { color: 'var(--primary-color)' } : {}}>Liên hoan phim</Link>
+              </nav>
+              <div className="nav-auth" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <div className="theater-selector-container" style={{ display: 'flex', alignItems: 'center' }}>
+                      <label style={{ color: 'var(--text-color)', marginRight: '10px' }}>Cụm Rạp:</label>
+                      <select style={{ padding: '5px 10px', borderRadius: '5px', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', border: '1px solid #444', outline: 'none' }}>
+                          <option value="1">NCC Láng Hạ</option>
+                      </select>
+                  </div>
+                  <span className="btn" style={{ color: '#ff4d4f', fontWeight: 'bold' }}>HỆ THỐNG POS TẠI QUẦY</span>
+              </div>
+              <div className="hamburger">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+              </div>
+          </div>
+      </header>
+
+      {children}
+
+      <footer className="footer">
+          <div className="container footer-content">
+              <div className="footer-col">
+                  <img src="https://placehold.co/100x40/ff4d4f/FFF?text=LOGO" alt="Logo" />
+                  <p>Cơ quan chủ quản: BỘ VĂN HÓA, THỂ THAO VÀ DU LỊCH</p>
+                  <p>Bản quyền thuộc Trung tâm Chiếu phim Quốc gia.</p>
+              </div>
+              <div className="footer-col">
+                  <h4>Chính sách</h4>
+                  <a href="#">Điều khoản sử dụng</a>
+                  <a href="#">Chính sách bảo mật</a>
+                  <a href="#">Quy định vé</a>
+              </div>
+              <div className="footer-col">
+                  <h4>Kết nối</h4>
+                  <div className="socials">
+                      <span>FB</span> <span>YT</span> <span>IG</span>
+                  </div>
+                  <p>Hotline: 1900 1234</p>
+              </div>
+          </div>
+      </footer>
+    </>
+  );
+}

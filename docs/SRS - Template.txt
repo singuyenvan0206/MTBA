@@ -1,0 +1,539 @@
+﻿TÀI LIỆU SRS DỰ ÁN ĐẶT VÉ XEM PHIM
+
+
+1. Giới thiệu (Introductions):
+   1. Mục đích (Purpose):
+Mục đích của dự án đặt vé xem phim là phát triển một hệ thống trực tuyến giúp người dùng dễ dàng tìm kiếm, đặt vé và quản lý các vé xem phim thông qua các tính năng thuận tiện và dễ sử dụng. Cụ thể, mục đích của dự án bao gồm:
+* Cung cấp dịch vụ đặt vé đơn giản, nhanh chóng và tiện lợi: Hệ thống cho phép người dùng dễ dàng tìm kiếm lịch chiếu của các bộ phim, chọn ghế và thanh toán vé một cách nhanh chóng mà không cần phải đến trực tiếp rạp phim.
+* Tăng cường trải nghiệm người dùng: Dự án hướng đến việc tối ưu hóa trải nghiệm người dùng qua giao diện thân thiện, dễ sử dụng, giúp người dùng dễ dàng lựa chọn bộ phim, giờ chiếu, và ghế ngồi phù hợp. Hệ thống cũng hỗ trợ thông báo về các chương trình khuyến mãi, ưu đãi vé và các thông tin liên quan.
+* Cung cấp các tính năng quản lý vé: Người dùng có thể dễ dàng theo dõi, hủy vé, hoặc thay đổi các lựa chọn của mình qua tài khoản cá nhân trên hệ thống. Ngoài ra, dự án còn cung cấp các tính năng như lưu trữ lịch sử đặt vé để người dùng có thể tham khảo và quản lý các giao dịch đã thực hiện.
+* Hỗ trợ thanh toán trực tuyến an toàn và bảo mật: Hệ thống hỗ trợ nhiều phương thức thanh toán trực tuyến (thẻ tín dụng, ví điện tử, v.v.) để giúp người dùng thanh toán vé một cách an toàn và thuận tiện.
+* Giảm thiểu thời gian chờ đợi và nâng cao hiệu quả hoạt động của rạp phim: Dự án giúp giảm thiểu việc xếp hàng tại quầy vé, giúp khách hàng có thể mua vé từ xa và chỉ cần đến đúng giờ chiếu. Đồng thời, giúp rạp phim quản lý vé và phòng chiếu hiệu quả hơn.
+* Hỗ trợ quảng bá và nâng cao sự hiện diện của các bộ phim mới: Hệ thống sẽ cung cấp thông tin chi tiết về các bộ phim mới, chương trình chiếu đặc biệt và các sự kiện phim để người dùng có thể dễ dàng tiếp cận thông tin và quyết định xem phim.
+* Cải thiện quản lý đối với các rạp chiếu phim: Hệ thống cũng cung cấp các công cụ cho các quản trị viên rạp phim để quản lý lịch chiếu, lượng vé bán ra, thông tin khách hàng, từ đó nâng cao hiệu quả quản lý và tối ưu hóa lịch trình chiếu phim.
+
+
+   2. Phạm vi hệ thống (System scope):
+Phạm vi hệ thống của dự án đặt vé xem phim xác định các chức năng và tính năng mà hệ thống sẽ thực hiện, cũng như các hạn chế và giới hạn liên quan đến dự án. Hệ thống sẽ cung cấp dịch vụ đặt vé cho người dùng qua nền tảng trực tuyến, giúp người dùng dễ dàng tìm kiếm, đặt vé, và quản lý vé xem phim.
+Các chức năng chính và phạm vi của hệ thống bao gồm:
+1. Đăng ký và quản lý tài khoản người dùng:
+* Người dùng có thể đăng ký tài khoản với thông tin cá nhân, bao gồm tên, email, số điện thoại, và mật khẩu.
+* Người dùng có thể đăng nhập và quản lý tài khoản cá nhân của mình (cập nhật thông tin, thay đổi mật khẩu, v.v.).
+* Hệ thống hỗ trợ xác thực người dùng qua email hoặc số điện thoại để đảm bảo bảo mật tài khoản.
+2. Tìm kiếm và lựa chọn phim:
+* Người dùng có thể duyệt danh sách phim đang chiếu, phim sắp chiếu, và các thể loại phim khác.
+* Hệ thống cho phép người dùng xem chi tiết về bộ phim (tên phim, mô tả, thời gian chiếu, diễn viên, đạo diễn, v.v.).
+3. Xem lịch chiếu phim:
+* Người dùng có thể xem lịch chiếu của các bộ phim theo ngày, giờ và phòng chiếu.
+* Hệ thống cung cấp thông tin chi tiết về các suất chiếu, giúp người dùng chọn lựa thời gian phù hợp.
+4. Đặt vé xem phim:
+* Người dùng có thể chọn ghế và mua vé cho các suất chiếu.
+* Hệ thống sẽ tính toán giá vé và hỗ trợ các phương thức thanh toán trực tuyến như thẻ tín dụng, thẻ ghi nợ, ví điện tử, v.v.
+5. Quản lý vé:
+* Người dùng có thể xem lại các vé đã đặt, hủy vé (nếu cần thiết), và nhận thông báo xác nhận vé qua email hoặc SMS.
+* Hệ thống sẽ lưu trữ thông tin về các vé đã đặt để người dùng có thể tham khảo và quản lý.
+6. Thanh toán trực tuyến:
+* Hệ thống hỗ trợ các phương thức thanh toán trực tuyến an toàn và bảo mật.
+* Người dùng có thể thanh toán qua thẻ tín dụng, thẻ ghi nợ, và các dịch vụ thanh toán điện tử.
+7. Quản lý phòng chiếu và lịch chiếu (dành cho quản trị viên):
+* Các quản trị viên của hệ thống có thể thêm, sửa, xóa thông tin về các bộ phim, lịch chiếu, và phòng chiếu.
+* Quản trị viên có thể theo dõi số lượng vé đã bán và kiểm tra doanh thu.
+8. Thông báo và khuyến mãi:
+* Hệ thống có thể gửi thông báo về các chương trình khuyến mãi, giảm giá hoặc thông tin mới về phim qua email hoặc thông báo trong ứng dụng.
+* Người dùng có thể nhận các thông báo liên quan đến các bộ phim yêu thích hoặc chương trình giảm giá đặc biệt.
+9. Bảo mật và bảo vệ thông tin người dùng:
+* Hệ thống đảm bảo an toàn dữ liệu người dùng, bao gồm bảo mật tài khoản và thông tin thanh toán.
+* Mọi thông tin giao dịch và dữ liệu cá nhân của người dùng đều được mã hóa và lưu trữ an toàn.
+
+
+   3. Mục tiêu hệ thống (system objectives):
+Mục tiêu của hệ thống Đặt vé xem phim là cung cấp một nền tảng trực tuyến dễ sử dụng và hiệu quả cho người dùng trong việc tìm kiếm, chọn lựa và đặt vé xem phim tại các rạp chiếu. Hệ thống sẽ giúp người dùng tiết kiệm thời gian, thuận tiện trong việc lựa chọn suất chiếu, thanh toán và quản lý vé. Bên cạnh đó, hệ thống cũng sẽ hỗ trợ các quản trị viên quản lý lịch chiếu, phòng chiếu và vé bán được. Các mục tiêu cụ thể của hệ thống bao gồm:
+1. Tạo sự tiện lợi và dễ dàng trong việc đặt vé:
+* Cung cấp cho người dùng một nền tảng trực tuyến dễ sử dụng để họ có thể nhanh chóng tìm kiếm phim, chọn suất chiếu và đặt vé mà không cần phải đến rạp.
+* Hệ thống cho phép người dùng lựa chọn ghế ngồi, tạo ra trải nghiệm cá nhân hóa và thoải mái.
+2. Tối ưu hóa quy trình thanh toán trực tuyến:
+* Hệ thống hỗ trợ các phương thức thanh toán trực tuyến phổ biến và an toàn, giúp người dùng thanh toán nhanh chóng và bảo mật thông tin.
+* Đảm bảo rằng các giao dịch thanh toán được xử lý một cách hiệu quả và không gặp phải sự cố.
+3. Tăng cường khả năng quản lý cho các quản trị viên:
+* Cung cấp cho các quản trị viên các công cụ quản lý phim, lịch chiếu, phòng chiếu, và các thông tin liên quan đến bán vé.
+* Hệ thống sẽ giúp quản trị viên theo dõi số lượng vé đã bán và doanh thu, từ đó đưa ra các quyết định về quản lý và phát triển dịch vụ.
+4. Cung cấp dịch vụ hỗ trợ khách hàng:
+* Hệ thống cung cấp các kênh hỗ trợ khách hàng như email, chat trực tuyến, hoặc số điện thoại để giải quyết các vấn đề của người dùng trong quá trình đặt vé và sử dụng dịch vụ.
+* Đảm bảo rằng người dùng có thể nhận được sự hỗ trợ nhanh chóng và kịp thời trong mọi tình huống.
+5. Nâng cao trải nghiệm người dùng:
+* Hệ thống sẽ cung cấp giao diện người dùng dễ sử dụng, thân thiện và dễ tiếp cận.
+* Hệ thống hỗ trợ người dùng tìm kiếm phim theo thể loại, ngày chiếu, đánh giá, và các yếu tố khác, giúp người dùng nhanh chóng tìm được những bộ phim phù hợp với sở thích và lịch trình của họ.
+6. Hỗ trợ các chương trình khuyến mãi và thông báo:
+* Hệ thống có thể gửi thông báo cho người dùng về các khuyến mãi, giảm giá và các chương trình đặc biệt khác để khuyến khích họ đặt vé nhiều hơn.
+* Cung cấp các chương trình khuyến mãi cho người dùng thông qua các kênh email hoặc thông báo trong ứng dụng.
+7. Đảm bảo tính bảo mật và bảo vệ dữ liệu người dùng:
+* Hệ thống sẽ sử dụng các phương thức bảo mật cao cấp để bảo vệ thông tin cá nhân và tài khoản người dùng.
+* Mọi giao dịch và thông tin thanh toán sẽ được mã hóa và bảo vệ an toàn, đảm bảo rằng không có sự xâm phạm từ bên ngoài.
+8. Khả năng mở rộng và linh hoạt:
+* Hệ thống có khả năng mở rộng khi cần thiết để đáp ứng sự gia tăng lượng người dùng hoặc nhu cầu của các rạp chiếu mới.
+* Các tính năng của hệ thống sẽ được phát triển và cải tiến liên tục để đáp ứng nhu cầu thay đổi của người dùng và các yêu cầu từ thị trường.
+
+
+2. Mô tả tổng quan về hệ thống (System overview):
+   1. Kiến trúc hệ thống (System architecture):
+Kiến trúc hệ thống Đặt vé xem phim được thiết kế theo mô hình 3 lớp (three-tier architecture), bao gồm các lớp: Giao diện người dùng (UI), Lớp xử lý logic (Business Logic) và Lớp dữ liệu (Data Layer). Mô hình này giúp chia tách các chức năng của hệ thống, tạo ra sự linh hoạt trong việc bảo trì, mở rộng và nâng cấp hệ thống. Mỗi lớp có một vai trò riêng biệt và tương tác với nhau qua các API, đảm bảo rằng hệ thống có thể xử lý mọi yêu cầu từ người dùng một cách hiệu quả và an toàn.
+1. Giao diện người dùng (UI - User Interface):
+Lớp giao diện người dùng là phần mà người dùng tương tác trực tiếp. Giao diện người dùng có thể là ứng dụng web hoặc mobile app, tùy thuộc vào yêu cầu của hệ thống. Giao diện người dùng sẽ thực hiện các chức năng sau:
+* Tìm kiếm phim: Cho phép người dùng tìm kiếm phim theo tên, thể loại, ngày chiếu, đánh giá, v.v.
+* Đặt vé: Người dùng có thể chọn suất chiếu, lựa chọn ghế ngồi và tiến hành thanh toán.
+* Quản lý vé: Người dùng có thể xem, hủy vé đã đặt hoặc thay đổi thông tin vé.
+* Thông báo: Gửi thông báo về khuyến mãi, lịch chiếu phim và các thông tin quan trọng khác.
+Giao diện người dùng gửi yêu cầu tới Lớp xử lý logic thông qua các API RESTful hoặc WebSocket (nếu có). Các yêu cầu này có thể là việc tìm kiếm phim, đặt vé, thanh toán, v.v.
+2. Lớp xử lý logic (Business Logic):
+Lớp xử lý logic, hay còn gọi là lớp ứng dụng, chịu trách nhiệm xử lý các yêu cầu từ người dùng và thực hiện các nghiệp vụ kinh doanh. Lớp này bao gồm các thành phần sau:
+* Quản lý phim: Thực hiện các chức năng liên quan đến việc thêm, sửa, xóa thông tin phim, lịch chiếu.
+* Quản lý vé: Xử lý việc đặt vé, thay đổi thông tin vé, kiểm tra tình trạng ghế ngồi, hủy vé, v.v.
+* Quản lý người dùng: Quản lý thông tin người dùng, đăng ký, đăng nhập, xác thực email, bảo vệ tài khoản, và các chức năng bảo mật khác.
+* Thanh toán: Quản lý quá trình thanh toán vé, xử lý các giao dịch thanh toán qua cổng thanh toán (có thể tích hợp với các cổng thanh toán bên ngoài như PayPal, VNPay, v.v.).
+* Thông báo: Gửi thông báo đến người dùng về các chương trình khuyến mãi, thay đổi lịch chiếu hoặc các thông báo quan trọng khác.
+* Quản lý khuyến mãi: Cung cấp và áp dụng các mã giảm giá hoặc chương trình khuyến mãi cho người dùng.
+Lớp này sử dụng các API để kết nối với Lớp dữ liệu và thực hiện các thao tác cần thiết với cơ sở dữ liệu. Ngoài ra, lớp này cũng sẽ chứa các lớp service, controller, và các lớp nghiệp vụ khác để xử lý logic của ứng dụng.
+3. Lớp dữ liệu (Data Layer):
+Lớp dữ liệu chịu trách nhiệm lưu trữ và quản lý dữ liệu của hệ thống. Các dữ liệu chính của hệ thống bao gồm thông tin người dùng, vé, phim, lịch chiếu, thanh toán, v.v. Lớp dữ liệu bao gồm:
+* Cơ sở dữ liệu (Database): Lưu trữ tất cả thông tin liên quan đến người dùng, vé, phim, các giao dịch thanh toán và thông tin khuyến mãi. Cơ sở dữ liệu có thể sử dụng các hệ quản trị cơ sở dữ liệu quan hệ như MySQL, PostgreSQL hoặc các cơ sở dữ liệu NoSQL như MongoDB, tùy thuộc vào yêu cầu hệ thống.
+* ORM (Object-Relational Mapping): Sử dụng các thư viện ORM như Hibernate hoặc Spring Data JPA để quản lý kết nối với cơ sở dữ liệu và thực hiện các thao tác CRUD (Create, Read, Update, Delete) trên các bảng dữ liệu.
+* Cơ sở dữ liệu phụ trợ: Lưu trữ thông tin về các giao dịch thanh toán, mã xác thực email, và các thông tin tạm thời khác liên quan đến quá trình đặt vé.
+
+
+Mô hình kiến trúc hệ thống:
+Kiến trúc hệ thống Đặt vé xem phim có thể được mô tả như sau:
+1. Frontend (Giao diện người dùng): Cung cấp giao diện để người dùng tương tác với hệ thống (sử dụng HTML, CSS, JavaScript, hoặc các framework như React, Angular, Vue.js cho ứng dụng web).
+2. Backend (Xử lý logic): Các lớp controller, service và các lớp xử lý nghiệp vụ được phát triển trong Spring Boot hoặc một framework tương tự để nhận và xử lý các yêu cầu từ người dùng.
+3. Database (Cơ sở dữ liệu): Hệ thống sẽ sử dụng cơ sở dữ liệu quan hệ (SQL) hoặc NoSQL để lưu trữ dữ liệu.
+4. API: Các API RESTful hoặc GraphQL để giao tiếp giữa các lớp và hệ thống bên ngoài (chẳng hạn như cổng thanh toán, dịch vụ email).
+
+
+Lợi ích của kiến trúc này:
+* Tách biệt các tầng: Mỗi lớp thực hiện một nhiệm vụ riêng biệt, giúp dễ dàng bảo trì và mở rộng hệ thống.
+* Khả năng mở rộng: Kiến trúc 3 lớp giúp hệ thống có thể mở rộng dễ dàng khi cần bổ sung các tính năng mới hoặc mở rộng quy mô.
+* An toàn và bảo mật: Các dữ liệu nhạy cảm như thông tin người dùng, thanh toán được bảo mật trong lớp dữ liệu và không bị lộ ra ngoài.
+* Khả năng tái sử dụng: Các lớp dịch vụ và logic có thể tái sử dụng lại trong các module khác của hệ thống.
+
+
+   2. Các yếu tố bên ngoài tác động đến hệ thống (External factors affecting the system):
+Trong một dự án Đặt vé xem phim, có một số yếu tố bên ngoài có thể tác động trực tiếp đến hoạt động và hiệu suất của hệ thống. Những yếu tố này có thể là các yếu tố kỹ thuật, môi trường hoạt động hoặc các yếu tố bên ngoài khác ảnh hưởng đến tính ổn định, hiệu quả và tính bảo mật của hệ thống. Dưới đây là một số yếu tố bên ngoài có thể tác động đến hệ thống Đặt vé xem phim:
+1. Môi trường mạng và hạ tầng:
+* Tốc độ kết nối Internet: Hệ thống yêu cầu kết nối mạng ổn định và nhanh chóng để người dùng có thể truy cập và đặt vé một cách nhanh chóng. Nếu mạng chậm hoặc không ổn định, người dùng có thể gặp khó khăn trong việc thực hiện giao dịch.
+* Máy chủ (Server): Máy chủ hosting hoặc dịch vụ đám mây mà hệ thống dựa vào sẽ ảnh hưởng lớn đến hiệu suất của hệ thống. Việc lựa chọn máy chủ có đủ tài nguyên (CPU, RAM, băng thông,...) để xử lý các yêu cầu đồng thời của người dùng rất quan trọng.
+* Hệ thống thanh toán trực tuyến: Nếu hệ thống tích hợp các dịch vụ thanh toán trực tuyến, sự ổn định và tính bảo mật của các cổng thanh toán như VNPay, PayPal, hoặc các hệ thống thanh toán khác sẽ tác động lớn đến quá trình giao dịch của người dùng.
+2. Yếu tố pháp lý và quy định
+* Bảo mật dữ liệu người dùng: Hệ thống phải tuân thủ các quy định bảo mật dữ liệu, ví dụ như GDPR (General Data Protection Regulation) của Liên minh châu Âu hoặc các quy định về bảo mật dữ liệu cá nhân trong từng quốc gia. Việc bảo vệ thông tin người dùng như tên, email, và thông tin thanh toán là yếu tố quan trọng để tránh các vi phạm và bảo vệ uy tín của hệ thống.
+* Các quy định về thuế và hóa đơn điện tử: Trong một số khu vực, việc cung cấp hóa đơn điện tử cho các giao dịch vé xem phim có thể là một yêu cầu bắt buộc từ cơ quan thuế. Hệ thống phải có khả năng tích hợp và tạo hóa đơn điện tử hợp pháp theo quy định của pháp luật.
+3. Yếu tố bảo mật
+* Nguy cơ tấn công mạng: Các tấn công như SQL Injection, XSS (Cross-Site Scripting) hoặc DDoS (Distributed Denial of Service) có thể gây ảnh hưởng lớn đến hệ thống. Hệ thống cần phải có các biện pháp bảo vệ như mã hóa dữ liệu, xác thực người dùng, phòng chống tấn công, và bảo mật kết nối (SSL/TLS).
+* Xác thực và phân quyền: Việc xác thực người dùng và phân quyền truy cập là rất quan trọng để ngăn chặn truy cập trái phép và đảm bảo rằng chỉ những người có quyền mới có thể thực hiện các hành động như đặt vé, hủy vé hoặc thay đổi thông tin cá nhân.
+4. Thị trường và người dùng
+* Xu hướng người dùng: Thị hiếu và thói quen của người dùng có thể thay đổi, ví dụ, việc yêu cầu đặt vé qua điện thoại di động hoặc yêu cầu tính năng hỗ trợ tìm vé nhanh chóng có thể tác động đến cách thiết kế giao diện và các tính năng của hệ thống. Nắm bắt được xu hướng và phản hồi từ người dùng sẽ giúp hệ thống phát triển một cách hiệu quả.
+* Khả năng tương thích với các nền tảng khác nhau: Hệ thống cần phải tương thích với nhiều nền tảng, thiết bị và trình duyệt web khác nhau. Nếu hệ thống không hỗ trợ các thiết bị phổ biến như smartphone, máy tính bảng, hoặc các trình duyệt thông dụng như Chrome, Firefox, Safari, người dùng có thể gặp khó khăn khi sử dụng.
+5. Công nghệ và phần mềm bên ngoài
+* Thư viện và framework bên ngoài: Các thư viện mã nguồn mở hoặc phần mềm bên ngoài mà hệ thống sử dụng (như các thư viện thanh toán, công cụ gửi email, công cụ phân tích dữ liệu) có thể có các phiên bản cập nhật mới hoặc thay đổi trong cách hoạt động. Những thay đổi này có thể yêu cầu việc nâng cấp hệ thống để tương thích hoặc giải quyết các vấn đề bảo mật.
+* Dịch vụ email: Nếu hệ thống gửi email xác nhận đăng ký hoặc thông báo cho người dùng, sự ổn định của các dịch vụ gửi email (như SMTP, SendGrid, Amazon SES) sẽ tác động đến khả năng gửi email của hệ thống. Nếu dịch vụ email gặp sự cố, người dùng có thể không nhận được email xác thực.
+6. Yếu tố môi trường hoạt động
+* Ảnh hưởng của các sự kiện bên ngoài: Các sự kiện bên ngoài như lễ hội, các ngày lễ đặc biệt hoặc việc phát hành các bộ phim hot có thể tạo ra lượng truy cập cao đột ngột, yêu cầu hệ thống phải có khả năng mở rộng linh hoạt để phục vụ người dùng. Nếu hệ thống không có khả năng mở rộng, nó có thể gặp tình trạng quá tải.
+* Sự thay đổi trong yêu cầu người dùng: Các yêu cầu và nhu cầu của người dùng có thể thay đổi, chẳng hạn như việc yêu cầu tính năng xem trước lịch chiếu hoặc tính năng khuyến mãi. Điều này có thể ảnh hưởng đến cách hệ thống được phát triển và các chức năng cần phải được cải tiến.
+
+
+3. Yêu cầu chức năng (Functional requirements):
+1. Chức năng không cần đăng nhập:
+Mô tả: Các chức năng cơ bản, không yêu cầu đăng nhập và dành cho tất cả người dùng truy cập hệ thống.
+
+
+Tên chức năng
+	Mô tả
+	Đăng ký
+	Người dùng mới có thể tạo tài khoản bằng email.
+	Đăng nhập
+	Người dùng đã đăng ký có thể đăng nhập vào hệ thống để sử dụng các chức năng dành riêng cho thành viên.
+	Hiển thị thể loại phim
+	Hiển thị danh sách các thể loại phim hiện có.
+	Hiển thị phim đang chiếu
+	Hiển thị danh sách các phim đang được công chiếu.
+	Hiển thị chi tiết phim
+	Hiển thị thông tin chi tiết của một bộ phim như mô tả, diễn viên, thời lượng.
+	Xem trailer phim
+	Cho phép người dùng xem trailer phim trực tiếp trên hệ thống.
+	Hiển thị phim sắp chiếu
+	Hiển thị danh sách các phim sẽ được công chiếu trong tương lai.
+	Hiển thị tin tức
+	Hiển thị danh sách các tin tức về phim, rạp, hoặc các thông báo quan trọng.
+	Hiển thị festival
+	Hiển thị danh sách các lễ hội phim hiện đang diễn ra.
+	Hiển thị chi tiết festival
+	Hiển thị thông tin chi tiết về festival như lịch trình, tin tức liên quan.
+	Hiển thị giá vé
+	Hiển thị danh sách giá vé và các loại vé theo rạp, thời gian chiếu.
+	
+
+2. Chức năng của users:
+Mô tả: Chức năng dành cho người dùng đã đăng ký và đăng nhập vào hệ thống.
+
+
+Tên chức năng 
+	Mô tả
+	Quản lý thông tin
+	Cho phép người dùng quản lý tài khoản cá nhân.
+	Logout
+	Đăng xuất khỏi hệ thống.
+	Cập nhật thông tin
+	Cập nhật thông tin cá nhân như tên, số điện thoại,...
+	Thay đổi mật khẩu
+	Đổi mật khẩu tài khoản.
+	Lựa chọn lịch chiếu phim
+	Cho phép người dùng chọn lịch chiếu cụ thể của bộ phim.
+	Lựa chọn phim
+	Cho phép người dùng chọn phim đang có lịch chiếu
+	Lựa chọn ghế ngồi
+	Hiển thị sơ đồ ghế và cho phép chọn ghế ngồi còn trống.
+	Lựa chọn phương thức thanh toán
+	Người dùng chọn phương thức thanh toán như thẻ tín dụng, ví điện tử.
+	Hoàn tất đặt vé
+	Xác nhận đặt vé, gửi email thông báo hoặc hóa đơn điện tử.
+	Xem lại đơn đặt vé
+	Hiển thị danh sách các đơn đặt vé trước đây.
+	
+
+3. Chức năng của admin:
+Mô tả: Chức năng quản lý toàn bộ hệ thống, chỉ dành cho người có quyền quản trị.
+
+
+Tên chức năng
+	Mô tả
+	Thống kê
+	* Thống kế người dùng (hoạt động, khóa)
+* Thống kê phim (đang chiếu, sắp chiếu, doanh thu,...)
+* Thống kê doanh thu (theo ngày/tháng/năm)
+* Thống kê vé (số vé đã bán, số lượng từng rạp, từng phim)
+* Thống kê tin tức và sự kiện
+* Thống kê nhà cung cấp (doanh thu theo nhà phỏng vấn)
+	Quản lý users
+	Hiển thị danh sách người dùng, tìm kiếm, sắp xếp, phân trang, thay đổi trạng thái user.
+	Quản lý banners
+	Hiển thị, thêm mới, xóa banners quảng cáo.
+	Quản lý theaters
+	Hiển thị, thêm mới, cập nhật, xóa thông tin rạp chiếu phim.
+	Quản lý screens
+	Quản lý màn hình chiếu phim: hiển thị, thêm mới, cập nhật, xóa.
+	Quản lý genre
+	Quản lý thể loại phim: hiển thị, thêm mới, cập nhật, xóa.
+	Quản lý movie
+	Quản lý phim: hiển thị, thêm mới, cập nhật, xóa phim và thông tin liên quan.
+	Quản lý seat
+	Quản lý sơ đồ ghế ngồi của rạp: hiển thị, thêm mới, cập nhật, xóa.
+	Quản lý booking
+	Hiển thị danh sách đặt vé, chi tiết vé, thay đổi trạng thái đặt vé.
+	Quản lý ticket_price
+	Quản lý giá vé: hiển thị, thêm mới, cập nhật, xóa giá vé.
+	Quản lý festival
+	Hiển thị, thêm mới, cập nhật, xóa festival.
+	Quản lý news
+	Hiển thị, thêm mới, cập nhật, xóa tin tức.
+	Quản lý nhà cung cấp thanh toán
+	Hiển thị danh sách nhà cung cấp, thêm mới, xóa nhà cung cấp thanh toán.
+	
+
+4. Viết Unit Test:
+
+
+TÊN CHỨC NĂNG
+	MÔ TẢ
+	Viết Unit Test đăng ký
+	* Test đăng ký thành công.
+* Test đăng ký với email trùng lặp.
+* Test đăng ký với dữ liệu trống hoặc không hợp lệ.
+	Viết Unit Test đăng nhập
+	* Test đăng nhập thành công.
+* Test đăng nhập với sai mật khẩu.
+* Test đăng nhập với tài khoản bị khóa.
+	Viết Unit Test cập nhật thông tin người dùng
+	* Test cập nhật thông tin hợp lệ.
+* Test cập nhật thông tin với quyền không đủ.
+* Test cập nhật với dữ liệu không hợp lệ.
+	Viết Unit Test thay đổi mật khẩu
+	* Test thay đổi mật khẩu thành công.
+* Test mật khẩu cũ không khớp.
+* Test mật khẩu mới không hợp lệ.
+	Viết Unit Test đăng xuất
+	* Test đăng xuất thành công.
+* Test đăng xuất với session đã hết hạn.
+	Viết Unit Test chức năng phim
+	* Hiển thị danh sách phim
+* Hiển thị chi tiết phim
+* Xem trailer phim
+	Viết Unit Test chức năng đặt vé
+	* Lựa chọn lịch chiếu phim
+* Lựa chọn ghế ngồi
+* Lựa chọn phương thức thanh toán
+* Hoàn tất đặt vé
+* Xem lại đơn đặt vé
+	Viết Unit Test Thống kế
+	* Thống kê người dùng
+* Thống kê phim
+* Thống kê doanh thu
+* Thống kê vé
+* Thống kê nhà cung cấp thanh toán
+	Viết Unit Test Chức năng quản lý
+	* Quản lý user
+* Quản lý banner
+* Quản lý rạp chiếu (theaters)
+* Quản lý giá vé
+	Viết Unit Test Phân trang, tìm kiếm, sắp xếp
+	* Phân trang
+   * Test hiển thị dữ liệu đúng theo trang.
+   * Test phản hồi khi số trang vượt quá giới hạn.
+* Sắp xếp
+   * Test sắp xếp tăng/giảm theo cột.
+   * Test khi cột không hợp lệ.
+* Tìm kiếm
+   * Test tìm kiếm trả về kết quả đúng.
+   * Test tìm kiếm không có kết quả.
+	
+
+
+
+4. Yêu cầu phi chức năng (Non-Functional requirements):
+1. Hiệu suất hệ thống (Performance Requirements)
+Mô tả:
+Hệ thống phải đáp ứng hiệu suất cao để đảm bảo trải nghiệm người dùng mượt mà ngay cả trong các thời điểm truy cập cao điểm.
+Yêu cầu cụ thể:
+1. Thời gian phản hồi:
+* Trang chủ: Tải trong vòng 2 giây ngay cả khi có tối đa 1.000 người dùng truy cập đồng thời.
+* Tìm kiếm phim: Trả kết quả trong vòng 1 giây.
+2. Xử lý giao dịch thanh toán:
+* Hoàn thành trong vòng 5 giây kể từ khi xác nhận phương thức thanh toán.
+3. Lượng truy cập đồng thời:
+* Hệ thống phải hỗ trợ tối thiểu 1.000 người dùng đồng thời trong giai đoạn bình thường và 10.000 người dùng đồng thời trong giai đoạn cao điểm.
+2. Bảo mật (Security Requirements)
+Mô tả:
+Hệ thống phải đảm bảo an toàn dữ liệu cá nhân và giao dịch của người dùng.
+Yêu cầu cụ thể:
+1. Xác thực và phân quyền
+* Tất cả thông tin đăng nhập của người dùng (mật khẩu) phải được mã hóa bằng bcrypt hoặc thuật toán tương đương.
+* Người dùng chỉ được truy cập các chức năng phù hợp với quyền của mình. Ví dụ:
+   * Người dùng thường không được truy cập chức năng quản trị.
+   * Quản trị viên có quyền thêm, xóa, cập nhật dữ liệu.
+2. Bảo mật thanh toán:
+* Giao dịch phải được mã hóa qua SSL/TLS để bảo vệ dữ liệu.
+* Không lưu trữ trực tiếp thông tin thẻ tín dụng hoặc thông tin nhạy cảm khác.
+3. Chống tấn công:
+* Hệ thống phải có cơ chế chống lại các cuộc tấn công phổ biến như:
+   * SQL Injection: Sử dụng ORM để tránh thao tác trực tiếp với SQL.
+   * Cross-Site Scripting (XSS): Lọc và kiểm tra dữ liệu nhập từ người dùng.
+   * Cross-Site Request Forgery (CSRF): Sử dụng token CSRF cho các yêu cầu quan trọng.
+3. Tính khả dụng (Availability Requirements)
+Mô tả:
+Hệ thống phải luôn sẵn sàng phục vụ người dùng trong mọi thời điểm, đặc biệt là vào các giờ cao điểm.
+Yêu cầu cụ thể:
+1. Thời gian sẵn sàng:
+* Hệ thống phải hoạt động 24/7 với thời gian chết tối đa không quá 4 giờ/tháng.
+2. Sao lưu dữ liệu:
+* Sao lưu tự động thực hiện hàng ngày.
+* Dữ liệu sao lưu phải được lưu trữ ở ít nhất 2 vị trí khác nhau.
+3. Khôi phục dữ liệu:
+* Hệ thống phải khôi phục trong vòng 30 phút sau khi xảy ra sự cố.
+4. Khả năng mở rộng (Scalability Requirements)
+Mô tả:
+Hệ thống phải được thiết kế linh hoạt để dễ dàng mở rộng khi nhu cầu sử dụng tăng cao.
+Yêu cầu cụ thể:
+1. Hỗ trợ tăng lượng người dùng:
+* Dễ dàng mở rộng để hỗ trợ 10.000 người dùng đồng thời trong các dịp cao điểm.
+2. Mở rộng chức năng:
+* Hệ thống phải dễ dàng tích hợp thêm các tính năng như bán đồ ăn, nước uống kèm vé hoặc tích hợp với các đối tác mới.
+5. Khả năng tương thích (Compatibility Requirements)
+Mô tả:
+Hệ thống phải hoạt động tốt trên nhiều nền tảng khác nhau để đáp ứng tối đa trải nghiệm người dùng.
+Yêu cầu cụ thể:
+1. Thiết bị hỗ trợ:
+* Hoạt động tốt trên cả desktop, tablet, và điện thoại di động.
+2. Trình duyệt hỗ trợ:
+* Hỗ trợ các trình duyệt phổ biến như Chrome, Firefox, Safari, và Edge.
+3. Tích hợp thanh toán:
+* Hỗ trợ tích hợp với các cổng thanh toán phổ biến như VNPay, PayPal, Stripe.
+6. Tính dễ sử dụng (Usability Requirements)
+Mô tả:
+Giao diện thân thiện, dễ sử dụng giúp người dùng dễ dàng làm quen với hệ thống.
+Yêu cầu cụ thể:
+1. Giao diện người dùng:
+* Thiết kế trực quan, dễ sử dụng với thời gian làm quen không quá 10 phút.
+* Hỗ trợ tính năng hướng dẫn sử dụng cho người mới.
+2. Đa ngôn ngữ:
+* Hỗ trợ ít nhất Tiếng Việt và Tiếng Anh.
+7. Yêu cầu bảo trì (Maintainability Requirements)
+Mô tả:
+Hệ thống phải dễ dàng bảo trì và cập nhật để phù hợp với các thay đổi trong tương lai.
+Yêu cầu cụ thể:
+1. Dễ dàng nâng cấp:
+* Thêm mới hoặc sửa đổi tính năng không làm ảnh hưởng đến các chức năng khác của hệ thống.
+2. Theo dõi lỗi:
+* Tích hợp công cụ theo dõi lỗi như Sentry để ghi nhận và cảnh báo lỗi.
+8. Tuân thủ quy định (Compliance Requirements)
+Mô tả:
+Hệ thống phải tuân thủ các quy định pháp luật và tiêu chuẩn bảo mật thông tin.
+Yêu cầu cụ thể:
+1. Quy định pháp luật:
+* Tuân thủ luật bảo vệ dữ liệu cá nhân (VD: GDPR nếu hệ thống có người dùng từ EU).
+2. Tiêu chuẩn bảo mật:
+* Tuân thủ tiêu chuẩn bảo mật PCI DSS cho các giao dịch thanh toán.
+
+
+5. Yêu cầu về cơ sở dữ liệu (Database requirements):
+   1. Mô hình cơ sở dữ liệu (Database model):
+link diagram: https://dbdiagram.io/d/movie_booking-67524d99e9daa85acad649cf
+
+
+link thông tin bảng: https://docs.google.com/spreadsheets/d/1WKSGkAjk_cPGPjvYPhIHDwtNBuWWzuoOPo5OKEKDq0Q/edit?usp=sharing
+
+
+
+
+   2. Các thao kịch bản (use case):
+1. Kịch bản vãng lai (guest):
+  
+
+2. Kịch bản người dùng (customers):
+  
+
+3. Kịch bản quản trị viên (admin):
+  
+
+
+
+6. Yêu cầu tích hợp với các hệ thống khác (Integration requirements with other systems):
+   1. Tích hợp hệ thống thanh toán (Payment system integration):
+Mô tả:
+Hệ thống đặt vé xem phim cần tích hợp các cổng thanh toán trực tuyến để hỗ trợ người dùng thực hiện giao dịch nhanh chóng, an toàn và tiện lợi. Việc tích hợp các hệ thống thanh toán là yếu tố quan trọng nhằm nâng cao trải nghiệm người dùng và đảm bảo khả năng xử lý thanh toán cho các đơn đặt vé.
+
+
+Yêu cầu cụ thể:
+1. Các cổng thanh toán hỗ trợ:
+Hệ thống cần hỗ trợ tích hợp với các cổng thanh toán phổ biến như:
+* VNPay: Hỗ trợ thanh toán qua mã QR, thẻ ngân hàng nội địa, thẻ quốc tế.
+* PayPal: Đáp ứng nhu cầu thanh toán quốc tế.
+* Stripe: Hỗ trợ các thẻ tín dụng như Visa, Mastercard.
+* MoMo: Tích hợp ví điện tử cho thị trường Việt Nam.
+
+
+2. Tính năng cần có trong tích hợp thanh toán:
+* Xác nhận giao dịch:
+   * Hệ thống cần nhận phản hồi từ cổng thanh toán để xác nhận rằng giao dịch đã thành công hoặc thất bại.
+* Quản lý trạng thái giao dịch:
+   * Lưu trữ trạng thái giao dịch trong hệ thống (chờ xử lý, thành công, thất bại).
+* Hoàn tiền (Refund):
+   * Cho phép hoàn tiền một phần hoặc toàn bộ trong trường hợp người dùng hủy vé hoặc giao dịch không thành công.
+* Kiểm tra lịch sử thanh toán:
+   * Người dùng có thể xem chi tiết lịch sử các giao dịch đã thực hiện.
+
+
+3. Bảo mật trong thanh toán:
+* Mã hóa dữ liệu:
+   * Dữ liệu thanh toán phải được mã hóa qua SSL/TLS để đảm bảo an toàn.
+* Tokenization:
+   * Không lưu trữ thông tin thẻ tín dụng trực tiếp, sử dụng token để đại diện cho dữ liệu nhạy cảm.
+* Xác thực giao dịch:
+   * Hỗ trợ OTP hoặc các phương thức xác thực hai lớp (2FA) nếu cổng thanh toán yêu cầu.
+* Tuân thủ tiêu chuẩn:
+   * Đảm bảo tuân thủ tiêu chuẩn PCI DSS trong xử lý giao dịch thẻ tín dụng.
+
+
+4. Quy trình tích hợp thanh toán:
+* Bước 1: Người dùng chọn phương thức thanh toán
+   * Hiển thị danh sách các cổng thanh toán được hỗ trợ.
+* Bước 2: Chuyển tiếp đến cổng thanh toán
+   * Người dùng được chuyển hướng đến giao diện của cổng thanh toán để nhập thông tin và xác nhận.
+* Bước 3: Xác nhận từ cổng thanh toán
+   * Sau khi hoàn tất giao dịch, cổng thanh toán gửi thông báo trạng thái (thành công, thất bại) đến hệ thống qua callback URL.
+* Bước 4: Cập nhật trạng thái đơn đặt vé
+   * Hệ thống cập nhật trạng thái đơn đặt vé dựa trên phản hồi từ cổng thanh toán.
+
+
+5. Kiểm thử hệ thống thanh toán:
+* Môi trường kiểm thử (Sandbox):
+   * Sử dụng môi trường kiểm thử do các cổng thanh toán cung cấp để đảm bảo tích hợp đúng quy trình.
+* Kiểm tra các trường hợp:
+   * Thanh toán thành công.
+   * Thanh toán thất bại.
+   * Hoàn tiền một phần/toàn bộ.
+   * Xử lý lỗi khi không nhận được phản hồi từ cổng thanh toán.
+
+
+6. Tài liệu và hỗ trợ từ cổng thanh toán:
+* API Documentation: Đọc kỹ tài liệu API của từng cổng thanh toán để triển khai tích hợp.
+* Hỗ trợ kỹ thuật: Liên hệ với đội ngũ hỗ trợ của cổng thanh toán nếu gặp vấn đề trong tích hợp hoặc sử dụng.
+
+
+   2. Tích hợp hệ thống email (Email system integration):
+Mô tả:
+Hệ thống đặt vé xem phim cần tích hợp với một dịch vụ gửi email để thực hiện các nhiệm vụ liên quan đến việc giao tiếp với người dùng. Việc tích hợp này đảm bảo các thông báo quan trọng được gửi kịp thời và chính xác, giúp cải thiện trải nghiệm khách hàng và nâng cao hiệu quả quản lý thông tin.
+
+
+Yêu cầu cụ thể:
+1. Chức năng chính của tích hợp email:
+* Gửi email xác thực tài khoản:
+   * Khi người dùng đăng ký tài khoản mới, hệ thống sẽ tự động gửi email xác nhận với mã OTP hoặc liên kết để kích hoạt tài khoản.
+* Thông báo đặt vé thành công:
+   * Gửi thông tin chi tiết về vé đã đặt (tên phim, ngày, giờ chiếu, rạp chiếu, số ghế, mã đặt vé) đến email của người dùng ngay sau khi đặt vé.
+* Nhắc nhở lịch chiếu:
+   * Hệ thống sẽ gửi email nhắc nhở người dùng về lịch chiếu trước một khoảng thời gian (ví dụ: 2 giờ hoặc 1 ngày).
+* Thông báo hủy vé:
+   * Khi người dùng hủy vé, hệ thống sẽ gửi email xác nhận hủy vé thành công, bao gồm chi tiết giao dịch hoàn tiền (nếu có).
+* Quảng bá sự kiện và khuyến mãi:
+   * Gửi email thông báo về các chương trình khuyến mãi, sự kiện đặc biệt hoặc festival liên quan đến phim ảnh.
+
+
+2. Dịch vụ email được sử dụng
+* Hệ thống sẽ tích hợp với một trong các dịch vụ email phổ biến như:
+   * SMTP Server (của Gmail, Outlook, Yahoo Mail, v.v.).
+   * Dịch vụ gửi email chuyên nghiệp như SendGrid, Mailgun, hoặc Amazon SES.
+
+
+3. Yêu cầu kỹ thuật
+* Định dạng email:
+   * Hỗ trợ định dạng HTML để có giao diện email đẹp mắt.
+   * Có tùy chọn gửi email văn bản thuần túy (plain text) để tương thích với mọi thiết bị.
+* Bảo mật:
+   * Sử dụng giao thức bảo mật như TLS/SSL để bảo vệ dữ liệu gửi đi.
+* Tần suất gửi email:
+   * Đảm bảo không gửi quá số lượng email được dịch vụ cung cấp cho phép mỗi ngày.
+
+
+4. Kiểm thử và vận hành
+* Kiểm tra khả năng gửi email chính xác (đúng địa chỉ, đúng nội dung).
+* Kiểm tra email không bị đánh dấu là spam.
+* Theo dõi lịch sử gửi email (log email) để xử lý lỗi nếu có.
+
+
+5. Khả năng mở rộng
+* Hỗ trợ nhiều ngôn ngữ trong nội dung email.
+* Cung cấp khả năng cá nhân hóa email dựa trên tên, thói quen người dùng, hoặc sự kiện đặc biệt.
+
+
+7. Các hạn chế và giả định (Constraints and assumptions):
+1. Các hạn chế (Constraints):
+   1. Hạn chế kỹ thuật
+* Hiệu năng: Hệ thống cần đảm bảo phản hồi nhanh trong thời gian tối đa 2 giây cho 95% các yêu cầu, kể cả trong giờ cao điểm.
+* Khả năng lưu trữ: Hệ thống bị giới hạn bởi dung lượng lưu trữ của máy chủ hiện tại. Các nội dung như hình ảnh, video sẽ được lưu tối đa 10 MB cho mỗi file.
+* Công nghệ: Hệ thống sử dụng công nghệ Node.js và cơ sở dữ liệu MySQL, không hỗ trợ các công nghệ khác trong phiên bản hiện tại.
+* Tích hợp: Các dịch vụ tích hợp (email, thanh toán) phụ thuộc vào bên thứ ba và sẽ chịu ảnh hưởng nếu các dịch vụ này gặp sự cố.
+   1. Hạn chế pháp lý
+* Quy định dữ liệu: Phải tuân thủ các quy định bảo vệ dữ liệu cá nhân như GDPR (nếu áp dụng).
+* Quyền riêng tư: Người dùng phải có quyền xóa dữ liệu cá nhân theo yêu cầu.
+   1. Hạn chế tài chính
+* Ngân sách: Ngân sách phát triển và vận hành hệ thống bị giới hạn, ảnh hưởng đến việc mở rộng chức năng trong tương lai.
+2. Giả định (Assumptions):
+   1. Giả định về người dùng
+* Người dùng sẽ có thiết bị có kết nối internet và sử dụng trình duyệt hiện đại hỗ trợ HTML5.
+* Người dùng sẽ cung cấp thông tin chính xác khi đăng ký và cập nhật tài khoản.
+* Người dùng sẽ tuân thủ các điều khoản sử dụng hệ thống, không cố tình phá hoại hoặc khai thác lỗ hổng bảo mật.
+   1. Giả định về hệ thống
+* Hệ thống sẽ hoạt động ổn định 99% thời gian (downtime tối đa 7 tiếng mỗi tháng).
+* Hệ thống sẽ phát triển thêm tính năng mới dựa trên phản hồi người dùng và nhu cầu thị trường trong tương lai.
+   1. Giả định về môi trường hoạt động
+* Hệ thống sẽ được triển khai trên máy chủ đám mây với môi trường hoạt động tiêu chuẩn (Linux, Node.js, MySQL).
+* Tất cả các dịch vụ bên thứ ba (như email, thanh toán) sẽ hoạt động ổn định và không gián đoạn.
+   1. Giả định về dữ liệu
+* Dữ liệu được lưu trữ trong hệ thống sẽ được sao lưu định kỳ và không mất mát dữ liệu do lỗi hệ thống.
+* Khách hàng chịu trách nhiệm kiểm tra và cập nhật dữ liệu cá nhân để đảm bảo tính chính xác

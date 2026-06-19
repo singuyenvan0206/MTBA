@@ -1,0 +1,199 @@
+@import "tailwindcss";
+@source "../components";
+:root {
+  /* Classic Dark Theme (Matches original #0a0a0a and #1a1a1a) */
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --card-bg: #1a1a1a;
+  --card-border: #333333;
+  --primary: #ff4d4f;
+  --primary-hover: #d9363e;
+  --table-hover: #222222;
+  --text-muted: #888888;
+}
+
+:root.light-mode {
+  /* Classic Light Theme */
+  --background: #f4f6f9;
+  --foreground: #333333;
+  --card-bg: #ffffff;
+  --card-border: #dddddd;
+  --primary: #ff4d4f;
+  --primary-hover: #d9363e;
+  --table-hover: #f9f9f9;
+  --text-muted: #888888;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Roboto', Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Classic Admin Components */
+.premium-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.premium-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.premium-table th {
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 15px;
+  border-bottom: 1px solid var(--card-border);
+  text-align: left;
+}
+
+.premium-table td {
+  padding: 15px;
+  border-bottom: 1px solid var(--card-border);
+  transition: background-color 0.2s ease;
+}
+
+.premium-table tr:hover td {
+  background-color: var(--table-hover);
+}
+
+/* Inputs and Forms */
+.premium-input {
+  width: 100%;
+  background-color: var(--background);
+  border: 1px solid var(--card-border);
+  color: var(--foreground);
+  padding: 10px 15px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.premium-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Button Premium */
+.btn-premium {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-premium:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Base custom classes to match old legacy design */
+body.light-mode .movie-card, body.light-mode .showtime-card, body.light-mode .theater-card, body.light-mode .auth-card, body.light-mode .pos-card {
+  background-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  color: #333333;
+  border: 1px solid #eeeeee;
+}
+
+/* Custom Auth Layout (Bypass Tailwind) */
+.auth-card-custom {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 40px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  margin: 0 auto;
+}
+
+.auth-title-custom {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #ff4d4f;
+  text-transform: uppercase;
+}
+
+.auth-subtitle-custom {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.auth-form-group {
+  margin-bottom: 20px;
+  position: relative;
+  text-align: left;
+}
+
+.auth-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.auth-input-custom {
+  width: 100%;
+  padding: 14px 15px;
+  background-color: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--foreground);
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.auth-input-custom:focus {
+  outline: none;
+  border-color: #ff4d4f;
+}
+
+.auth-actions-custom {
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.auth-btn-custom {
+  width: 100%;
+  padding: 14px 20px;
+  background-color: #ff4d4f;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.auth-btn-custom:hover {
+  background-color: #e6393b;
+}
+
+.auth-links-custom {
+  text-align: center;
+  font-size: 15px;
+  color: var(--text-muted);
+}
