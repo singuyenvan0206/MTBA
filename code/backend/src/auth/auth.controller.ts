@@ -1,13 +1,40 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { RolesGuard } from './roles.guard';
+import { Roles } from './roles.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // --- CÁC ENDPOINT TEST MIDDLEWARE ---
+  @Get('test-admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin') // Chỉ admin mới được vào
+  testAdmin() {
+    return { message: 'Chúc mừng! Bạn đã lọt qua vòng bảo vệ với tư cách là ADMIN.' };
+  }
+
+  @Get('test-user')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user', 'admin') // Ai đăng nhập (user hoặc admin) cũng được vào
+  testUser() {
+    return { message: 'Thành công! Bạn đã gọi được API với tư cách là USER (Khách hàng).' };
+  }
+  // ------------------------------------
+
   @Post('login')
   login(@Body() body: { emailOrPhone: string; password: string }) {
     return this.authService.login(body.emailOrPhone, body.password);
+  }
+
+  @Post('refresh-token')
+  refreshToken(@Body() body: { refreshToken: string }) {
+    if (!body.refreshToken) {
+      throw new Error('Refresh token is required');
+    }
+    return this.authService.refreshToken(body.refreshToken);
   }
 
   @Post('register')

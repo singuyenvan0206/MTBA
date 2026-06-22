@@ -7,31 +7,31 @@ export class PricesService {
 
   async findAll() {
     try {
-      return await (this.prisma as any).ticketPrice.findMany({ orderBy: { id: 'desc' } });
-    } catch(e) { return []; }
+      return await this.prisma.ticketprice.findMany({ orderBy: { id: 'desc' } });
+    } catch(e) { console.error(e); return []; }
   }
 
   async findOne(id: number) {
     try {
-      return await (this.prisma as any).ticketPrice.findUnique({ where: { id } });
-    } catch(e) { return null; }
+      return await this.prisma.ticketprice.findUnique({ where: { id } });
+    } catch(e) { console.error(e); return null; }
   }
 
   async create(data: any) {
     try {
-      return await (this.prisma as any).ticketPrice.create({ data });
-    } catch(e) { return null; }
+      return await this.prisma.ticketprice.create({ data });
+    } catch(e) { console.error(e); return null; }
   }
 
   async update(id: number, data: any) {
     try {
-      return await (this.prisma as any).ticketPrice.update({ where: { id }, data });
-    } catch(e) { return null; }
+      return await this.prisma.ticketprice.update({ where: { id }, data });
+    } catch(e) { console.error(e); return null; }
   }
 
   async remove(id: number) {
     try {
-      return await (this.prisma as any).ticketPrice.delete({ where: { id } });
-    } catch(e) { return null; }
+      return await this.prisma.ticketprice.delete({ where: { id } });
+    } catch(e) { console.error(e); return null; }
   }
 }

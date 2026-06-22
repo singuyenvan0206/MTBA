@@ -81,6 +81,9 @@ export default function AdminLayout({
           <Link href="/admin/prices" style={{ display: 'block', padding: '15px 20px', textDecoration: 'none', fontWeight: 500, transition: 'all 0.3s', backgroundColor: pathname.startsWith('/admin/prices') ? 'rgba(255, 77, 79, 0.1)' : 'transparent', color: pathname.startsWith('/admin/prices') ? 'var(--primary)' : 'var(--text-muted)', borderRight: pathname.startsWith('/admin/prices') ? '3px solid var(--primary)' : 'none' }}>
             Quản lý Giá vé
           </Link>
+          <Link href="/admin/banners" style={{ display: 'block', padding: '15px 20px', textDecoration: 'none', fontWeight: 500, transition: 'all 0.3s', backgroundColor: pathname.startsWith('/admin/banners') ? 'rgba(255, 77, 79, 0.1)' : 'transparent', color: pathname.startsWith('/admin/banners') ? 'var(--primary)' : 'var(--text-muted)', borderRight: pathname.startsWith('/admin/banners') ? '3px solid var(--primary)' : 'none' }}>
+            Quản lý Banner
+          </Link>
           <Link href="/admin/festivals" style={{ display: 'block', padding: '15px 20px', textDecoration: 'none', fontWeight: 500, transition: 'all 0.3s', backgroundColor: pathname.startsWith('/admin/festivals') ? 'rgba(255, 77, 79, 0.1)' : 'transparent', color: pathname.startsWith('/admin/festivals') ? 'var(--primary)' : 'var(--text-muted)', borderRight: pathname.startsWith('/admin/festivals') ? '3px solid var(--primary)' : 'none' }}>
             Liên hoan phim
           </Link>
