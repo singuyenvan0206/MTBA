@@ -18,6 +18,26 @@ export default function Home() {
   const [banners, setBanners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+
+  // Tự động chuyển slide banner sau 10 giây
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [banners.length]);
+
+  const handleNextBanner = () => {
+    if (banners.length <= 1) return;
+    setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+  };
+
+  const handlePrevBanner = () => {
+    if (banners.length <= 1) return;
+    setCurrentBannerIndex((prev) => (prev - 1 + banners.length) % banners.length);
+  };
 
   useEffect(() => {
     // Fetch movies
@@ -53,11 +73,39 @@ export default function Home() {
 
   return (
     <main className="main-content">
-        <section className="hero-banner" id="hero-banner-container">
+        <section className="hero-banner" id="hero-banner-container" style={{ position: 'relative', overflow: 'hidden' }}>
             {banners.length > 0 ? (
-                <img src={banners[0].url} alt="Banner lớn" className="w-100" />
+                <>
+                  <div style={{ display: 'flex', transition: 'transform 0.5s ease-in-out', transform: `translateX(-${currentBannerIndex * 100}%)`, width: '100%' }}>
+                    {banners.map((banner, index) => (
+                      <div key={banner.id} style={{ minWidth: '100%', flexShrink: 0 }}>
+                        {banner.type === 'VIDEO' ? (
+                          <iframe width="100%" height="500px" src={banner.url} title="Banner Video" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ pointerEvents: 'none' }}></iframe>
+                        ) : (
+                          <img src={banner.url} alt={`Banner ${index}`} className="w-100" style={{ width: '100%', objectFit: 'cover' }} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {banners.length > 1 && (
+                    <>
+                      <button onClick={handlePrevBanner} style={{ position: 'absolute', top: '50%', left: '20px', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>❮</button>
+                      <button onClick={handleNextBanner} style={{ position: 'absolute', top: '50%', right: '20px', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>❯</button>
+                      
+                      <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', zIndex: 10 }}>
+                        {banners.map((_, idx) => (
+                          <button 
+                            key={idx} 
+                            onClick={() => setCurrentBannerIndex(idx)}
+                            style={{ width: '12px', height: '12px', borderRadius: '50%', border: 'none', backgroundColor: idx === currentBannerIndex ? '#ff4d4f' : 'rgba(255,255,255,0.5)', cursor: 'pointer', transition: 'background-color 0.3s' }}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
             ) : (
-                <img src="https://phimmoichills.net/wp-content/uploads/2024/05/hien-vien-kiem-han-chi-van.jpg" alt="Cinestar Banner" className="w-100" />
+                <img src="https://phimmoichills.net/wp-content/uploads/2024/05/hien-vien-kiem-han-chi-van.jpg" alt="Cinestar Banner" className="w-100" style={{ width: '100%', objectFit: 'cover' }} />
             )}
         </section>
 
