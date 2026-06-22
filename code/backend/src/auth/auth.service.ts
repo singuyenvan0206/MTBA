@@ -45,6 +45,11 @@ export class AuthService {
       ? 'admin'
       : 'user';
 
+    const jwt = require('jsonwebtoken');
+    const payload = { id: user.id, role: role };
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET || 'your_jwt_secret_key', { expiresIn: '15m' });
+    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || 'your_jwt_refresh_secret_key', { expiresIn: '7d' });
+
     return {
       id: user.id,
       fullName: `${user.first_name} ${user.last_name}`.trim(),
@@ -52,7 +57,22 @@ export class AuthService {
       phone: user.phone,
       avatar: user.avatar,
       role: role,
+      accessToken,
+      refreshToken
     };
+  }
+
+  async refreshToken(token: string) {
+    const jwt = require('jsonwebtoken');
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || 'your_jwt_refresh_secret_key');
+      const payload = { id: decoded.id, role: decoded.role };
+      const accessToken = jwt.sign(payload, process.env.JWT_SECRET || 'your_jwt_secret_key', { expiresIn: '15m' });
+      const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || 'your_jwt_refresh_secret_key', { expiresIn: '7d' });
+      return { accessToken, refreshToken };
+    } catch (e) {
+      throw new UnauthorizedException('Refresh token không hợp lệ hoặc đã hết hạn');
+    }
   }
 
   async register(data: any) {

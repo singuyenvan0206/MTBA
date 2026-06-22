@@ -10,6 +10,14 @@ export class AuthController {
     return this.authService.login(body.emailOrPhone, body.password);
   }
 
+  @Post('refresh-token')
+  refreshToken(@Body() body: { refreshToken: string }) {
+    if (!body.refreshToken) {
+      throw new Error('Refresh token is required');
+    }
+    return this.authService.refreshToken(body.refreshToken);
+  }
+
   @Post('register')
   register(@Body() body: any) {
     return this.authService.register(body);
