@@ -14,16 +14,105 @@ export default function Register() {
   });
   const [otpCode, setOtpCode] = useState('');
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: ''
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*@gmail\.com$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^(03|05|07|08|09)[0-9]{8}$/;
+    return phoneRegex.test(phone);
+  };
+
+  const validatePassword = (password: string): { isValid: boolean; error: string } => {
+    if (password.length < 6) {
+      return { isValid: false, error: 'Mật khẩu phải có ít nhất 6 ký tự' };
+    }
+    if (!/[A-Z]/.test(password)) {
+      return { isValid: false, error: 'Mật khẩu phải có ít nhất 1 chữ hoa' };
+    }
+    if (!/[a-z]/.test(password)) {
+      return { isValid: false, error: 'Mật khẩu phải có ít nhất 1 chữ thường' };
+    }
+    if (!/[0-9]/.test(password)) {
+      return { isValid: false, error: 'Mật khẩu phải có ít nhất 1 số' };
+    }
+    return { isValid: true, error: '' };
+  };
+
+  const validateFullName = (name: string): { isValid: boolean; error: string } => {
+    if (!name.trim()) {
+      return { isValid: false, error: 'Họ và tên không được để trống' };
+    }
+    if (name.trim().length < 2) {
+      return { isValid: false, error: 'Họ và tên phải có ít nhất 2 ký tự' };
+    }
+    if (name.trim().length > 50) {
+      return { isValid: false, error: 'Họ và tên không được quá 50 ký tự' };
+    }
+    if (!/^[\p{L}\s]+$/u.test(name)) {
+      return { isValid: false, error: 'Họ và tên chỉ được chứa chữ cái và khoảng trắng' };
+    }
+    return { isValid: true, error: '' };
+  };
+
   const handleStep1 = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({ fullName: '', email: '', phone: '', password: '', confirmPassword: '' });
 
+    // Validate full name
+    const nameValidation = validateFullName(formData.fullName);
+    if (!nameValidation.isValid) {
+      setFieldErrors(prev => ({ ...prev, fullName: nameValidation.error }));
+      return;
+    }
+
+    // Validate email
+    if (!formData.email) {
+      setFieldErrors(prev => ({ ...prev, email: 'Email không được để trống' }));
+      return;
+    }
+    if (!validateEmail(formData.email)) {
+      setFieldErrors(prev => ({ ...prev, email: 'Email không đúng định dạng' }));
+      return;
+    }
+
+    // Validate phone
+    if (!formData.phone) {
+      setFieldErrors(prev => ({ ...prev, phone: 'Số điện thoại không được để trống' }));
+      return;
+    }
+    if (!validatePhone(formData.phone)) {
+      setFieldErrors(prev => ({ ...prev, phone: 'Số điện thoại không đúng định dạng (10 số, bắt đầu bằng 03, 05, 07, 08, 09)' }));
+      return;
+    }
+
+    // Validate password
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      setFieldErrors(prev => ({ ...prev, password: passwordValidation.error }));
+      return;
+    }
+
+    // Validate confirm password
+    if (!formData.confirmPassword) {
+      setFieldErrors(prev => ({ ...prev, confirmPassword: 'Vui lòng nhập lại mật khẩu' }));
+      return;
+    }
     if (formData.password !== formData.confirmPassword) {
-      setError('Mật khẩu nhập lại không khớp');
+      setFieldErrors(prev => ({ ...prev, confirmPassword: 'Mật khẩu nhập lại không khớp' }));
       return;
     }
 
@@ -96,11 +185,18 @@ export default function Register() {
                 <input 
                   type="text" 
                   value={formData.fullName}
-                  onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                  onChange={(e) => {
+                    setFormData({...formData, fullName: e.target.value});
+                    if (fieldErrors.fullName) {
+                      setFieldErrors(prev => ({ ...prev, fullName: '' }));
+                    }
+                  }}
                   placeholder="Nhập họ và tên"
-                  className="auth-input-custom" 
+                  className={`auth-input-custom ${fieldErrors.fullName ? 'border-red-500' : ''}`}
+                  style={{ borderColor: fieldErrors.fullName ? '#ff4d4f' : undefined }}
                   required 
                 />
+                {fieldErrors.fullName && <p className="text-[#ff4d4f] text-xs mt-1">{fieldErrors.fullName}</p>}
               </div>
 
               <div className="auth-form-group">
@@ -108,11 +204,18 @@ export default function Register() {
                 <input 
                   type="email" 
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(e) => {
+                    setFormData({...formData, email: e.target.value});
+                    if (fieldErrors.email) {
+                      setFieldErrors(prev => ({ ...prev, email: '' }));
+                    }
+                  }}
                   placeholder="Nhập email"
-                  className="auth-input-custom" 
+                  className={`auth-input-custom ${fieldErrors.email ? 'border-red-500' : ''}`}
+                  style={{ borderColor: fieldErrors.email ? '#ff4d4f' : undefined }}
                   required 
                 />
+                {fieldErrors.email && <p className="text-[#ff4d4f] text-xs mt-1">{fieldErrors.email}</p>}
               </div>
 
               <div className="auth-form-group">
@@ -120,11 +223,18 @@ export default function Register() {
                 <input 
                   type="tel" 
                   value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  onChange={(e) => {
+                    setFormData({...formData, phone: e.target.value});
+                    if (fieldErrors.phone) {
+                      setFieldErrors(prev => ({ ...prev, phone: '' }));
+                    }
+                  }}
                   placeholder="Nhập số điện thoại"
-                  className="auth-input-custom" 
+                  className={`auth-input-custom ${fieldErrors.phone ? 'border-red-500' : ''}`}
+                  style={{ borderColor: fieldErrors.phone ? '#ff4d4f' : undefined }}
                   required 
                 />
+                {fieldErrors.phone && <p className="text-[#ff4d4f] text-xs mt-1">{fieldErrors.phone}</p>}
               </div>
               
               <div className="auth-form-group">
@@ -133,9 +243,15 @@ export default function Register() {
                   <input 
                     type={showPassword ? "text" : "password"} 
                     value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    onChange={(e) => {
+                      setFormData({...formData, password: e.target.value});
+                      if (fieldErrors.password) {
+                        setFieldErrors(prev => ({ ...prev, password: '' }));
+                      }
+                    }}
                     placeholder="Nhập mật khẩu"
-                    className="auth-input-custom pr-[45px]" 
+                    className={`auth-input-custom pr-[45px] ${fieldErrors.password ? 'border-red-500' : ''}`}
+                    style={{ borderColor: fieldErrors.password ? '#ff4d4f' : undefined }}
                     required 
                   />
                   <button 
@@ -147,6 +263,7 @@ export default function Register() {
                     {showPassword ? 'Ẩn' : 'Hiện'}
                   </button>
                 </div>
+                {fieldErrors.password && <p className="text-[#ff4d4f] text-xs mt-1">{fieldErrors.password}</p>}
               </div>
 
               <div className="auth-form-group">
@@ -155,9 +272,15 @@ export default function Register() {
                   <input 
                     type={showConfirmPassword ? "text" : "password"} 
                     value={formData.confirmPassword}
-                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                    onChange={(e) => {
+                      setFormData({...formData, confirmPassword: e.target.value});
+                      if (fieldErrors.confirmPassword) {
+                        setFieldErrors(prev => ({ ...prev, confirmPassword: '' }));
+                      }
+                    }}
                     placeholder="Nhập lại mật khẩu"
-                    className="auth-input-custom pr-[45px]" 
+                    className={`auth-input-custom pr-[45px] ${fieldErrors.confirmPassword ? 'border-red-500' : ''}`}
+                    style={{ borderColor: fieldErrors.confirmPassword ? '#ff4d4f' : undefined }}
                     required 
                   />
                   <button 
@@ -169,6 +292,7 @@ export default function Register() {
                     {showConfirmPassword ? 'Ẩn' : 'Hiện'}
                   </button>
                 </div>
+                {fieldErrors.confirmPassword && <p className="text-[#ff4d4f] text-xs mt-1">{fieldErrors.confirmPassword}</p>}
               </div>
 
               <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>
