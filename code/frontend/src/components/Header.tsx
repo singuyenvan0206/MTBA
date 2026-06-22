@@ -8,7 +8,7 @@ export default function Header() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('user');
+    const saved = localStorage.getItem('user') || sessionStorage.getItem('user');
     if (saved) {
       try { setUser(JSON.parse(saved)); } catch (e) {}
     }
@@ -42,7 +42,7 @@ export default function Header() {
                             <img src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=ff4d4f&color=fff`} alt="Avatar" style={{width: '35px', height: '35px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff4d4f'}} />
                             <span style={{color: 'var(--text-color)', fontWeight: 500}}>Hi, {user.fullName}</span>
                         </Link>
-                        <button className="btn btn-outline" onClick={() => { localStorage.removeItem('user'); window.location.href='/'; }}>Đăng xuất</button>
+                        <button className="btn btn-outline" onClick={() => { localStorage.removeItem('user'); sessionStorage.removeItem('user'); window.location.href='/'; }}>Đăng xuất</button>
                     </>
                 ) : (
                     <>

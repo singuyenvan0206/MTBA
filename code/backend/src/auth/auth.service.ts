@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as nodemailer from 'nodemailer';
-import * as bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcrypt';
 
 const otpStore = new Map<string, any>();
 

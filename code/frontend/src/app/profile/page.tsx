@@ -19,7 +19,7 @@ export default function Profile() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
     if (!storedUser) {
       router.push('/login');
       return;

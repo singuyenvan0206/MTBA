@@ -43,7 +43,7 @@ export default function Booking() {
 
   useEffect(() => {
     // Check login
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
     if (!storedUser) {
       setShowLoginModal(true);
       return;
