@@ -17,7 +17,12 @@ export default function AdminDashboard() {
       fetch('/api/users').then(res => res.json()).catch(() => []),
       fetch('/api/payments').then(res => res.json()).catch(() => [])
     ]).then(([movies, bookings, users, payments]) => {
-      const totalRevenue = Array.isArray(payments) ? payments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) : 0;
+      const totalRevenue = Array.isArray(payments) ? payments.reduce((sum: number, p: any) => {
+        if (p.payment_status === 'COMPLETED') {
+          return sum + (p.amount || 0);
+        }
+        return sum;
+      }, 0) : 0;
       setStats({
         movies: Array.isArray(movies) ? movies.length : 0,
         bookings: Array.isArray(bookings) ? bookings.length : 0,

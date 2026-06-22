@@ -26,7 +26,7 @@ export default function Payment() {
           booking_id: parseInt(bookingId as string),
           payment_method: method,
           payment_status: 'COMPLETED',
-          amount: booking.total_price || 0
+          amount: booking.total_price_movie || 0
         })
       });
 
@@ -54,11 +54,12 @@ export default function Payment() {
             {/* Cột trái: Thông tin vé */}
             <div className="left-column" style={{ flex: 2 }}>
                 <div className="payment-card" style={{ backgroundColor: 'var(--card-bg)', padding: '30px', borderRadius: '10px', border: '1px solid var(--card-border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', borderBottom: '1px solid #333', paddingBottom: '20px' }}>
-                        <img src={booking.movie?.posterUrl || "https://placehold.co/100x150"} alt="Poster" style={{ width: '100px', borderRadius: '5px' }} />
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', borderBottom: '1px solid #333', paddingBottom: '20px' }}>
+                        <img src={booking.showtime?.movie?.image || "https://placehold.co/100x150"} alt="Poster" style={{ width: '120px', height: '180px', objectFit: 'cover', borderRadius: '8px' }} />
                         <div>
-                            <h2 style={{ fontSize: '24px', margin: 0 }}>{booking.movie?.title || 'Spider-Man'}</h2>
-                            <p style={{ color: '#ff4d4f', margin: '5px 0' }}>{booking.movie?.type || '2D Phụ đề'}</p>
+                            <h2 style={{ fontSize: '24px', margin: 0, color: '#fff' }}>{booking.showtime?.movie?.title || 'Phim đã xóa'}</h2>
+                            <p style={{ color: '#ff4d4f', margin: '5px 0', fontWeight: 'bold' }}>{booking.showtime?.movie?.type || 'TYPE_2D'}</p>
+                            <p style={{ color: '#888', margin: '10px 0 0 0', fontSize: '14px' }}>Thời gian đặt: {new Date(booking.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                         </div>
                     </div>
                     <div className="info-grid mt-40" style={{ marginTop: '20px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
@@ -68,15 +69,21 @@ export default function Payment() {
                         </div>
                         <div className="info-col">
                             <p className="label" style={{ color: '#888', fontSize: '14px', margin: 0 }}>Ngày giờ chiếu</p>
-                            <p className="value" style={{ fontWeight: 'bold', fontSize: '16px', margin: 0 }}>19:00 - Hôm nay</p>
+                            <p className="value" style={{ fontWeight: 'bold', fontSize: '16px', margin: 0 }}>{booking.showtime ? new Date(booking.showtime.start_time).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'}</p>
                         </div>
                         <div className="info-col">
                             <p className="label" style={{ color: '#888', fontSize: '14px', margin: 0 }}>Ghế</p>
-                            <p className="value" style={{ fontWeight: 'bold', fontSize: '16px', margin: 0 }}>VIP</p>
+                            <p className="value" style={{ fontWeight: 'bold', fontSize: '16px', margin: 0, wordBreak: 'break-word' }}>
+                                {booking.bookingseat?.map((bs: any) => bs.seat?.seat_number).join(', ') || 'N/A'}
+                            </p>
+                        </div>
+                        <div className="info-col">
+                            <p className="label" style={{ color: '#888', fontSize: '14px', margin: 0 }}>Cụm rạp</p>
+                            <p className="value" style={{ fontWeight: 'bold', fontSize: '16px', margin: 0 }}>{booking.showtime?.screen?.theater?.name || 'N/A'}</p>
                         </div>
                         <div className="info-col">
                             <p className="label" style={{ color: '#888', fontSize: '14px', margin: 0 }}>Phòng chiếu</p>
-                            <p className="value" style={{ fontWeight: 'bold', fontSize: '16px', margin: 0 }}>RAP 1</p>
+                            <p className="value" style={{ fontWeight: 'bold', fontSize: '16px', margin: 0 }}>{booking.showtime?.screen?.name || 'N/A'}</p>
                         </div>
                     </div>
                 </div>
@@ -93,9 +100,9 @@ export default function Payment() {
                         </thead>
                         <tbody>
                             <tr>
-                                <td style={{ padding: '15px 0' }}>Ghế ({booking.id})</td>
-                                <td style={{ textAlign: 'center', padding: '15px 0' }}>1</td>
-                                <td style={{ textAlign: 'right', padding: '15px 0', fontWeight: 'bold' }}>{booking.total_price?.toLocaleString() || 0}đ</td>
+                                <td style={{ padding: '15px 0' }}>Ghế ngồi ({booking.bookingseat?.map((bs: any) => bs.seat?.seat_number).join(', ')})</td>
+                                <td style={{ textAlign: 'center', padding: '15px 0' }}>{booking.total_seat || 0}</td>
+                                <td style={{ textAlign: 'right', padding: '15px 0', fontWeight: 'bold' }}>{booking.total_price_movie?.toLocaleString() || 0}đ</td>
                             </tr>
                         </tbody>
                     </table>
@@ -119,15 +126,15 @@ export default function Payment() {
                     <div className="cost-summary" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         <div className="cost-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ color: '#888' }}>Thành tiền</span>
-                            <span style={{ fontWeight: 'bold' }}>{booking.total_price?.toLocaleString() || 0}đ</span>
+                            <span style={{ fontWeight: 'bold' }}>{booking.total_price_movie?.toLocaleString() || 0}đ</span>
                         </div>
                         <div className="cost-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ color: '#888' }}>Phí</span>
                             <span style={{ fontWeight: 'bold' }}>0đ</span>
                         </div>
-                        <div className="cost-row total" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #444', paddingTop: '15px', marginTop: '10px' }}>
-                            <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tổng cộng</span>
-                            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#ff4d4f' }}>{booking.total_price?.toLocaleString() || 0}đ</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderTop: '1px solid #444', marginTop: '10px' }}>
+                            <strong style={{ fontSize: '18px' }}>Tổng cộng:</strong>
+                            <strong style={{ fontSize: '20px', color: '#ff4d4f' }}>{booking.total_price_movie?.toLocaleString() || 0}đ</strong>
                         </div>
                     </div>
 

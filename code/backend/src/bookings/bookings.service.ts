@@ -66,8 +66,9 @@ export class BookingsService {
     return this.prisma.booking.findMany({
       include: {
         user: true,
-        showtime: { include: { movie: true, screen: true } },
+        showtime: { include: { movie: true, screen: { include: { theater: true } } } },
         bookingseat: { include: { seat: true } },
+        payment: true,
       },
       orderBy: { id: 'desc' },
     });
@@ -77,8 +78,9 @@ export class BookingsService {
     return this.prisma.booking.findMany({
       where: { user_id: userId },
       include: {
-        showtime: { include: { movie: true, screen: true } },
+        showtime: { include: { movie: true, screen: { include: { theater: true } } } },
         bookingseat: { include: { seat: true } },
+        payment: true,
       },
       orderBy: { id: 'desc' },
     });
@@ -111,9 +113,15 @@ export class BookingsService {
     return this.prisma.booking.findUnique({
       where: { id },
       include: {
-        showtime: { include: { movie: true, screen: true } },
+        showtime: { include: { movie: true, screen: { include: { theater: true } } } },
         bookingseat: { include: { seat: true } },
       },
+    });
+  }
+
+  async removeBooking(id: number) {
+    return this.prisma.booking.delete({
+      where: { id },
     });
   }
 }

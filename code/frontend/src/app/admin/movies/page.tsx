@@ -21,6 +21,10 @@ export default function AdminMovies() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [filterStatus, setFilterStatus] = useState<string>('');
+  const [filterAgeLimit, setFilterAgeLimit] = useState<string>('');
+
   const [showModal, setShowModal] = useState(false);
   const [genres, setGenres] = useState<any[]>([]);
   const [ageLimits, setAgeLimits] = useState<any[]>([]);
@@ -40,6 +44,7 @@ export default function AdminMovies() {
     ageLimit: '',
     trailer: ''
   });
+
 
   const fetchMovies = () => {
     fetch('/api/movies')
@@ -73,6 +78,7 @@ export default function AdminMovies() {
       posterUrl: '', type: 'TYPE_2D', description: '',
       author: '', actors: '', ageLimit: '', trailer: ''
     });
+
     setShowModal(true);
   };
 
@@ -91,6 +97,7 @@ export default function AdminMovies() {
       ageLimit: movie.ageLimit || '',
       trailer: movie.trailer || ''
     });
+
     setShowModal(true);
   };
 
@@ -104,26 +111,42 @@ export default function AdminMovies() {
       .catch(err => alert('Lỗi khi xóa phim'));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const url = editingId 
       ? `/api/movies/${editingId}`
       : '/api/movies';
     const method = editingId ? 'PUT' : 'POST';
 
-    fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    })
-      .then(res => res.json())
-      .then(() => {
-        alert(editingId ? 'Cập nhật thành công!' : 'Thêm phim thành công!');
-        setShowModal(false);
-        fetchMovies();
-      })
-      .catch(err => alert('Lỗi khi lưu phim'));
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const savedMovie = await res.json();
+      const movieId = editingId || savedMovie.id;
+
+
+      alert(editingId ? 'Cập nhật thành công!' : 'Thêm phim thành công!');
+      setShowModal(false);
+      fetchMovies();
+    } catch (err) {
+      alert('Lỗi khi lưu phim');
+    }
   };
+
+  const filteredMovies = movies.filter((movie: any) => {
+    let match = true;
+    if (searchTerm && !movie.title.toLowerCase().includes(searchTerm.toLowerCase())) match = false;
+    if (filterAgeLimit && movie.ageLimit !== filterAgeLimit) match = false;
+    if (filterStatus) {
+      const isComingSoon = new Date(movie.releaseDate) > new Date();
+      if (filterStatus === 'COMING_SOON' && !isComingSoon) match = false;
+      if (filterStatus === 'SHOWING' && isComingSoon) match = false;
+    }
+    return match;
+  });
 
   return (
     <div>
@@ -135,6 +158,33 @@ export default function AdminMovies() {
         >
           + Thêm Phim Mới
         </button>
+      </div>
+
+      <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', backgroundColor: 'var(--card-bg)', padding: '15px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+        <div style={{ flex: 2 }}>
+          <label style={{ display: 'block', fontSize: '13px', marginBottom: '5px', color: 'var(--text-muted)' }}>Tìm kiếm Tên Phim</label>
+          <input type="text" placeholder="Nhập tên phim..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', fontSize: '13px', marginBottom: '5px', color: 'var(--text-muted)' }}>Trạng thái</label>
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}>
+            <option value="">Tất cả trạng thái</option>
+            <option value="SHOWING">Đang chiếu</option>
+            <option value="COMING_SOON">Sắp chiếu</option>
+          </select>
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', fontSize: '13px', marginBottom: '5px', color: 'var(--text-muted)' }}>Độ tuổi</label>
+          <select value={filterAgeLimit} onChange={e => setFilterAgeLimit(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}>
+            <option value="">Tất cả độ tuổi</option>
+            {ageLimits.map(al => (
+              <option key={al.id} value={al.code}>{al.code}</option>
+            ))}
+          </select>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+          <button onClick={() => { setSearchTerm(''); setFilterStatus(''); setFilterAgeLimit(''); }} style={{ padding: '8px 15px', backgroundColor: 'rgba(255,255,255,0.1)', color: 'var(--foreground)', border: 'none', borderRadius: '4px', cursor: 'pointer', height: '37px' }}>Xóa bộ lọc</button>
+        </div>
       </div>
 
       <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '8px', padding: '20px', border: '1px solid var(--card-border)', overflowX: 'auto' }}>
@@ -155,8 +205,8 @@ export default function AdminMovies() {
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Đang tải dữ liệu...</td>
               </tr>
-            ) : movies.length > 0 ? (
-              movies.map((movie: any) => {
+            ) : filteredMovies.length > 0 ? (
+              filteredMovies.map((movie: any) => {
                 const releaseDateObj = new Date(movie.releaseDate);
                 const isComingSoon = releaseDateObj > new Date();
                 const statusText = isComingSoon ? 'Sắp chiếu' : 'Đang chiếu';
@@ -327,6 +377,8 @@ export default function AdminMovies() {
                   value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}
                 />
               </div>
+
+
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" onClick={() => setShowModal(false)} style={{ padding: '10px 20px', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontWeight: '500' }}>

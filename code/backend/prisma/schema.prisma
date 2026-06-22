@@ -263,3 +263,9 @@ enum user_status {
   ACTIVE
   BLOCKED
 }
+
+model agelimit {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(10)
+  description String   @db.VarChar(255)
+}

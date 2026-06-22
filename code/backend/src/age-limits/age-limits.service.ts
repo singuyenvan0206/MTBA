@@ -7,31 +7,31 @@ export class AgeLimitsService {
 
   async findAll() {
     try {
-      return await (this.prisma as any).ageLimit.findMany({ orderBy: { id: 'asc' } });
-    } catch(e) { return []; }
+      return await this.prisma.agelimit.findMany({ orderBy: { id: 'asc' } });
+    } catch(e) { throw e; }
   }
 
   async findOne(id: number) {
     try {
-      return await (this.prisma as any).ageLimit.findUnique({ where: { id } });
-    } catch(e) { return null; }
+      return await this.prisma.agelimit.findUnique({ where: { id } });
+    } catch(e) { throw e; }
   }
 
   async create(data: any) {
     try {
-      return await (this.prisma as any).ageLimit.create({ data });
-    } catch(e) { return null; }
+      return await this.prisma.agelimit.create({ data });
+    } catch(e) { throw e; }
   }
 
   async update(id: number, data: any) {
     try {
-      return await (this.prisma as any).ageLimit.update({ where: { id }, data });
-    } catch(e) { return null; }
+      return await this.prisma.agelimit.update({ where: { id }, data });
+    } catch(e) { throw e; }
   }
 
   async remove(id: number) {
     try {
-      return await (this.prisma as any).ageLimit.delete({ where: { id } });
-    } catch(e) { return null; }
+      return await this.prisma.agelimit.delete({ where: { id } });
+    } catch(e) { throw e; }
   }
 }

@@ -11,8 +11,8 @@ function generateOTP() {
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'tailangtund@gmail.com',
-    pass: 'kixu qfhm pshn avck', // Should ideally be in ENV
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
   },
 });
 

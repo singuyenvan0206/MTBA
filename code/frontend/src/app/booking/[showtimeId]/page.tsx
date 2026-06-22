@@ -13,9 +13,33 @@ export default function Booking() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showtime, setShowtime] = useState<any>(null);
 
+  const [prices, setPrices] = useState<any[]>([]);
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes timer
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+
   // Giả lập danh sách ghế
   const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K'];
   const seatsPerRow = 14;
+
+  useEffect(() => {
+    setCurrentTime(new Date());
+    if (timeLeft <= 0) {
+      alert("Thời gian giữ ghế đã hết. Vui lòng chọn lại!");
+      window.location.reload();
+      return;
+    }
+    const timer = setInterval(() => {
+      setTimeLeft(prev => prev - 1);
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     // Check login
@@ -25,6 +49,12 @@ export default function Booking() {
       return;
     }
     setUser(JSON.parse(storedUser));
+
+    // Lấy bảng giá
+    fetch('/api/prices')
+      .then(res => res.json())
+      .then(data => setPrices(Array.isArray(data) ? data : []))
+      .catch(err => console.error(err));
 
     if (params?.showtimeId) {
       // Lấy thông tin showtime
@@ -49,12 +79,42 @@ export default function Booking() {
     }
   };
 
+  const calculateTotalPrice = () => {
+    if (!showtime?.movie) return 0;
+    const movieType = showtime.movie.type || 'TYPE_2D';
+    let total = 0;
+    
+    selectedSeats.forEach(seatId => {
+      const row = seatId.charAt(0);
+      let seatType = 'STANDARD';
+      if (row === 'H' || row === 'J') seatType = 'VIP';
+      if (row === 'K') seatType = 'SWEETBOX';
+
+      // Find price config matching movieType and seatType
+      const priceConfig = prices.find(p => p.type_movie === movieType && p.type_seat === seatType);
+      
+      // Default fallback prices if no config found
+      let price = 0;
+      if (priceConfig) {
+        price = priceConfig.price;
+      } else {
+        if (seatType === 'STANDARD') price = 80000;
+        else if (seatType === 'VIP') price = 100000;
+        else if (seatType === 'SWEETBOX') price = 150000;
+      }
+      total += price;
+    });
+    
+    return total;
+  };
+
   const handleCheckout = async () => {
     if (selectedSeats.length === 0) {
       return alert('Vui lòng chọn ít nhất 1 ghế!');
     }
 
     try {
+      const totalPrice = calculateTotalPrice();
       const res = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -62,7 +122,7 @@ export default function Booking() {
           userId: user.id,
           showtimeId: parseInt(params?.showtimeId as string),
           seats: selectedSeats,
-          totalPrice: selectedSeats.length * 80000
+          totalPrice: totalPrice
         })
       });
 
@@ -84,15 +144,28 @@ export default function Booking() {
         </div>
 
         <section className="seat-selection-section container" style={{ padding: '30px', backgroundColor: 'var(--card-bg)', borderRadius: '10px', marginTop: '20px' }}>
-            <div className="seat-header">
-                <p><strong>Phim: {showtime?.movie?.title || 'Đang tải...'}</strong></p>
-                <p><strong>Giờ chiếu: {showtime ? new Date(showtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '...'} - {showtime ? new Date(showtime.start_time).toLocaleDateString('vi-VN') : '...'}</strong></p>
+            <div className="seat-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <p><strong>Phim: {showtime?.movie?.title || 'Đang tải...'}</strong></p>
+                  <p><strong>Giờ chiếu: {showtime ? new Date(showtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '...'} - {showtime ? new Date(showtime.start_time).toLocaleDateString('vi-VN') : '...'}</strong></p>
+                </div>
+                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                  <div style={{ color: '#ff4d4f', fontWeight: 'bold', fontSize: '18px', backgroundColor: 'rgba(255, 77, 79, 0.1)', padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255, 77, 79, 0.2)' }}>
+                    ⏳ Thời gian giữ ghế: {formatTime(timeLeft)}
+                  </div>
+                  {currentTime && (
+                    <div style={{ color: '#888', fontSize: '14px', fontStyle: 'italic' }}>
+                      Bây giờ là: {currentTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    </div>
+                  )}
+                </div>
             </div>
             
             <div className="screen-area" style={{ textAlign: 'center' }}>
                 <div className="screen-curve"></div>
                 <p style={{ color: '#888', fontSize: '18px', fontWeight: 'bold', letterSpacing: '8px', marginTop: '15px', textShadow: '0 0 10px rgba(255, 152, 0, 0.5)' }}>MÀN HÌNH</p>
-                <div style={{ marginTop: '20px', marginBottom: '10px', color: '#ccc', fontSize: '16px' }}>Phòng chiếu: {showtime?.screen?.name || '...'}</div>
+                <div style={{ marginTop: '20px', color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>Rạp: {showtime?.screen?.theater?.name || '...'}</div>
+                <div style={{ marginBottom: '10px', color: '#ccc', fontSize: '16px' }}>Phòng chiếu: {showtime?.screen?.name || '...'}</div>
             </div>
 
             <div className="seat-grid-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '40px', overflowX: 'auto', paddingBottom: '20px' }}>
@@ -147,7 +220,7 @@ export default function Booking() {
             <div className="booking-summary">
                 <div className="summary-info">
                     <p>Ghế đã chọn: <strong className="selected-seats-text" style={{ color: '#ff4d4f' }}>{selectedSeats.length > 0 ? selectedSeats.join(', ') : 'Chưa chọn'}</strong></p>
-                    <p>Tổng tiền: <strong className="total-price">{(selectedSeats.length * 80000).toLocaleString('vi-VN')}đ</strong></p>
+                    <p>Tổng tiền: <strong className="total-price">{(calculateTotalPrice()).toLocaleString('vi-VN')}đ</strong></p>
                 </div>
                 <div className="summary-actions">
                     <button className="btn btn-outline" onClick={() => router.back()}>Quay lại</button>

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query, Delete } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 
 @Controller('bookings')
@@ -30,5 +30,10 @@ export class BookingsController {
   @Get(':id')
   async getBooking(@Param('id') id: string) {
     return this.bookingsService.getBooking(+id);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.bookingsService.removeBooking(+id);
   }
 }

@@ -11,7 +11,7 @@ export class ShowtimesService {
       return await this.prisma.showtime.findMany({ 
         where: whereClause,
         orderBy: { id: 'desc' },
-        include: { screen: { include: { theater: true } } }
+        include: { screen: { include: { theater: true } }, movie: true }
       });
     } catch(e) { return []; }
   }
@@ -20,7 +20,7 @@ export class ShowtimesService {
     try {
       return await this.prisma.showtime.findUnique({ 
         where: { id },
-        include: { screen: { include: { seat: true } }, movie: true }
+        include: { screen: { include: { seat: true, theater: true } }, movie: true }
       });
     } catch(e) { return null; }
   }
@@ -40,6 +40,12 @@ export class ShowtimesService {
   async remove(id: number) {
     try {
       return await this.prisma.showtime.delete({ where: { id } });
+    } catch(e) { return null; }
+  }
+
+  async bulkRemove(ids: number[]) {
+    try {
+      return await this.prisma.showtime.deleteMany({ where: { id: { in: ids } } });
     } catch(e) { return null; }
   }
 }
