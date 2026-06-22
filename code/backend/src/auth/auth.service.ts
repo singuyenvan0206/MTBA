@@ -9,13 +9,15 @@ function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'tailangtund@gmail.com',
-    pass: 'kixu qfhm pshn avck', // Should ideally be in ENV
-  },
-});
+const getTransporter = () => {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS,
+    },
+  });
+};
 
 @Injectable()
 export class AuthService {
@@ -99,14 +101,16 @@ export class AuthService {
 
     const otp = generateOTP();
 
+    const expiresMinutes = parseInt(process.env.OTP_EXPIRES_MINUTES || '5', 10);
+
     try {
-      await transporter.sendMail({
+      await getTransporter().sendMail({
         from: process.env.MAIL_FROM,
         to: email,
         subject: 'Mã xác thực Đăng ký tài khoản (OTP)',
         html: `<h3>Xin chào ${fullName},</h3>
                <p>Mã xác thực (OTP) của bạn là: <b style="font-size:24px; color:red;">${otp}</b></p>
-               <p>Mã này có hiệu lực trong 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>`,
+               <p>Mã này có hiệu lực trong ${expiresMinutes} phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>`,
       });
     } catch (e) {
       console.error(e);
@@ -116,7 +120,7 @@ export class AuthService {
     otpStore.set(email, {
       userData: { fullName, email, phone, password },
       otp,
-      expiresAt: Date.now() + 5 * 60 * 1000,
+      expiresAt: Date.now() + expiresMinutes * 60 * 1000,
     });
 
     return { message: 'Đã gửi OTP qua Email' };
