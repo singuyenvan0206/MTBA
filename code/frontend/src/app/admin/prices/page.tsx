@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 
 type TicketPrice = {
   id: number;
-  seat_type: string;
-  day_type: string;
+  type_seat: string;
+  type_movie: string;
   price: number;
-  type?: string;
+  day_type: boolean;
+  start_time?: string;
+  end_time?: string;
 };
 
 export default function AdminPrices() {
@@ -17,8 +19,9 @@ export default function AdminPrices() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
-    seat_type: 'Thuong',
-    day_type: 'Thuong',
+    type_seat: 'STANDARD',
+    type_movie: 'TYPE_2D',
+    day_type: 'false',
     price: ''
   });
 
@@ -42,15 +45,16 @@ export default function AdminPrices() {
 
   const openAddModal = () => {
     setEditingId(null);
-    setFormData({ seat_type: 'Thuong', day_type: 'Thuong', price: '' });
+    setFormData({ type_seat: 'STANDARD', type_movie: 'TYPE_2D', day_type: 'false', price: '' });
     setShowModal(true);
   };
 
   const openEditModal = (item: TicketPrice) => {
     setEditingId(item.id);
     setFormData({
-      seat_type: item.seat_type || item.type || 'Thuong',
-      day_type: item.day_type || 'Thuong',
+      type_seat: item.type_seat || 'STANDARD',
+      type_movie: item.type_movie || 'TYPE_2D',
+      day_type: String(item.day_type || false),
       price: String(item.price || '')
     });
     setShowModal(true);
@@ -74,9 +78,12 @@ export default function AdminPrices() {
     const method = editingId ? 'PUT' : 'POST';
 
     const payload = {
-      seat_type: formData.seat_type,
-      day_type: formData.day_type,
-      price: parseFloat(formData.price)
+      type_seat: formData.type_seat,
+      type_movie: formData.type_movie,
+      day_type: formData.day_type === 'true',
+      price: parseFloat(formData.price),
+      start_time: new Date('1970-01-01T00:00:00Z').toISOString(),
+      end_time: new Date('1970-01-01T23:59:59Z').toISOString()
     };
 
     fetch(url, {
@@ -111,6 +118,7 @@ export default function AdminPrices() {
             <tr>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>ID</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Loại ghế</th>
+              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Loại phim</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Loại ngày</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Giá tiền</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Hành động</th>
@@ -123,8 +131,9 @@ export default function AdminPrices() {
               data.map((item) => (
                 <tr key={item.id}>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>#{item.id}</td>
-                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)', fontWeight: 'bold', color: 'var(--foreground)' }}>{item.seat_type || item.type}</td>
-                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.day_type}</td>
+                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)', fontWeight: 'bold', color: 'var(--foreground)' }}>{item.type_seat === 'STANDARD' ? 'Thường' : (item.type_seat === 'VIP' ? 'VIP' : 'Sweetbox')}</td>
+                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.type_movie === 'TYPE_2D' ? '2D' : '3D'}</td>
+                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.day_type ? 'Cuối tuần / Lễ' : 'Ngày thường'}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
                     <button onClick={() => openEditModal(item)} style={{ padding: '8px 15px', backgroundColor: '#007bff', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', marginRight: '5px' }}>Sửa</button>
@@ -151,11 +160,23 @@ export default function AdminPrices() {
                 <select 
                   required 
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                  value={formData.seat_type} onChange={e => setFormData({...formData, seat_type: e.target.value})}
+                  value={formData.type_seat} onChange={e => setFormData({...formData, type_seat: e.target.value})}
                 >
-                  <option value="Thuong">Thường</option>
+                  <option value="STANDARD">Thường</option>
                   <option value="VIP">VIP</option>
-                  <option value="Sweetbox">Sweetbox (Ghế đôi)</option>
+                  <option value="SWEETBOX">Sweetbox (Ghế đôi)</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Loại phim</label>
+                <select 
+                  required 
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
+                  value={formData.type_movie} onChange={e => setFormData({...formData, type_movie: e.target.value})}
+                >
+                  <option value="TYPE_2D">2D</option>
+                  <option value="TYPE_3D">3D</option>
                 </select>
               </div>
 
@@ -166,9 +187,8 @@ export default function AdminPrices() {
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
                   value={formData.day_type} onChange={e => setFormData({...formData, day_type: e.target.value})}
                 >
-                  <option value="Thuong">Ngày thường</option>
-                  <option value="CuoiTuan">Cuối tuần (T7, CN)</option>
-                  <option value="Le">Ngày Lễ</option>
+                  <option value="false">Ngày thường (T2 - T6)</option>
+                  <option value="true">Cuối tuần / Ngày Lễ</option>
                 </select>
               </div>
 
