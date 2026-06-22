@@ -5,10 +5,12 @@ import { PrismaService } from '../prisma/prisma.service';
 export class SeatsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(screen_id?: number) {
     try {
+      const whereClause = screen_id ? { screen_id: Number(screen_id) } : {};
       return await this.prisma.seat.findMany({ 
-        orderBy: { id: 'desc' },
+        where: whereClause,
+        orderBy: [{ seat_number: 'asc' }],
         include: { screen: { include: { theater: true } } }
       });
     } catch(e) { return []; }
@@ -42,6 +44,18 @@ export class SeatsService {
     try {
       await this.prisma.seat.deleteMany({
         where: { id: { in: ids } }
+      });
+      return { success: true };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async bulkUpdateType(ids: number[], type: string) {
+    try {
+      await this.prisma.seat.updateMany({
+        where: { id: { in: ids } },
+        data: { type: type as any }
       });
       return { success: true };
     } catch (e) {

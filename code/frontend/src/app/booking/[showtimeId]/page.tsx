@@ -12,14 +12,11 @@ export default function Booking() {
   const [user, setUser] = useState<any>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showtime, setShowtime] = useState<any>(null);
+  const [dbSeats, setDbSeats] = useState<any[]>([]);
 
   const [prices, setPrices] = useState<any[]>([]);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes timer
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
-
-  // Giả lập danh sách ghế
-  const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K'];
-  const seatsPerRow = 14;
 
   useEffect(() => {
     setCurrentTime(new Date());
@@ -60,14 +57,23 @@ export default function Booking() {
       // Lấy thông tin showtime
       fetch(`/api/showtimes/${params.showtimeId}`)
         .then(res => res.json())
-        .then(data => setShowtime(data))
+        .then(data => {
+          setShowtime(data);
+          if (data.screen_id) {
+            // Lấy danh sách ghế của phòng chiếu này
+            fetch(`/api/seats?screen_id=${data.screen_id}`)
+              .then(res => res.json())
+              .then(seats => setDbSeats(seats))
+              .catch(err => console.error('Lỗi khi tải ghế của phòng chiếu:', err));
+          }
+        })
         .catch(err => console.error('Lỗi khi tải showtime:', err));
 
       // Lấy danh sách ghế đã đặt
       fetch(`/api/bookings/booked-seats?showtimeId=${params.showtimeId}`)
         .then(res => res.json())
         .then(data => setBookedSeats(data))
-        .catch(err => console.error('Lỗi khi tải ghế:', err));
+        .catch(err => console.error('Lỗi khi tải ghế đã đặt:', err));
     }
   }, [router, params?.showtimeId]);
 
@@ -85,15 +91,12 @@ export default function Booking() {
     let total = 0;
     
     selectedSeats.forEach(seatId => {
-      const row = seatId.charAt(0);
-      let seatType = 'STANDARD';
-      if (row === 'H' || row === 'J') seatType = 'VIP';
-      if (row === 'K') seatType = 'SWEETBOX';
+      const seat = dbSeats.find(s => s.seat_number === seatId);
+      const seatType = seat?.type || 'STANDARD';
 
       // Find price config matching movieType and seatType
       const priceConfig = prices.find(p => p.type_movie === movieType && p.type_seat === seatType);
       
-      // Default fallback prices if no config found
       let price = 0;
       if (priceConfig) {
         price = priceConfig.price;
@@ -137,6 +140,15 @@ export default function Booking() {
     }
   };
 
+  // Nhóm ghế theo hàng để hiển thị
+  const rowMap = new Map<string, any[]>();
+  dbSeats.forEach(seat => {
+    const row = seat.seat_number.charAt(0);
+    if (!rowMap.has(row)) rowMap.set(row, []);
+    rowMap.get(row)!.push(seat);
+  });
+  const rows = Array.from(rowMap.keys()).sort();
+
   return (
     <main className="main-content">
         <div className="container breadcrumb" style={{ margin: '20px auto', color: '#888', fontSize: '14px' }}>
@@ -177,16 +189,20 @@ export default function Booking() {
                 </div>
 
                 <div className="seat-grid">
-                    {rows.map(row => (
+                    {dbSeats.length > 0 ? rows.map(row => (
                         <div key={row} className="seat-row">
-                            {Array.from({ length: seatsPerRow }).map((_, i) => {
-                                const seatId = `${row}${i + 1}`;
+                            {rowMap.get(row)!.sort((a,b) => {
+                              const numA = parseInt(a.seat_number.slice(1));
+                              const numB = parseInt(b.seat_number.slice(1));
+                              return numA - numB;
+                            }).map((seat) => {
+                                const seatId = seat.seat_number;
                                 const isSelected = selectedSeats.includes(seatId);
                                 const isBooked = bookedSeats.includes(seatId);
                                 
                                 let seatClass = 'standard';
-                                if (row === 'H' || row === 'J') seatClass = 'vip';
-                                if (row === 'K') seatClass = 'couple';
+                                if (seat.type === 'VIP') seatClass = 'vip';
+                                if (seat.type === 'SWEETBOX') seatClass = 'couple';
 
                                 return (
                                     <div
@@ -199,7 +215,9 @@ export default function Booking() {
                                 );
                             })}
                         </div>
-                    ))}
+                    )) : (
+                        <div style={{ color: '#888', padding: '50px' }}>Chưa có sơ đồ ghế cho phòng chiếu này. Vui lòng liên hệ Admin.</div>
+                    )}
                 </div>
 
                 {/* Cửa phải */}

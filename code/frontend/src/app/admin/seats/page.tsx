@@ -16,6 +16,8 @@ export default function AdminSeats() {
   const [loading, setLoading] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
+  const [showBulkTypeModal, setShowBulkTypeModal] = useState(false);
+  const [bulkType, setBulkType] = useState('STANDARD');
   const [screens, setScreens] = useState<any[]>([]);
   const [theaters, setTheaters] = useState<any[]>([]);
 
@@ -152,18 +154,47 @@ export default function AdminSeats() {
     }
   };
 
+  const handleBulkUpdateType = async () => {
+    if (selectedIds.length === 0) return;
+    try {
+      const res = await fetch('/api/seats/bulk-update-type', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds, type: bulkType })
+      });
+      if (res.ok) {
+        alert('Cập nhật loại ghế thành công!');
+        setShowBulkTypeModal(false);
+        setSelectedIds([]);
+        fetchData();
+      } else {
+        alert('Lỗi khi cập nhật ghế');
+      }
+    } catch (err) {
+      alert('Lỗi kết nối khi cập nhật ghế');
+    }
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0, color: 'var(--foreground)' }}>Quản lý Ghế</h1>
         <div style={{ display: 'flex', gap: '10px' }}>
           {selectedIds.length > 0 && (
-            <button 
-              onClick={handleDeleteSelected}
-              style={{ padding: '10px 20px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
-            >
-              Xóa {selectedIds.length} ghế đã chọn
-            </button>
+            <>
+              <button 
+                onClick={() => setShowBulkTypeModal(true)}
+                style={{ padding: '10px 20px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
+              >
+                Đổi Loại {selectedIds.length} ghế
+              </button>
+              <button 
+                onClick={handleDeleteSelected}
+                style={{ padding: '10px 20px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
+              >
+                Xóa {selectedIds.length} ghế đã chọn
+              </button>
+            </>
           )}
           <button 
             onClick={openAddModal}
@@ -346,6 +377,32 @@ export default function AdminSeats() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Đổi Loại Ghế Hàng Loạt */}
+      {showBulkTypeModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', padding: '25px', borderRadius: '10px', width: '400px', border: '1px solid var(--card-border)' }}>
+            <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '18px', color: 'var(--foreground)' }}>Đổi loại cho {selectedIds.length} ghế</h2>
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '8px', color: 'var(--foreground)' }}>Chọn loại ghế mới</label>
+              <select 
+                value={bulkType} 
+                onChange={e => setBulkType(e.target.value)}
+                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
+                required
+              >
+                <option value="STANDARD" style={{ color: '#000' }}>Thường (STANDARD)</option>
+                <option value="VIP" style={{ color: '#000' }}>VIP</option>
+                <option value="SWEETBOX" style={{ color: '#000' }}>Giường nằm (SWEETBOX)</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+              <button type="button" onClick={() => setShowBulkTypeModal(false)} style={{ padding: '10px 20px', backgroundColor: 'transparent', color: 'var(--foreground)', border: '1px solid var(--card-border)', borderRadius: '6px', cursor: 'pointer' }}>Hủy</button>
+              <button onClick={handleBulkUpdateType} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Lưu thay đổi</button>
+            </div>
           </div>
         </div>
       )}
