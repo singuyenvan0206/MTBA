@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as nodemailer from 'nodemailer';
+import * as bcrypt from 'bcryptjs';
 
 const otpStore = new Map<string, any>();
 
@@ -11,8 +12,8 @@ function generateOTP() {
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'tailangtund@gmail.com',
-    pass: 'kixu qfhm pshn avck', // Should ideally be in ENV
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS,
   },
 });
 
@@ -31,7 +32,9 @@ export class AuthService {
       include: { userrole: { include: { role: true } } },
     });
 
-    if (!user || user.password !== pass) {
+    const pepper = process.env.PASSWORD_PEPPER || '';
+    const isPasswordValid = user ? await bcrypt.compare(pass + pepper, user.password) : false;
+    if (!user || !isPasswordValid) {
       throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
     }
 
@@ -64,8 +67,10 @@ export class AuthService {
     const first_name = nameParts.length > 1 ? nameParts[0] : fullName;
     const last_name = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
+    const pepper = process.env.PASSWORD_PEPPER || '';
+    const hashedPassword = await bcrypt.hash(password + pepper, 10);
     const newUser = await this.prisma.user.create({
-      data: { first_name, last_name, email, phone, password },
+      data: { first_name, last_name, email, phone, password: hashedPassword },
     });
 
     let dbRole = await this.prisma.role.findUnique({
@@ -96,7 +101,7 @@ export class AuthService {
 
     try {
       await transporter.sendMail({
-        from: '"Hệ thống Đặt vé" <[EMAIL_ADDRESS]>',
+        from: process.env.MAIL_FROM,
         to: email,
         subject: 'Mã xác thực Đăng ký tài khoản (OTP)',
         html: `<h3>Xin chào ${fullName},</h3>
