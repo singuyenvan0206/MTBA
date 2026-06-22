@@ -96,7 +96,7 @@ export class AuthService {
 
     try {
       await transporter.sendMail({
-        from: '"Hệ thống Đặt vé" <tailangtund@gmail.com>',
+        from: '"Hệ thống Đặt vé" <[EMAIL_ADDRESS]>',
         to: email,
         subject: 'Mã xác thực Đăng ký tài khoản (OTP)',
         html: `<h3>Xin chào ${fullName},</h3>
