@@ -26,7 +26,7 @@ export default function AdminUsers() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('http://localhost:3001/users');
+      const res = await fetch('/api/users');
       const data = await res.json();
       setUsers(data);
     } catch (error) {
@@ -39,7 +39,7 @@ export default function AdminUsers() {
   const handleDelete = async (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa người dùng này?')) return;
     try {
-      await fetch(`http://localhost:3001/users/${id}`, { method: 'DELETE' });
+      await fetch(`/api/users/${id}`, { method: 'DELETE' });
       fetchUsers();
     } catch (error) {
       console.error('Failed to delete user:', error);
@@ -78,7 +78,7 @@ export default function AdminUsers() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const url = editingUser ? `http://localhost:3001/users/${editingUser.id}` : 'http://localhost:3001/users';
+      const url = editingUser ? `/api/users/${editingUser.id}` : '/api/users';
       const method = editingUser ? 'PUT' : 'POST';
       
       const payload: any = { ...formData };

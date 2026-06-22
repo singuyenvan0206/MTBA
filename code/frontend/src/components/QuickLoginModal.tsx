@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 export default function QuickLoginModal() {
   const [isVisible, setIsVisible] = useState(false);
@@ -136,7 +137,7 @@ export default function QuickLoginModal() {
               />
               Ghi nhớ tôi
             </label>
-            <a href="#" style={{ color: 'var(--text-muted)', fontSize: '14px', textDecoration: 'none' }}>Quên mật khẩu?</a>
+            <Link href="/forgot-password" style={{ color: 'var(--text-muted)', fontSize: '14px', textDecoration: 'none' }}>Quên mật khẩu?</Link>
           </div>
 
           <div className="auth-actions-custom">

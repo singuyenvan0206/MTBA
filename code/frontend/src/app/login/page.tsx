@@ -103,7 +103,7 @@ export default function Login() {
               />
               Ghi nhớ tôi
             </label>
-            <a href="#" style={{ color: 'var(--text-muted)', fontSize: '14px', textDecoration: 'none' }}>Quên mật khẩu?</a>
+            <Link href="/forgot-password" style={{ color: 'var(--text-muted)', fontSize: '14px', textDecoration: 'none' }}>Quên mật khẩu?</Link>
           </div>
 
           <div className="auth-actions-custom">
