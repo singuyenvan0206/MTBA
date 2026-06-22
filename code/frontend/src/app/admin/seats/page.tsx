@@ -5,11 +5,10 @@ import { useEffect, useState } from 'react';
 type Seat = {
   id: number;
   screen_id: number;
-  seat_row: string;
-  seat_col: number;
-  seat_type: string;
-  status: string;
-  screen?: { name: string, screen_name?: string };
+  seat_number: string;
+  type: string;
+  is_booked: boolean;
+  screen?: { name: string, screen_name?: string, theater_id?: number, theater?: { name: string } };
 };
 
 export default function AdminSeats() {
@@ -18,15 +17,20 @@ export default function AdminSeats() {
 
   const [showModal, setShowModal] = useState(false);
   const [screens, setScreens] = useState<any[]>([]);
+  const [theaters, setTheaters] = useState<any[]>([]);
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     screen_id: '',
-    seat_row: '',
-    seat_col: '',
-    seat_type: 'Thuong',
-    status: 'Trong'
+    seat_number: '',
+    type: 'STANDARD',
+    is_booked: 'false'
   });
+
+  const [filterTheaterId, setFilterTheaterId] = useState<string>('');
+  const [filterScreenId, setFilterScreenId] = useState<string>('');
+  const [filterType, setFilterType] = useState<string>('');
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const fetchData = () => {
     fetch('/api/seats')
@@ -45,11 +49,12 @@ export default function AdminSeats() {
   useEffect(() => {
     fetchData();
     fetch('/api/screens').then(res => res.json()).then(setScreens);
+    fetch('/api/theaters').then(res => res.json()).then(setTheaters);
   }, []);
 
   const openAddModal = () => {
     setEditingId(null);
-    setFormData({ screen_id: '', seat_row: '', seat_col: '', seat_type: 'Thuong', status: 'Trong' });
+    setFormData({ screen_id: '', seat_number: '', type: 'STANDARD', is_booked: 'false' });
     setShowModal(true);
   };
 
@@ -57,10 +62,9 @@ export default function AdminSeats() {
     setEditingId(item.id);
     setFormData({
       screen_id: String(item.screen_id),
-      seat_row: item.seat_row || '',
-      seat_col: String(item.seat_col || ''),
-      seat_type: item.seat_type || 'Thuong',
-      status: item.status || 'Trong'
+      seat_number: item.seat_number || '',
+      type: item.type || 'STANDARD',
+      is_booked: String(item.is_booked || false)
     });
     setShowModal(true);
   };
@@ -84,10 +88,9 @@ export default function AdminSeats() {
 
     const payload = {
       screen_id: parseInt(formData.screen_id),
-      seat_row: formData.seat_row,
-      seat_col: parseInt(formData.seat_col),
-      seat_type: formData.seat_type,
-      status: formData.status
+      seat_number: formData.seat_number,
+      type: formData.type,
+      is_booked: formData.is_booked === 'true'
     };
 
     fetch(url, {
@@ -104,22 +107,124 @@ export default function AdminSeats() {
       .catch(err => alert('Lỗi khi lưu ghế'));
   };
 
+  const filteredData = data.filter((item: any) => {
+    let match = true;
+    if (filterTheaterId) {
+      const theaterId = item.screen?.theater_id || screens.find(s => s.id === item.screen_id)?.theater_id;
+      if (String(theaterId) !== filterTheaterId) match = false;
+    }
+    if (filterScreenId && String(item.screen_id) !== filterScreenId) match = false;
+    if (filterType && item.type !== filterType) match = false;
+    return match;
+  });
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedIds(filteredData.map((item: any) => item.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelect = (id: number) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return;
+    if (confirm(`Bạn có chắc chắn muốn xóa ${selectedIds.length} ghế đã chọn?`)) {
+      try {
+        const res = await fetch('/api/seats/bulk-delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: selectedIds })
+        });
+        if (res.ok) {
+          alert('Xóa thành công!');
+          setSelectedIds([]);
+          fetchData();
+        } else {
+          alert('Lỗi khi xóa ghế');
+        }
+      } catch (err) {
+        alert('Lỗi kết nối khi xóa ghế');
+      }
+    }
+  };
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0, color: 'var(--foreground)' }}>Quản lý Ghế</h1>
-        <button 
-          onClick={openAddModal}
-          style={{ padding: '10px 20px', backgroundColor: 'var(--primary)', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
-        >
-          + Thêm Ghế Mới
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {selectedIds.length > 0 && (
+            <button 
+              onClick={handleDeleteSelected}
+              style={{ padding: '10px 20px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
+            >
+              Xóa {selectedIds.length} ghế đã chọn
+            </button>
+          )}
+          <button 
+            onClick={openAddModal}
+            style={{ padding: '10px 20px', backgroundColor: 'var(--primary)', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
+          >
+            + Thêm Ghế Mới
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', backgroundColor: 'var(--card-bg)', padding: '15px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '5px', color: 'var(--text-muted)' }}>Lọc theo cụm rạp</label>
+          <select 
+            value={filterTheaterId} onChange={e => { setFilterTheaterId(e.target.value); setFilterScreenId(''); }}
+            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
+          >
+            <option value="" style={{ color: '#000' }}>Tất cả cụm rạp</option>
+            {theaters.map(t => <option key={t.id} value={t.id} style={{ color: '#000' }}>{t.name}</option>)}
+          </select>
+        </div>
+
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '5px', color: 'var(--text-muted)' }}>Lọc theo phòng chiếu</label>
+          <select 
+            value={filterScreenId} onChange={e => setFilterScreenId(e.target.value)}
+            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
+          >
+            <option value="" style={{ color: '#000' }}>Tất cả phòng chiếu</option>
+            {screens.filter(s => !filterTheaterId || String(s.theater_id) === filterTheaterId).map(s => (
+              <option key={s.id} value={s.id} style={{ color: '#000' }}>{s.name || s.screen_name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '5px', color: 'var(--text-muted)' }}>Lọc theo loại ghế</label>
+          <select 
+            value={filterType} onChange={e => setFilterType(e.target.value)}
+            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
+          >
+            <option value="" style={{ color: '#000' }}>Tất cả loại ghế</option>
+            <option value="STANDARD" style={{ color: '#000' }}>Thường (STANDARD)</option>
+            <option value="VIP" style={{ color: '#000' }}>VIP</option>
+            <option value="SWEETBOX" style={{ color: '#000' }}>Giường nằm (SWEETBOX)</option>
+          </select>
+        </div>
       </div>
 
       <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '8px', padding: '20px', border: '1px solid var(--card-border)', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
+              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', width: '50px' }}>
+                <input 
+                  type="checkbox" 
+                  checked={filteredData.length > 0 && selectedIds.length === filteredData.length}
+                  onChange={handleSelectAll}
+                  style={{ cursor: 'pointer' }}
+                />
+              </th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>ID</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Tên Ghế</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Phòng chiếu</th>
@@ -130,25 +235,49 @@ export default function AdminSeats() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Đang tải dữ liệu...</td></tr>
-            ) : data.length > 0 ? (
-              data.map((item: any) => (
-                <tr key={item.id}>
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Đang tải dữ liệu...</td></tr>
+            ) : filteredData.length > 0 ? (
+              filteredData.map((item: any) => {
+                const isSelected = selectedIds.includes(item.id);
+                return (
+                <tr key={item.id} style={{ backgroundColor: isSelected ? 'rgba(255, 77, 79, 0.1)' : 'transparent' }}>
+                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={isSelected}
+                      onChange={() => handleSelect(item.id)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>#{item.id}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)', fontWeight: 'bold', color: 'var(--foreground)' }}>
-                    {item.seat_row}{item.seat_col}
+                    {item.seat_number}
                   </td>
-                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.screen?.name || item.screen?.screen_name || item.screen_id}</td>
-                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.seat_type}</td>
-                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.status}</td>
+                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
+                    {item.screen?.theater?.name && <span style={{fontSize: '12px', color: 'var(--text-muted)', display: 'block'}}>{item.screen.theater.name}</span>}
+                    {item.screen?.name || item.screen?.screen_name || `Phòng ${item.screen_id}`}
+                  </td>
+                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
+                    <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '500', 
+                      backgroundColor: item.type === 'VIP' ? 'rgba(255, 193, 7, 0.2)' : item.type === 'SWEETBOX' ? 'rgba(233, 30, 99, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                      color: item.type === 'VIP' ? '#ffc107' : item.type === 'SWEETBOX' ? '#e91e63' : 'var(--text-muted)'
+                    }}>
+                      {item.type}
+                    </span>
+                  </td>
+                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
+                    <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '500', backgroundColor: item.is_booked ? 'rgba(220, 53, 69, 0.2)' : 'rgba(40, 167, 69, 0.2)', color: item.is_booked ? '#dc3545' : '#28a745' }}>
+                      {item.is_booked ? 'Đã đặt' : 'Trống'}
+                    </span>
+                  </td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
                     <button onClick={() => openEditModal(item)} style={{ padding: '8px 15px', backgroundColor: '#007bff', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', marginRight: '5px' }}>Sửa</button>
                     <button onClick={() => handleDelete(item.id)} style={{ padding: '8px 15px', backgroundColor: '#dc3545', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>Xóa</button>
                   </td>
                 </tr>
-              ))
+              )})
             ) : (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Không có ghế nào.</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Không có ghế nào.</td></tr>
             )}
           </tbody>
         </table>
@@ -165,61 +294,47 @@ export default function AdminSeats() {
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Phòng chiếu</label>
                 <select 
                   required 
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
                   value={formData.screen_id} onChange={e => setFormData({...formData, screen_id: e.target.value})}
                 >
-                  <option value="">-- Chọn Phòng chiếu --</option>
+                  <option value="" style={{ color: '#000' }}>-- Chọn phòng chiếu --</option>
                   {screens.map(s => (
-                    <option key={s.id} value={s.id}>{s.name || s.screen_name}</option>
+                    <option key={s.id} value={s.id} style={{ color: '#000' }}>{s.name || s.screen_name}</option>
                   ))}
                 </select>
               </div>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Hàng ghế (Ký tự chữ)</label>
-                  <input 
-                    type="text" required 
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
-                    placeholder="Ví dụ: A"
-                    value={formData.seat_row} onChange={e => setFormData({...formData, seat_row: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Cột ghế (Số)</label>
-                  <input 
-                    type="number" required 
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
-                    placeholder="Ví dụ: 1"
-                    value={formData.seat_col} onChange={e => setFormData({...formData, seat_col: e.target.value})}
-                  />
-                </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Tên Ghế</label>
+                <input 
+                  type="text" required 
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
+                  placeholder="Ví dụ: A1"
+                  value={formData.seat_number} onChange={e => setFormData({...formData, seat_number: e.target.value.toUpperCase()})}
+                />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '25px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Loại ghế</label>
-                  <select 
-                    required 
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                    value={formData.seat_type} onChange={e => setFormData({...formData, seat_type: e.target.value})}
-                  >
-                    <option value="Thuong">Thường</option>
-                    <option value="VIP">VIP</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Trạng thái</label>
-                  <select 
-                    required 
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                    value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}
-                  >
-                    <option value="Trong">Trống</option>
-                    <option value="DaDat">Đã đặt</option>
-                    <option value="BaoTri">Bảo trì</option>
-                  </select>
-                </div>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Loại Ghế</label>
+                <select 
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
+                  value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}
+                >
+                  <option value="STANDARD" style={{ color: '#000' }}>Thường (STANDARD)</option>
+                  <option value="VIP" style={{ color: '#000' }}>VIP</option>
+                  <option value="SWEETBOX" style={{ color: '#000' }}>Giường nằm (SWEETBOX)</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '25px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Trạng thái</label>
+                <select 
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
+                  value={formData.is_booked} onChange={e => setFormData({...formData, is_booked: e.target.value})}
+                >
+                  <option value="false" style={{ color: '#000' }}>Trống</option>
+                  <option value="true" style={{ color: '#000' }}>Đã đặt</option>
+                </select>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>

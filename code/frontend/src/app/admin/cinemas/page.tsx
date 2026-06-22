@@ -107,18 +107,20 @@ export default function AdminCinemas() {
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>ID</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Tên Rạp</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Địa chỉ</th>
+              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>SĐT Liên hệ</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Hành động</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={4} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Đang tải dữ liệu...</td></tr>
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Đang tải dữ liệu...</td></tr>
             ) : data.length > 0 ? (
               data.map((item) => (
                 <tr key={item.id}>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>#{item.id}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)', fontWeight: 'bold', color: 'var(--foreground)' }}>{item.name || item.theater_name}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.location || item.address}</td>
+                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.phone || 'Chưa cập nhật'}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
                     <button onClick={() => openEditModal(item)} style={{ padding: '8px 15px', backgroundColor: '#007bff', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', marginRight: '5px' }}>Sửa</button>
                     <button onClick={() => handleDelete(item.id)} style={{ padding: '8px 15px', backgroundColor: '#dc3545', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>Xóa</button>
@@ -126,7 +128,7 @@ export default function AdminCinemas() {
                 </tr>
               ))
             ) : (
-              <tr><td colSpan={4} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Không có rạp nào.</td></tr>
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Không có rạp nào.</td></tr>
             )}
           </tbody>
         </table>

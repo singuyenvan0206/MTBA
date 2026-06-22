@@ -19,4 +19,9 @@ export class ScreensController {
 
   @Delete(':id')
   remove(@Param('id') id: string) { return this.service.remove(+id); }
+
+  @Post('bulk-delete')
+  bulkRemove(@Body() data: { ids: number[] }) {
+    return this.service.bulkRemove(data.ids);
+  }
 }

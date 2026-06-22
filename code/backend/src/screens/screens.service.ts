@@ -34,4 +34,15 @@ export class ScreensService {
       return await (this.prisma as any).screen.delete({ where: { id } });
     } catch(e) { return null; }
   }
+
+  async bulkRemove(ids: number[]) {
+    try {
+      await (this.prisma as any).screen.deleteMany({
+        where: { id: { in: ids } }
+      });
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
 }

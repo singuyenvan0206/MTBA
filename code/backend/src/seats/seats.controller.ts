@@ -19,4 +19,14 @@ export class SeatsController {
 
   @Delete(':id')
   remove(@Param('id') id: string) { return this.service.remove(+id); }
+
+  @Post('bulk-delete')
+  bulkRemove(@Body() data: { ids: number[] }) {
+    return this.service.bulkRemove(data.ids);
+  }
+
+  @Post('generate')
+  generate(@Body() data: { screen_id: number }) {
+    return this.service.generateSeats(data.screen_id);
+  }
 }
