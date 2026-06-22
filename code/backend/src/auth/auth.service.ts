@@ -194,7 +194,19 @@ export class AuthService {
       throw new BadRequestException('Mã OTP không chính xác!');
     }
 
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      throw new BadRequestException('Người dùng không tồn tại!');
+    }
+
     const pepper = process.env.PASSWORD_PEPPER || '';
+    const isSameAsOld = await bcrypt.compare(newPassword + pepper, user.password);
+    if (isSameAsOld) {
+      throw new BadRequestException('Mật khẩu mới không được trùng với mật khẩu cũ gần nhất!');
+    }
+
     const hashedPassword = await bcrypt.hash(newPassword + pepper, 10);
 
     await this.prisma.user.update({
