@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class MoviesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findAll() {
     const movies = await this.prisma.movie.findMany({
@@ -14,16 +14,16 @@ export class MoviesService {
     let ageLimits: any[] = [];
     try {
       ageLimits = await (this.prisma as any).ageLimit.findMany();
-    } catch(e) {}
+    } catch (e) { }
 
     return movies.map((m) => {
-      const limit = ageLimits.find((a: any) => a.code === m.age_limit);
+      const limit = ageLimits.find((a) => a.code === m.age_limit);
       return {
         id: m.id,
         title: m.title,
         description: m.descriptions,
         duration: m.duration,
-        genre: m.moviegenre.map((mg: any) => mg.genre.genre_name).join(', '),
+        genre: m.moviegenre.map((mg) => mg.genre.genre_name).join(', '),
         releaseDate: m.release_date,
         posterUrl: m.image,
         type: m.type,
@@ -52,10 +52,10 @@ export class MoviesService {
     try {
       const limit = await (this.prisma as any).ageLimit.findUnique({ where: { code: movie.age_limit } });
       if (limit) ageLimitDescription = limit.description;
-    } catch(e) {}
+    } catch (e) { }
 
     if (!ageLimitDescription) {
-       ageLimitDescription = movie.age_limit === 'P' ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.age_limit === 'K' ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.age_limit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`;
+      ageLimitDescription = movie.age_limit === 'P' ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.age_limit === 'K' ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.age_limit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`;
     }
 
     return {
