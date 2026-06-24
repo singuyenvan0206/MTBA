@@ -8,7 +8,25 @@ export default function Prices() {
   useEffect(() => {
     fetch('/api/prices')
       .then(res => res.json())
-      .then(resData => { setData(resData); setLoading(false); })
+      .then(resData => {
+        if (Array.isArray(resData)) {
+            const uniqueData: any[] = [];
+            const seen = new Set();
+            for (const item of resData) {
+                const key = `${item.day_type}-${item.type_seat}-${item.type_movie}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueData.push(item);
+                }
+            }
+            uniqueData.sort((a, b) => {
+                if (a.type_movie !== b.type_movie) return a.type_movie.localeCompare(b.type_movie);
+                return a.type_seat.localeCompare(b.type_seat);
+            });
+            setData(uniqueData);
+        }
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, []);
 

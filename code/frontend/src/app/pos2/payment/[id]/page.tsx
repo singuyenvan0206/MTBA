@@ -10,6 +10,10 @@ export default function PosPayment() {
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState('CASH');
+  const [prices, setPrices] = useState<any[]>([]);
+  const [seatDiscounts, setSeatDiscounts] = useState<Record<string, string>>({});
+  const [searchPhone, setSearchPhone] = useState('');
+  const [customer, setCustomer] = useState<any>(null);
 
   useEffect(() => {
     if (!params?.id) return;
@@ -20,11 +24,17 @@ export default function PosPayment() {
       .then(data => {
         setBooking(data);
         setLoading(false);
+        setLoading(false);
       })
       .catch(err => {
         console.error(err);
         setLoading(false);
       });
+      
+    fetch('/api/prices')
+      .then(res => res.json())
+      .then(data => setPrices(Array.isArray(data) ? data : []))
+      .catch(err => console.error(err));
   }, [params.id]);
 
   const handlePayment = async () => {
@@ -32,19 +42,30 @@ export default function PosPayment() {
 
     try {
       const methodMap: any = {
-        'CASH': 'VIETQR', // Using existing enum for CASH
-        'CARD': 'VIETTEL_PAY', 
-        'EWALLET': 'VNPAY'
+        'CASH': 'CASH',
+        'CARD': 'CARD', 
+        'EWALLET': 'EWALLET'
       };
       
+      // finalTotal is available in scope
+      const amountToPay = calculateSeatPrices().finalTotal;
+      
+      if (customer) {
+        await fetch(`/api/bookings/${booking.id}/user`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: customer.id })
+        });
+      }
+
       const res = await fetch(`/api/payments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           booking_id: booking.id,
-          payment_method: methodMap[paymentMethod],
+          payment_method: methodMap[paymentMethod] || 'CASH',
           payment_status: 'COMPLETED',
-          amount: booking.total_price_movie,
+          amount: amountToPay,
           payment_time: new Date().toISOString()
         })
       });
@@ -67,6 +88,67 @@ export default function PosPayment() {
   const movie = showtime?.movie;
   const screen = showtime?.screen;
   const bookedSeats = booking.bookingseat?.map((bs: any) => bs.seat.seat_number) || [];
+
+  const getSeatBasePrice = (seatType: string) => {
+      const isWeekend = (dateString: string) => {
+          const day = new Date(dateString).getDay();
+          return day === 0 || day === 6;
+      };
+      const dayType = showtime?.start_time ? isWeekend(showtime.start_time) : false;
+      const movieType = movie?.type || 'TYPE_2D';
+      
+      const priceConfig = prices.find(p => p.type_movie === movieType && p.type_seat === seatType && p.day_type === dayType);
+      return priceConfig ? priceConfig.price : (seatType === 'VIP' ? 100000 : seatType === 'SWEETBOX' ? 150000 : 80000);
+  };
+
+  const calculateSeatPrices = () => {
+      if (!booking || !booking.bookingseat) return { finalTotal: 0, discountAmount: 0 };
+      
+      let finalTotal = 0;
+      booking.bookingseat.forEach((bs: any) => {
+          const seat = bs.seat;
+          const basePrice = getSeatBasePrice(seat.type || 'STANDARD');
+          const discount = seatDiscounts[seat.seat_number] || 'NONE';
+          
+          let finalPrice = basePrice;
+          if (discount === 'U22') {
+              finalPrice = 55000;
+          } else if (discount === 'MINUS_20') {
+              finalPrice = basePrice * 0.8;
+          } else if (discount === 'MINUS_50') {
+              finalPrice = basePrice * 0.5;
+          } else if (discount === 'MINUS_100') {
+              finalPrice = 0;
+          }
+          finalTotal += finalPrice;
+      });
+      
+      const discountAmount = Math.max(0, booking.total_price_movie - finalTotal);
+      return { finalTotal, discountAmount };
+  };
+
+  const { finalTotal, discountAmount } = calculateSeatPrices();
+
+  const handleSeatDiscountChange = (seatNumber: string, value: string) => {
+      setSeatDiscounts(prev => ({ ...prev, [seatNumber]: value }));
+  };
+
+  const handleSearchCustomer = async () => {
+      if (!searchPhone) return;
+      try {
+          const res = await fetch(`/api/users/search/phone?q=${searchPhone}`);
+          const data = await res.json();
+          if (data && data.id) {
+              setCustomer(data);
+          } else {
+              setCustomer(null);
+              alert('Không tìm thấy khách hàng với số điện thoại này!');
+          }
+      } catch (err) {
+          setCustomer(null);
+          alert('Không tìm thấy khách hàng hoặc lỗi kết nối.');
+      }
+  };
 
   return (
     <main className="main-content">
@@ -123,11 +205,42 @@ export default function PosPayment() {
                             </tr>
                         </thead>
                         <tbody id="ticket-list-body">
-                            <tr>
-                                <td style={{ padding: '15px 0', borderBottom: '1px solid #222' }}>Vé xem phim người lớn ({movie?.type || '2D'})</td>
-                                <td style={{ textAlign: 'center', padding: '15px 0', borderBottom: '1px solid #222' }}>{booking.total_seat}</td>
-                                <td style={{ textAlign: 'right', padding: '15px 0', borderBottom: '1px solid #222', fontWeight: 'bold' }}>{booking.total_price_movie?.toLocaleString('vi-VN')}đ</td>
-                            </tr>
+                            {booking.bookingseat?.map((bs: any) => {
+                                const seat = bs.seat;
+                                const basePrice = getSeatBasePrice(seat.type || 'STANDARD');
+                                const discount = seatDiscounts[seat.seat_number] || 'NONE';
+                                
+                                let finalPrice = basePrice;
+                                if (discount === 'U22') finalPrice = 55000;
+                                else if (discount === 'MINUS_20') finalPrice = basePrice * 0.8;
+                                else if (discount === 'MINUS_50') finalPrice = basePrice * 0.5;
+                                else if (discount === 'MINUS_100') finalPrice = 0;
+
+                                return (
+                                    <tr key={seat.id}>
+                                        <td style={{ padding: '15px 0', borderBottom: '1px solid #222' }}>
+                                            <div>Ghế {seat.seat_number} ({seat.type || 'STANDARD'})</div>
+                                            <div style={{ color: '#888', fontSize: '13px' }}>Giá gốc: {basePrice.toLocaleString()}đ</div>
+                                        </td>
+                                        <td style={{ textAlign: 'center', padding: '15px 0', borderBottom: '1px solid #222' }}>
+                                            <select 
+                                                value={discount} 
+                                                onChange={(e) => handleSeatDiscountChange(seat.seat_number, e.target.value)}
+                                                style={{ width: '100%', padding: '8px', borderRadius: '5px', border: '1px solid #444', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)' }}
+                                            >
+                                                <option value="NONE">Người lớn (Không ưu đãi)</option>
+                                                <option value="U22">Học sinh, Sinh viên (55k)</option>
+                                                <option value="MINUS_20">Trẻ em, Người cao tuổi (-20%)</option>
+                                                <option value="MINUS_50">Khuyết tật nặng (-50%)</option>
+                                                <option value="MINUS_100">Trẻ em dưới 0.7m (-100%)</option>
+                                            </select>
+                                        </td>
+                                        <td style={{ textAlign: 'right', padding: '15px 0', borderBottom: '1px solid #222', fontWeight: 'bold' }}>
+                                            {finalPrice.toLocaleString('vi-VN')}đ
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
@@ -138,16 +251,28 @@ export default function PosPayment() {
                     <div className="payment-card" style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '8px' }}>
                         <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '10px' }}>Tra cứu & Khuyến mãi</h3>
                         <div className="input-group" style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
-                            <input type="text" id="pos-phone" placeholder="Nhập SĐT khách hàng..." className="form-control" style={{ flex: 1, padding: '10px', borderRadius: '5px', border: '1px solid #444', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)' }} />
-                            <button className="btn btn-outline" style={{ whiteSpace: 'nowrap', borderColor: '#ff4d4f', color: '#ff4d4f' }}>Tìm khách</button>
+                            <input 
+                                type="text" 
+                                placeholder="Nhập SĐT khách hàng..." 
+                                className="form-control" 
+                                value={searchPhone}
+                                onChange={(e) => setSearchPhone(e.target.value)}
+                                style={{ flex: 1, padding: '10px', borderRadius: '5px', border: '1px solid #444', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)' }} 
+                            />
+                            <button onClick={handleSearchCustomer} className="btn btn-outline" style={{ whiteSpace: 'nowrap', borderColor: '#ff4d4f', color: '#ff4d4f' }}>Tìm khách</button>
                         </div>
-                        <p id="pos-user-result" style={{ color: '#28a745', fontSize: '14px', marginTop: '10px' }}></p>
+                        {customer && (
+                            <p id="pos-user-result" style={{ color: '#28a745', fontSize: '14px', marginTop: '10px' }}>
+                                Khách hàng: {customer.first_name} {customer.last_name} ({customer.phone})
+                            </p>
+                        )}
 
                         <div className="input-group" style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
                             <input type="text" id="pos-voucher" placeholder="Nhập mã Voucher..." className="form-control" style={{ flex: 1, padding: '10px', borderRadius: '5px', border: '1px solid #444', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)' }} />
                             <button className="btn btn-outline" style={{ whiteSpace: 'nowrap', borderColor: '#ff4d4f', color: '#ff4d4f' }}>Áp dụng</button>
                         </div>
                         <p id="pos-voucher-result" style={{ color: '#28a745', fontSize: '14px', marginTop: '10px' }}></p>
+
                     </div>
 
                     <div className="payment-card mt-40" style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '8px', marginTop: '30px' }}>
@@ -156,7 +281,7 @@ export default function PosPayment() {
                             <label className={`method-option ${paymentMethod === 'CASH' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === 'CASH' ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
                                 <input type="radio" name="payment_method" value="CASH" checked={paymentMethod === 'CASH'} onChange={(e) => setPaymentMethod(e.target.value)} style={{ display: 'none' }} />
                                 <img src="https://placehold.co/40x20/28a745/FFF?text=Cash" alt="Cash" />
-                                <span>Tiền mặt (Đã thu tiền)</span>
+                                <span>Tiền mặt</span>
                             </label>
                             <label className={`method-option ${paymentMethod === 'CARD' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === 'CARD' ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
                                 <input type="radio" name="payment_method" value="CARD" checked={paymentMethod === 'CARD'} onChange={(e) => setPaymentMethod(e.target.value)} style={{ display: 'none' }} />
@@ -179,12 +304,12 @@ export default function PosPayment() {
                                 <span id="summary-total">{booking.total_price_movie?.toLocaleString('vi-VN')}đ</span>
                             </div>
                             <div className="cost-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                                <span>Phí</span>
-                                <span>0đ</span>
+                                <span>Ưu đãi đối tượng</span>
+                                <span style={{ color: '#28a745' }}>-{discountAmount.toLocaleString('vi-VN')}đ</span>
                             </div>
                             <div className="cost-row total" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '15px', borderTop: '1px dashed #444', fontWeight: 'bold', fontSize: '18px', color: '#ff4d4f' }}>
                                 <span>Tổng cộng</span>
-                                <span id="final-total">{booking.total_price_movie?.toLocaleString('vi-VN')}đ</span>
+                                <span id="final-total">{finalTotal.toLocaleString('vi-VN')}đ</span>
                             </div>
                         </div>
 

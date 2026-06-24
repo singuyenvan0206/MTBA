@@ -114,10 +114,10 @@ export default function Payment() {
                 <div className="payment-card" style={{ backgroundColor: 'var(--card-bg)', padding: '30px', borderRadius: '10px', border: '1px solid var(--card-border)' }}>
                     <h3 style={{ marginBottom: '20px', fontSize: '20px' }}>Phương thức thanh toán</h3>
                     <div className="payment-methods" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        {['CASH', 'TRANSFER', 'CARD', 'EWALLET'].map(m => (
+                        {['TRANSFER', 'CARD', 'EWALLET'].map(m => (
                             <label key={m} className={`method-option ${method === m ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: `1px solid ${method === m ? '#ff4d4f' : '#444'}`, borderRadius: '8px', cursor: 'pointer', background: method === m ? 'rgba(255,77,79,0.1)' : 'transparent' }}>
                                 <input type="radio" name="payment_method" value={m} checked={method === m} onChange={() => setMethod(m)} style={{ accentColor: '#ff4d4f' }} />
-                                <span>{m === 'CARD' ? 'Thẻ Ngân hàng' : m === 'TRANSFER' ? 'Chuyển khoản' : m === 'EWALLET' ? 'Ví thanh toán' : 'Tiền mặt (tại quầy)'}</span>
+                                <span>{m === 'CARD' ? 'Thẻ Ngân hàng' : m === 'TRANSFER' ? 'Chuyển khoản' : 'Ví thanh toán'}</span>
                             </label>
                         ))}
                     </div>

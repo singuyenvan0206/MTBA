@@ -88,14 +88,21 @@ export default function Booking() {
   const calculateTotalPrice = () => {
     if (!showtime?.movie) return 0;
     const movieType = showtime.movie.type || 'TYPE_2D';
+    
+    const isWeekend = (dateString: string) => {
+        const day = new Date(dateString).getDay();
+        return day === 0 || day === 6;
+    };
+    const showtimeDayType = isWeekend(showtime.start_time);
+
     let total = 0;
     
     selectedSeats.forEach(seatId => {
       const seat = dbSeats.find(s => s.seat_number === seatId);
       const seatType = seat?.type || 'STANDARD';
 
-      // Find price config matching movieType and seatType
-      const priceConfig = prices.find(p => p.type_movie === movieType && p.type_seat === seatType);
+      // Find price config matching movieType, seatType and day_type
+      const priceConfig = prices.find(p => p.type_movie === movieType && p.type_seat === seatType && p.day_type === showtimeDayType);
       
       let price = 0;
       if (priceConfig) {

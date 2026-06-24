@@ -8,9 +8,30 @@ export default function Prices() {
   useEffect(() => {
     fetch('/api/prices')
       .then(res => res.json())
-      .then(resData => { setData(resData); setLoading(false); })
+      .then(resData => {
+        if (Array.isArray(resData)) {
+            const uniqueData: any[] = [];
+            const seen = new Set();
+            for (const item of resData) {
+                const key = `${item.day_type}-${item.type_seat}-${item.type_movie}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueData.push(item);
+                }
+            }
+            uniqueData.sort((a, b) => {
+                if (a.type_movie !== b.type_movie) return a.type_movie.localeCompare(b.type_movie);
+                return a.type_seat.localeCompare(b.type_seat);
+            });
+            setData(uniqueData);
+        }
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, []);
+
+  const weekdayPrices = data.filter(item => item.day_type === false);
+  const weekendPrices = data.filter(item => item.day_type === true);
 
   return (
     <main className="main-content">
@@ -18,7 +39,39 @@ export default function Prices() {
             <h2 className="text-center" style={{ fontSize: '28px', color: 'var(--text-color)', textTransform: 'uppercase' }}>Giá vé</h2>
             <p className="text-center" style={{ color: 'var(--text-secondary)', marginBottom: '40px' }}>(Áp dụng từ ngày 01/06/2024)</p>
 
-            <h3 className="pricing-title">BẢNG GIÁ VÉ XEM PHIM</h3>
+            <h3 className="pricing-title">BẢNG GIÁ VÉ XEM PHIM (NGÀY THƯỜNG T2 - T6)</h3>
+            <div className="table-responsive" style={{ marginBottom: '40px' }}>
+                <table className="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>Loại Ghế</th>
+                            <th>Loại Phim</th>
+                            <th>Giá (VNĐ)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {loading ? (
+                            <tr>
+                                <td colSpan={3} className="text-center" style={{ padding: '20px', color: '#888' }}>Đang tải dữ liệu...</td>
+                            </tr>
+                        ) : weekdayPrices.length > 0 ? (
+                            weekdayPrices.map((item, i) => (
+                                <tr key={i}>
+                                    <td>{item.type_seat === 'STANDARD' ? 'Thường' : (item.type_seat === 'VIP' ? 'VIP' : 'Sweetbox')}</td>
+                                    <td>{item.type_movie === 'TYPE_2D' ? '2D' : '3D'}</td>
+                                    <td style={{ color: '#ff4d4f', fontWeight: 'bold' }}>{item.price?.toLocaleString()} đ</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={3} className="text-center" style={{ padding: '20px', color: '#888' }}>Chưa có thông tin bảng giá ngày thường.</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 className="pricing-title">BẢNG GIÁ VÉ XEM PHIM (CUỐI TUẦN & NGÀY LỄ)</h3>
             <div className="table-responsive">
                 <table className="pricing-table">
                     <thead>
@@ -33,17 +86,17 @@ export default function Prices() {
                             <tr>
                                 <td colSpan={3} className="text-center" style={{ padding: '20px', color: '#888' }}>Đang tải dữ liệu...</td>
                             </tr>
-                        ) : data.length > 0 ? (
-                            data.map((item, i) => (
+                        ) : weekendPrices.length > 0 ? (
+                            weekendPrices.map((item, i) => (
                                 <tr key={i}>
-                                    <td>{item.type_seat}</td>
-                                    <td>{item.type_movie}</td>
+                                    <td>{item.type_seat === 'STANDARD' ? 'Thường' : (item.type_seat === 'VIP' ? 'VIP' : 'Sweetbox')}</td>
+                                    <td>{item.type_movie === 'TYPE_2D' ? '2D' : '3D'}</td>
                                     <td style={{ color: '#ff4d4f', fontWeight: 'bold' }}>{item.price?.toLocaleString()} đ</td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={3} className="text-center" style={{ padding: '20px', color: '#888' }}>Chưa có thông tin bảng giá.</td>
+                                <td colSpan={3} className="text-center" style={{ padding: '20px', color: '#888' }}>Chưa có thông tin bảng giá cuối tuần / lễ.</td>
                             </tr>
                         )}
                     </tbody>

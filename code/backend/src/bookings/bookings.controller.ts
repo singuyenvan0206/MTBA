@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Query, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query, Delete, Put } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 
 @Controller('bookings')
@@ -35,5 +35,10 @@ export class BookingsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.bookingsService.removeBooking(+id);
+  }
+
+  @Put(':id/user')
+  updateUser(@Param('id') id: string, @Body() body: { userId: number }) {
+    return this.bookingsService.updateUser(+id, body.userId);
   }
 }

@@ -1,11 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { TheaterProvider } from './TheaterContext';
+import TheaterSelector from './TheaterSelector';
 
 export default function Pos2Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <>
+    <TheaterProvider>
       <header className="navbar">
           <div className="container nav-container">
               <div className="logo">
@@ -20,12 +22,7 @@ export default function Pos2Layout({ children }: { children: React.ReactNode }) 
                   <Link href="/pos2/festivals" className={pathname === '/pos2/festivals' ? 'active' : ''} style={pathname === '/pos2/festivals' ? { color: 'var(--primary-color)' } : {}}>Liên hoan phim</Link>
               </nav>
               <div className="nav-auth" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <div className="theater-selector-container" style={{ display: 'flex', alignItems: 'center' }}>
-                      <label style={{ color: 'var(--text-color)', marginRight: '10px' }}>Cụm Rạp:</label>
-                      <select style={{ padding: '5px 10px', borderRadius: '5px', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', border: '1px solid #444', outline: 'none' }}>
-                          <option value="1">NCC Láng Hạ</option>
-                      </select>
-                  </div>
+                  <TheaterSelector />
                   <span className="btn" style={{ color: '#ff4d4f', fontWeight: 'bold' }}>HỆ THỐNG POS TẠI QUẦY</span>
               </div>
               <div className="hamburger">
@@ -60,6 +57,6 @@ export default function Pos2Layout({ children }: { children: React.ReactNode }) 
               </div>
           </div>
       </footer>
-    </>
+    </TheaterProvider>
   );
 }

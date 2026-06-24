@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useTheater } from '../../TheaterContext';
 
 type Movie = {
   id: number;
@@ -29,14 +30,14 @@ export default function MovieDetail() {
   
   // Seat selection state
   const [selectedDate, setSelectedDate] = useState<string>('');
+  const { selectedTheater } = useTheater();
   const [selectedShowtime, setSelectedShowtime] = useState<any>(null);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [bookedSeats, setBookedSeats] = useState<string[]>([]);
+  const [dbSeats, setDbSeats] = useState<any[]>([]);
+  const [prices, setPrices] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
   const [currentTime, setCurrentTime] = useState<string>('--:--:--');
-
-  const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K'];
-  const seatsPerRow = 14;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -55,6 +56,12 @@ export default function MovieDetail() {
 
     if (!params?.id) return;
     
+    // Lấy bảng giá
+    fetch('/api/prices')
+      .then(res => res.json())
+      .then(data => setPrices(Array.isArray(data) ? data : []))
+      .catch(err => console.error(err));
+
     fetch(`/api/movies/${params.id}`)
       .then(res => res.json())
       .then(data => {
@@ -73,21 +80,30 @@ export default function MovieDetail() {
   }, [params.id]);
 
   // Handle unique dates
-  const dates = Array.from(new Set(showtimes.map(st => {
+  const availableDates = Array.from(new Set(showtimes.map(st => {
     const d = new Date(st.start_time);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }))).sort();
 
   useEffect(() => {
-    if (dates.length > 0 && !selectedDate) {
-      setSelectedDate(dates[0]);
+    if (availableDates.length > 0 && !selectedDate) {
+      setSelectedDate(availableDates[0]);
     }
-  }, [dates, selectedDate]);
+  }, [availableDates, selectedDate]);
 
   const handleSelectShowtime = (showtime: any) => {
     setSelectedShowtime(showtime);
     setSelectedSeats([]);
     setBookedSeats([]);
+    setDbSeats([]);
+    
+    if (showtime.screen_id) {
+        fetch(`/api/seats?screen_id=${showtime.screen_id}`)
+          .then(res => res.json())
+          .then(seats => setDbSeats(seats))
+          .catch(err => console.error('Lỗi khi tải ghế của phòng chiếu:', err));
+    }
+
     fetch(`/api/bookings/booked-seats?showtimeId=${showtime.id}`)
       .then(res => res.json())
       .then(data => setBookedSeats(data))
@@ -102,6 +118,38 @@ export default function MovieDetail() {
     }
   };
 
+  const calculateTotalPrice = () => {
+    if (!movie) return 0;
+    const movieType = movie.type || 'TYPE_2D';
+    
+    const isWeekend = (dateString: string) => {
+        const day = new Date(dateString).getDay();
+        return day === 0 || day === 6;
+    };
+    const showtimeDayType = selectedShowtime ? isWeekend(selectedShowtime.start_time) : false;
+
+    let total = 0;
+    
+    selectedSeats.forEach(seatId => {
+      const seat = dbSeats.find(s => s.seat_number === seatId);
+      const seatType = seat?.type || 'STANDARD';
+
+      const priceConfig = prices.find(p => p.type_movie === movieType && p.type_seat === seatType && p.day_type === showtimeDayType);
+      
+      let price = 0;
+      if (priceConfig) {
+        price = priceConfig.price;
+      } else {
+        if (seatType === 'STANDARD') price = 80000;
+        else if (seatType === 'VIP') price = 100000;
+        else if (seatType === 'SWEETBOX') price = 150000;
+      }
+      total += price;
+    });
+    
+    return total;
+  };
+
   const handleCheckout = async () => {
     if (selectedSeats.length === 0) {
       return alert('Vui lòng chọn ít nhất 1 ghế!');
@@ -109,6 +157,7 @@ export default function MovieDetail() {
     if (!selectedShowtime) return;
 
     try {
+      const totalPrice = calculateTotalPrice();
       const res = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -116,7 +165,7 @@ export default function MovieDetail() {
           userId: user.id,
           showtimeId: selectedShowtime.id,
           seats: selectedSeats,
-          totalPrice: selectedSeats.length * 80000
+          totalPrice: totalPrice
         })
       });
 
@@ -136,11 +185,22 @@ export default function MovieDetail() {
 
   const showtimesForDate = showtimes.filter(st => {
     const d = new Date(st.start_time);
-    const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    return dStr === selectedDate;
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    if (selectedDate && dateStr !== selectedDate) return false;
+    if (selectedTheater && st.screen?.theater_id?.toString() !== selectedTheater) return false;
+    return true;
   });
 
   const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+
+  // Nhóm ghế theo hàng để hiển thị
+  const rowMap = new Map<string, any[]>();
+  dbSeats.forEach(seat => {
+    const row = seat.seat_number.charAt(0);
+    if (!rowMap.has(row)) rowMap.set(row, []);
+    rowMap.get(row)!.push(seat);
+  });
+  const dbRows = Array.from(rowMap.keys()).sort();
 
   return (
     <main className="main-content">
@@ -179,30 +239,32 @@ export default function MovieDetail() {
 
         {/* Lịch chiếu */}
         <section className="showtimes-section container">
-            <div className="date-selector" id="dynamic-date-selector">
-                {dates.length === 0 ? (
-                    <p style={{ color: 'var(--text-color)' }}>Phim chưa có lịch chiếu.</p>
-                ) : (
-                    dates.map(dateStr => {
-                        const d = new Date(dateStr);
-                        const dayName = dayNames[d.getDay()];
-                        const isSelected = dateStr === selectedDate;
-                        return (
-                            <button 
-                                key={dateStr} 
-                                className={`date-btn ${isSelected ? 'active' : ''}`} 
-                                onClick={() => {
-                                    setSelectedDate(dateStr);
-                                    setSelectedShowtime(null);
-                                }}
-                            >
-                                <span className="day">{dayName}</span>
-                                <span className="date">{d.getDate()}</span>
-                                <span className="month">Tháng {d.getMonth() + 1}</span>
-                            </button>
-                        );
-                    })
-                )}
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
+                <div className="date-selector" id="dynamic-date-selector" style={{ margin: 0 }}>
+                    {availableDates.length === 0 ? (
+                        <p style={{ color: 'var(--text-color)' }}>Phim chưa có lịch chiếu.</p>
+                    ) : (
+                        availableDates.map(dateStr => {
+                            const d = new Date(dateStr);
+                            const dayName = dayNames[d.getDay()];
+                            const isSelected = dateStr === selectedDate;
+                            return (
+                                <button 
+                                    key={dateStr} 
+                                    className={`date-btn ${isSelected ? 'active' : ''}`} 
+                                    onClick={() => {
+                                        setSelectedDate(dateStr);
+                                        setSelectedShowtime(null);
+                                    }}
+                                >
+                                    <span className="day">{dayName}</span>
+                                    <span className="date">{d.getDate()}</span>
+                                    <span className="month">Tháng {d.getMonth() + 1}</span>
+                                </button>
+                            );
+                        })
+                    )}
+                </div>
             </div>
             
             <p className="age-warning">Lưu ý: Khán giả dưới 13 tuổi chỉ chọn suất chiếu kết thúc trước 22h và khán giả dưới 16 tuổi chỉ chọn suất chiếu kết thúc trước 23h.</p>
@@ -251,16 +313,21 @@ export default function MovieDetail() {
                     </div>
 
                     <div className="seat-grid" id="seatGrid">
-                        {rows.map(row => (
-                            <div key={row} className="seat-row">
-                                {Array.from({ length: seatsPerRow }).map((_, i) => {
-                                    const seatId = `${row}${i + 1}`;
+                        {dbRows.map(row => (
+                            <div key={row} className="seat-row" style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+                                {rowMap.get(row)!.sort((a, b) => {
+                                    // Extract numbers from seat_number (e.g., A1 -> 1, A10 -> 10)
+                                    const numA = parseInt(a.seat_number.replace(/\D/g, '')) || 0;
+                                    const numB = parseInt(b.seat_number.replace(/\D/g, '')) || 0;
+                                    return numA - numB;
+                                }).map((seat: any) => {
+                                    const seatId = seat.seat_number;
                                     const isSelected = selectedSeats.includes(seatId);
                                     const isBooked = bookedSeats.includes(seatId);
                                     
                                     let seatClass = 'standard';
-                                    if (row === 'H' || row === 'J') seatClass = 'vip';
-                                    if (row === 'K') seatClass = 'couple';
+                                    if (seat.type === 'VIP') seatClass = 'vip';
+                                    if (seat.type === 'SWEETBOX') seatClass = 'couple';
 
                                     return (
                                         <div
@@ -295,7 +362,7 @@ export default function MovieDetail() {
                 <div className="booking-summary">
                     <div className="summary-info">
                         <p>Ghế đã chọn: <strong className="selected-seats-text" style={{ color: '#ff4d4f' }}>{selectedSeats.length > 0 ? selectedSeats.join(', ') : 'Chưa chọn'}</strong></p>
-                        <p>Tổng tiền: <strong className="total-price">{(selectedSeats.length * (selectedShowtime?.price || 80000)).toLocaleString('vi-VN')}đ</strong></p>
+                        <p>Tổng tiền: <strong className="total-price">{calculateTotalPrice().toLocaleString('vi-VN')}đ</strong></p>
                     </div>
                     <div className="summary-actions">
                         <button className="btn btn-outline" onClick={() => window.scrollTo(0, 0)}>Quay lại</button>

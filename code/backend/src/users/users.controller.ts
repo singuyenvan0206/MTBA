@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -7,6 +7,9 @@ export class UsersController {
 
   @Get()
   findAll() { return this.service.findAll(); }
+
+  @Get('search/phone')
+  findByPhone(@Query('q') phone: string) { return this.service.findByPhone(phone); }
 
   @Get(':id')
   findOne(@Param('id') id: string) { return this.service.findOne(+id); }
@@ -19,4 +22,5 @@ export class UsersController {
 
   @Delete(':id')
   remove(@Param('id') id: string) { return this.service.remove(+id); }
+
 }

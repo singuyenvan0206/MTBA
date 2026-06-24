@@ -120,8 +120,15 @@ export class BookingsService {
   }
 
   async removeBooking(id: number) {
-    return this.prisma.booking.delete({
+    return (this.prisma as any).booking.delete({
+      where: { id }
+    });
+  }
+
+  async updateUser(id: number, userId: number) {
+    return (this.prisma as any).booking.update({
       where: { id },
+      data: { user_id: userId }
     });
   }
 }

@@ -37,4 +37,10 @@ export class UsersService {
       return await (this.prisma as any).user.delete({ where: { id } });
     } catch(e) { return null; }
   }
+
+  async findByPhone(phone: string) {
+    try {
+      return await (this.prisma as any).user.findUnique({ where: { phone } });
+    } catch(e) { return null; }
+  }
 }
