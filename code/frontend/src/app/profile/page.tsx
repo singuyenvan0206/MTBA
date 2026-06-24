@@ -35,14 +35,24 @@ export default function Profile() {
     });
 
     // Lấy lịch sử đặt vé
-    fetch(`/api/bookings/user/${parsedUser.id}`)
+    fetch(`/api/bookings/user/${parsedUser.id}`, {
+      headers: {
+        'Authorization': `Bearer ${parsedUser.accessToken || ''}`
+      }
+    })
       .then(res => res.json())
       .then(data => {
-        setBookings(data);
+        if (Array.isArray(data)) {
+          setBookings(data);
+        } else {
+          console.error('Dữ liệu đặt vé không hợp lệ:', data);
+          setBookings([]);
+        }
         setLoading(false);
       })
       .catch(err => {
         console.error('Lỗi khi tải lịch sử:', err);
+        setBookings([]);
         setLoading(false);
       });
   }, [router]);
@@ -50,10 +60,72 @@ export default function Profile() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage('');
-    
-    // In a real app, this would hit a PUT /users/:id endpoint
-    // We will simulate a success message for now, as the API might not have this exact endpoint
-    setMessage('Cập nhật thông tin thành công!');
+
+    try {
+      const nameParts = formData.fullName.trim().split(' ');
+      const first_name = nameParts.length > 1 ? nameParts[0] : formData.fullName;
+      const last_name = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+      const payload: any = {
+        first_name,
+        last_name,
+        phone: formData.phone,
+        address: formData.address,
+        avatar: formData.avatar,
+      };
+
+      if (formData.password && formData.password.trim() !== '') {
+        payload.password = formData.password;
+      }
+
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Cập nhật thất bại');
+      }
+
+      const updatedUserFromDb = await res.json();
+      
+      const newUserSession = {
+        ...user,
+        fullName: `${updatedUserFromDb.first_name} ${updatedUserFromDb.last_name}`.trim(),
+        first_name: updatedUserFromDb.first_name,
+        last_name: updatedUserFromDb.last_name,
+        phone: updatedUserFromDb.phone,
+        address: updatedUserFromDb.address,
+        avatar: updatedUserFromDb.avatar,
+      };
+
+      if (localStorage.getItem('user')) {
+        localStorage.setItem('user', JSON.stringify(newUserSession));
+      } else {
+        sessionStorage.setItem('user', JSON.stringify(newUserSession));
+      }
+
+      setUser(newUserSession);
+      setFormData(prev => ({
+        ...prev,
+        password: ''
+      }));
+      setMessage('Cập nhật thông tin thành công!');
+      
+      window.dispatchEvent(new Event('storage'));
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
+    } catch (err: any) {
+      console.error(err);
+      setMessage(err.message || 'Lỗi kết nối server khi cập nhật');
+    }
   };
 
   if (!user) return <div className="text-center py-20 text-[color:var(--text-secondary)]">Đang tải...</div>;
