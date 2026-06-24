@@ -127,7 +127,10 @@ export default function Booking() {
       const totalPrice = calculateTotalPrice();
       const res = await fetch('/api/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.accessToken || ''}`
+        },
         body: JSON.stringify({
           userId: user.id,
           showtimeId: parseInt(params?.showtimeId as string),

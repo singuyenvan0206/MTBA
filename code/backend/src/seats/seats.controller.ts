@@ -1,5 +1,8 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, Query, UseGuards } from '@nestjs/common';
 import { SeatsService } from './seats.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('seats')
 export class SeatsController {
@@ -14,26 +17,39 @@ export class SeatsController {
   findOne(@Param('id') id: string) { return this.service.findOne(+id); }
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   create(@Body() data: any) { return this.service.create(data); }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   update(@Param('id') id: string, @Body() data: any) { return this.service.update(+id, data); }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   remove(@Param('id') id: string) { return this.service.remove(+id); }
 
   @Post('bulk-delete')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   bulkRemove(@Body() data: { ids: number[] }) {
     return this.service.bulkRemove(data.ids);
   }
 
   @Post('bulk-update-type')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   bulkUpdateType(@Body() data: { ids: number[], type: string }) {
     return this.service.bulkUpdateType(data.ids, data.type);
   }
 
   @Post('generate')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   generate(@Body() data: { screen_id: number }) {
     return this.service.generateSeats(data.screen_id);
   }
 }
+

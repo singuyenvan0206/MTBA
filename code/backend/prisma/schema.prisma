@@ -17,11 +17,11 @@ model banner {
 model booking {
   id                Int           @id @default(autoincrement())
   user_id           Int
-  showtime_id       Int
   total_seat        Int
   total_price_movie Float
   created_at        DateTime      @default(now())
-  updated_at        DateTime @updatedAt
+  updated_at        DateTime      @updatedAt
+  showtime_id       Int
   showtime          showtime      @relation(fields: [showtime_id], references: [id], onDelete: Cascade, map: "Booking_showtime_id_fkey")
   user              user          @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "Booking_user_id_fkey")
   bookingseat       bookingseat[]
@@ -71,7 +71,7 @@ model movie {
   duration     Int
   release_date DateTime
   created_at   DateTime     @default(now())
-  updated_at   DateTime @updatedAt
+  updated_at   DateTime     @updatedAt
   actors       String?      @db.VarChar(255)
   age_limit    String?      @db.VarChar(10)
   moviegenre   moviegenre[]
@@ -94,7 +94,7 @@ model news {
   content     String    @db.LongText
   festival_id Int?
   created_at  DateTime  @default(now())
-  updated_at  DateTime @updatedAt
+  updated_at  DateTime  @updatedAt
   festival    festival? @relation(fields: [festival_id], references: [id], map: "News_festival_id_fkey")
 
   @@index([festival_id], map: "News_festival_id_fkey")
@@ -125,7 +125,7 @@ model screen {
   seat_capacity Int
   theater_id    Int
   created_at    DateTime   @default(now())
-  updated_at    DateTime @updatedAt
+  updated_at    DateTime   @updatedAt
   theater       theater    @relation(fields: [theater_id], references: [id], onDelete: Cascade, map: "Screen_theater_id_fkey")
   seat          seat[]
   showtime      showtime[]
@@ -140,7 +140,7 @@ model seat {
   is_booked   Boolean       @default(false)
   type        seat_type
   created_at  DateTime      @default(now())
-  updated_at  DateTime @updatedAt
+  updated_at  DateTime      @updatedAt
   bookingseat bookingseat[]
   screen      screen        @relation(fields: [screen_id], references: [id], onDelete: Cascade, map: "Seat_screen_id_fkey")
 
@@ -154,7 +154,7 @@ model showtime {
   start_time DateTime
   end_time   DateTime
   created_at DateTime  @default(now())
-  updated_at DateTime @updatedAt
+  updated_at DateTime  @updatedAt
   booking    booking[]
   movie      movie     @relation(fields: [movie_id], references: [id], onDelete: Cascade, map: "ShowTime_movie_id_fkey")
   screen     screen    @relation(fields: [screen_id], references: [id], onDelete: Cascade, map: "ShowTime_screen_id_fkey")
@@ -193,7 +193,7 @@ model user {
   phone      String?     @unique(map: "User_phone_key") @db.VarChar(11)
   address    String?     @db.VarChar(255)
   created_at DateTime    @default(now())
-  updated_at DateTime @updatedAt
+  updated_at DateTime    @updatedAt
   status     user_status @default(ACTIVE)
   booking    booking[]
   userrole   userrole[]
@@ -207,6 +207,12 @@ model userrole {
 
   @@id([user_id, role_id])
   @@index([role_id], map: "UserRole_role_id_fkey")
+}
+
+model agelimit {
+  id          Int    @id @default(autoincrement())
+  code        String @unique @db.VarChar(10)
+  description String @db.VarChar(255)
 }
 
 enum role_role_name {
@@ -262,10 +268,4 @@ enum movie_type {
 enum user_status {
   ACTIVE
   BLOCKED
-}
-
-model agelimit {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique @db.VarChar(10)
-  description String   @db.VarChar(255)
 }

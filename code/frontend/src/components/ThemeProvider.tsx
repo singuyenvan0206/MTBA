@@ -35,6 +35,52 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
     } catch (e) {
       console.warn('localStorage not available', e);
     }
+
+    // Monkey patch fetch to automatically inject Authorization header for /api calls
+    const originalFetch = window.fetch;
+    window.fetch = async function (input: RequestInfo | URL, init?: RequestInit) {
+      init = init || {};
+      init.headers = init.headers || {};
+
+      let token = '';
+      try {
+        const isAdminPath = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+        const storedKey = isAdminPath ? 'admin_user' : 'user';
+        const storedUser = localStorage.getItem(storedKey) || localStorage.getItem('admin_user') || localStorage.getItem('user');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          token = user.accessToken || '';
+        }
+      } catch (e) {}
+
+      const urlStr = typeof input === 'string' ? input : (input instanceof URL ? input.toString() : '');
+      const isRelativeApi = urlStr.startsWith('/api/') || urlStr.startsWith('api/');
+
+      if (token && isRelativeApi) {
+        if (init.headers instanceof Headers) {
+          if (!init.headers.has('Authorization')) {
+            init.headers.set('Authorization', `Bearer ${token}`);
+          }
+        } else if (Array.isArray(init.headers)) {
+          const hasAuth = init.headers.some(([key]) => key.toLowerCase() === 'authorization');
+          if (!hasAuth) {
+            init.headers.push(['Authorization', `Bearer ${token}`]);
+          }
+        } else {
+          const headers = init.headers as Record<string, string>;
+          const hasAuth = Object.keys(headers).some(key => key.toLowerCase() === 'authorization');
+          if (!hasAuth) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
+        }
+      }
+
+      return originalFetch(input, init);
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+    };
   }, []);
 
   const toggleTheme = () => {
