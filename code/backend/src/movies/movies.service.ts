@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { movie_type } from '@prisma/client';
 
 @Injectable()
 export class MoviesService {
@@ -98,7 +99,7 @@ export class MoviesService {
         duration: parseInt(duration),
         release_date: new Date(releaseDate),
         image: posterUrl,
-        type: type || 'TYPE_2D',
+        type: type || movie_type.TYPE_2D,
         trailer: trailer || '',
         author: author || '',
         actors: actors || '',

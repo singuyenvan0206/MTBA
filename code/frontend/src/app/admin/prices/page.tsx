@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { SeatType, MovieType } from '@/types/enums';
 
 type TicketPrice = {
   id: number;
@@ -19,8 +20,8 @@ export default function AdminPrices() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
-    type_seat: 'STANDARD',
-    type_movie: 'TYPE_2D',
+    type_seat: SeatType.STANDARD,
+    type_movie: MovieType.TYPE_2D,
     day_type: 'false',
     price: ''
   });
@@ -45,15 +46,15 @@ export default function AdminPrices() {
 
   const openAddModal = () => {
     setEditingId(null);
-    setFormData({ type_seat: 'STANDARD', type_movie: 'TYPE_2D', day_type: 'false', price: '' });
+    setFormData({ type_seat: SeatType.STANDARD, type_movie: MovieType.TYPE_2D, day_type: 'false', price: '' });
     setShowModal(true);
   };
 
   const openEditModal = (item: TicketPrice) => {
     setEditingId(item.id);
     setFormData({
-      type_seat: item.type_seat || 'STANDARD',
-      type_movie: item.type_movie || 'TYPE_2D',
+      type_seat: (item.type_seat as SeatType) || SeatType.STANDARD,
+      type_movie: (item.type_movie as MovieType) || MovieType.TYPE_2D,
       day_type: String(item.day_type || false),
       price: String(item.price || '')
     });
@@ -131,8 +132,8 @@ export default function AdminPrices() {
               data.map((item) => (
                 <tr key={item.id}>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>#{item.id}</td>
-                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)', fontWeight: 'bold', color: 'var(--foreground)' }}>{item.type_seat === 'STANDARD' ? 'Thường' : (item.type_seat === 'VIP' ? 'VIP' : 'Sweetbox')}</td>
-                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.type_movie === 'TYPE_2D' ? '2D' : '3D'}</td>
+                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)', fontWeight: 'bold', color: 'var(--foreground)' }}>{item.type_seat === SeatType.STANDARD ? 'Thường' : (item.type_seat === SeatType.VIP ? 'VIP' : 'Sweetbox')}</td>
+                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.type_movie === MovieType.TYPE_2D ? '2D' : '3D'}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.day_type ? 'Cuối tuần / Lễ' : 'Ngày thường'}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
@@ -160,11 +161,11 @@ export default function AdminPrices() {
                 <select 
                   required 
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                  value={formData.type_seat} onChange={e => setFormData({...formData, type_seat: e.target.value})}
+                  value={formData.type_seat} onChange={e => setFormData({...formData, type_seat: e.target.value as SeatType})}
                 >
-                  <option value="STANDARD">Thường</option>
-                  <option value="VIP">VIP</option>
-                  <option value="SWEETBOX">Sweetbox (Ghế đôi)</option>
+                  <option value={SeatType.STANDARD}>Thường</option>
+                  <option value={SeatType.VIP}>VIP</option>
+                  <option value={SeatType.SWEETBOX}>Sweetbox (Ghế đôi)</option>
                 </select>
               </div>
 
@@ -173,10 +174,10 @@ export default function AdminPrices() {
                 <select 
                   required 
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                  value={formData.type_movie} onChange={e => setFormData({...formData, type_movie: e.target.value})}
+                  value={formData.type_movie} onChange={e => setFormData({...formData, type_movie: e.target.value as MovieType})}
                 >
-                  <option value="TYPE_2D">2D</option>
-                  <option value="TYPE_3D">3D</option>
+                  <option value={MovieType.TYPE_2D}>2D</option>
+                  <option value={MovieType.TYPE_3D}>3D</option>
                 </select>
               </div>
 

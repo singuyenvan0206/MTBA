@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { seat_type } from '@prisma/client';
 
 @Injectable()
 export class SeatsService {
@@ -87,9 +88,9 @@ export class SeatsService {
           
           const seatNum = `${rows[r]}${c}`;
           if (!existingSeatNames.has(seatNum)) {
-            let seatType = 'STANDARD';
-            if (r >= totalRows - 1) seatType = 'SWEETBOX';
-            else if (r >= totalRows - 3) seatType = 'VIP';
+            let seatType: seat_type = seat_type.STANDARD;
+            if (r >= totalRows - 1) seatType = seat_type.SWEETBOX;
+            else if (r >= totalRows - 3) seatType = seat_type.VIP;
 
             seatsToCreate.push({
               screen_id,

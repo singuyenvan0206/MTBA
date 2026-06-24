@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { PaymentStatus, PaymentMethod } from '@/types/enums';
 
 export default function AdminBookings() {
   const [bookings, setBookings] = useState([]);
@@ -8,7 +9,7 @@ export default function AdminBookings() {
 
   const [showModal, setShowModal] = useState(false);
   const [editingBooking, setEditingBooking] = useState<any>(null);
-  const [paymentData, setPaymentData] = useState({ status: 'PENDING', method: 'CASH', id: null as any });
+  const [paymentData, setPaymentData] = useState({ status: PaymentStatus.PENDING, method: PaymentMethod.CASH, id: null as any });
 
   const fetchBookings = () => {
     setLoading(true);
@@ -32,8 +33,8 @@ export default function AdminBookings() {
     setEditingBooking(booking);
     const pm = booking.payment?.[0] || {};
     setPaymentData({ 
-      status: pm.payment_status || 'PENDING', 
-      method: pm.payment_method || 'CASH',
+      status: pm.payment_status || PaymentStatus.PENDING, 
+      method: pm.payment_method || PaymentMethod.CASH,
       id: pm.id || null
     });
     setShowModal(true);
@@ -127,8 +128,8 @@ export default function AdminBookings() {
                     <td style={{ padding: '15px' }}>
                       {pm ? (
                         <div>
-                          <div style={{ display: 'inline-block', padding: '5px 10px', borderRadius: '5px', backgroundColor: pm.payment_status === 'COMPLETED' ? 'rgba(52, 211, 153, 0.2)' : 'rgba(251, 191, 36, 0.2)', color: pm.payment_status === 'COMPLETED' ? '#34d399' : '#fbbf24', fontSize: '12px', fontWeight: 'bold' }}>
-                            {pm.payment_status === 'COMPLETED' ? 'Đã TT' : 'Chưa TT'}
+                          <div style={{ display: 'inline-block', padding: '5px 10px', borderRadius: '5px', backgroundColor: pm.payment_status === PaymentStatus.COMPLETED ? 'rgba(52, 211, 153, 0.2)' : 'rgba(251, 191, 36, 0.2)', color: pm.payment_status === PaymentStatus.COMPLETED ? '#34d399' : '#fbbf24', fontSize: '12px', fontWeight: 'bold' }}>
+                            {pm.payment_status === PaymentStatus.COMPLETED ? 'Đã TT' : 'Chưa TT'}
                           </div>
                           <div style={{ fontSize: '11px', marginTop: '5px', opacity: 0.6 }}>{pm.payment_method}</div>
                         </div>
@@ -173,18 +174,18 @@ export default function AdminBookings() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '5px', color: '#ccc' }}>Trạng thái</label>
-                <select value={paymentData.status} onChange={e => setPaymentData({...paymentData, status: e.target.value})} style={{ width: '100%', padding: '10px', backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', borderRadius: '5px' }}>
-                  <option value="PENDING">Chưa thanh toán (PENDING)</option>
-                  <option value="COMPLETED">Đã thanh toán (COMPLETED)</option>
+                <select value={paymentData.status} onChange={e => setPaymentData({...paymentData, status: e.target.value as PaymentStatus})} style={{ width: '100%', padding: '10px', backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', borderRadius: '5px' }}>
+                  <option value={PaymentStatus.PENDING}>Chưa thanh toán (PENDING)</option>
+                  <option value={PaymentStatus.COMPLETED}>Đã thanh toán (COMPLETED)</option>
                 </select>
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '5px', color: '#ccc' }}>Phương thức</label>
-                <select value={paymentData.method} onChange={e => setPaymentData({...paymentData, method: e.target.value})} style={{ width: '100%', padding: '10px', backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', borderRadius: '5px' }}>
-                  <option value="CASH">Tiền mặt (CASH)</option>
-                  <option value="CARD">Thẻ ngân hàng (CARD)</option>
-                  <option value="EWALLET">Ví điện tử (EWALLET)</option>
-                  <option value="TRANSFER">Chuyển khoản (TRANSFER)</option>
+                <select value={paymentData.method} onChange={e => setPaymentData({...paymentData, method: e.target.value as PaymentMethod})} style={{ width: '100%', padding: '10px', backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', borderRadius: '5px' }}>
+                  <option value={PaymentMethod.CASH}>Tiền mặt (CASH)</option>
+                  <option value={PaymentMethod.CARD}>Thẻ ngân hàng (CARD)</option>
+                  <option value={PaymentMethod.EWALLET}>Ví điện tử (EWALLET)</option>
+                  <option value={PaymentMethod.TRANSFER}>Chuyển khoản (TRANSFER)</option>
                 </select>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>

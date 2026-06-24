@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { MovieType } from '@/types/enums';
 
 type Movie = {
   id: number;
@@ -37,7 +38,7 @@ export default function AdminMovies() {
     duration: '',
     releaseDate: '',
     posterUrl: '',
-    type: 'TYPE_2D',
+    type: MovieType.TYPE_2D,
     description: '',
     author: '',
     actors: '',
@@ -75,7 +76,7 @@ export default function AdminMovies() {
     setEditingId(null);
     setFormData({
       title: '', genre: '', duration: '', releaseDate: '',
-      posterUrl: '', type: 'TYPE_2D', description: '',
+      posterUrl: '', type: MovieType.TYPE_2D, description: '',
       author: '', actors: '', ageLimit: '', trailer: ''
     });
 
@@ -90,7 +91,7 @@ export default function AdminMovies() {
       duration: movie.duration ? String(movie.duration) : '',
       releaseDate: movie.releaseDate ? new Date(movie.releaseDate).toISOString().split('T')[0] : '',
       posterUrl: movie.posterUrl || '',
-      type: movie.type || 'TYPE_2D',
+      type: (movie.type as MovieType) || MovieType.TYPE_2D,
       description: movie.description || '',
       author: movie.author || '',
       actors: movie.actors || '',
@@ -307,10 +308,10 @@ export default function AdminMovies() {
                   <select 
                     required 
                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                    value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}
+                    value={formData.type} onChange={e => setFormData({...formData, type: e.target.value as MovieType})}
                   >
-                    <option value="TYPE_2D">2D</option>
-                    <option value="TYPE_3D">3D</option>
+                    <option value={MovieType.TYPE_2D}>2D</option>
+                    <option value={MovieType.TYPE_3D}>3D</option>
                   </select>
                 </div>
               </div>

@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { UserRole } from '@/types/enums';
 
 export default function Header() {
   const pathname = usePathname();
@@ -35,7 +36,7 @@ export default function Header() {
             <div className="nav-auth">
                 {user ? (
                     <>
-                        {user.role === 'admin' && (
+                        {user.role === UserRole.ADMIN && (
                             <button className="btn btn-primary" style={{marginRight: '10px', background: '#dc3545'}} onClick={() => window.location.href='/admin'}>Admin Panel</button>
                         )}
                         <Link href="/profile" style={{textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', marginRight: '15px'}}>

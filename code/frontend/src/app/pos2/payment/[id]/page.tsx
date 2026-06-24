@@ -3,13 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { PaymentMethod, PaymentStatus, SeatType, MovieType } from '@/types/enums';
+import { AppMessage } from '@/types/messages';
 
 export default function PosPayment() {
   const params = useParams();
   const router = useRouter();
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState('CASH');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CASH);
   const [prices, setPrices] = useState<any[]>([]);
   const [seatDiscounts, setSeatDiscounts] = useState<Record<string, string>>({});
   const [searchPhone, setSearchPhone] = useState('');
@@ -41,10 +43,11 @@ export default function PosPayment() {
     if (!booking) return;
 
     try {
-      const methodMap: any = {
-        'CASH': 'CASH',
-        'CARD': 'CARD', 
-        'EWALLET': 'EWALLET'
+      const methodMap: Record<PaymentMethod, PaymentMethod> = {
+        [PaymentMethod.CASH]: PaymentMethod.CASH,
+        [PaymentMethod.CARD]: PaymentMethod.CARD,
+        [PaymentMethod.EWALLET]: PaymentMethod.EWALLET,
+        [PaymentMethod.TRANSFER]: PaymentMethod.TRANSFER,
       };
       
       // finalTotal is available in scope
@@ -63,21 +66,21 @@ export default function PosPayment() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           booking_id: booking.id,
-          payment_method: methodMap[paymentMethod] || 'CASH',
-          payment_status: 'COMPLETED',
+          payment_method: methodMap[paymentMethod] || PaymentMethod.CASH,
+          payment_status: PaymentStatus.COMPLETED,
           amount: amountToPay,
           payment_time: new Date().toISOString()
         })
       });
 
       if (res.ok) {
-        alert('Thanh toán thành công! In vé...');
+        alert(AppMessage.POS_PAYMENT_SUCCESS);
         router.push('/pos2');
       } else {
-        alert('Thanh toán thất bại.');
+        alert(AppMessage.POS_PAYMENT_FAILED);
       }
     } catch (err) {
-      alert('Lỗi kết nối server khi thanh toán.');
+      alert(AppMessage.POS_PAYMENT_CONNECTION_ERROR);
     }
   };
 
@@ -95,10 +98,10 @@ export default function PosPayment() {
           return day === 0 || day === 6;
       };
       const dayType = showtime?.start_time ? isWeekend(showtime.start_time) : false;
-      const movieType = movie?.type || 'TYPE_2D';
+      const movieType = (movie?.type as MovieType) || MovieType.TYPE_2D;
       
       const priceConfig = prices.find(p => p.type_movie === movieType && p.type_seat === seatType && p.day_type === dayType);
-      return priceConfig ? priceConfig.price : (seatType === 'VIP' ? 100000 : seatType === 'SWEETBOX' ? 150000 : 80000);
+      return priceConfig ? priceConfig.price : (seatType === SeatType.VIP ? 100000 : seatType === SeatType.SWEETBOX ? 150000 : 80000);
   };
 
   const calculateSeatPrices = () => {
@@ -107,7 +110,7 @@ export default function PosPayment() {
       let finalTotal = 0;
       booking.bookingseat.forEach((bs: any) => {
           const seat = bs.seat;
-          const basePrice = getSeatBasePrice(seat.type || 'STANDARD');
+          const basePrice = getSeatBasePrice(seat.type || SeatType.STANDARD);
           const discount = seatDiscounts[seat.seat_number] || 'NONE';
           
           let finalPrice = basePrice;
@@ -142,11 +145,11 @@ export default function PosPayment() {
               setCustomer(data);
           } else {
               setCustomer(null);
-              alert('Không tìm thấy khách hàng với số điện thoại này!');
+              alert(AppMessage.POS_CUSTOMER_NOT_FOUND);
           }
       } catch (err) {
           setCustomer(null);
-          alert('Không tìm thấy khách hàng hoặc lỗi kết nối.');
+          alert(AppMessage.POS_CUSTOMER_SEARCH_ERROR);
       }
   };
 
@@ -207,7 +210,7 @@ export default function PosPayment() {
                         <tbody id="ticket-list-body">
                             {booking.bookingseat?.map((bs: any) => {
                                 const seat = bs.seat;
-                                const basePrice = getSeatBasePrice(seat.type || 'STANDARD');
+                                const basePrice = getSeatBasePrice(seat.type || SeatType.STANDARD);
                                 const discount = seatDiscounts[seat.seat_number] || 'NONE';
                                 
                                 let finalPrice = basePrice;
@@ -219,7 +222,7 @@ export default function PosPayment() {
                                 return (
                                     <tr key={seat.id}>
                                         <td style={{ padding: '15px 0', borderBottom: '1px solid #222' }}>
-                                            <div>Ghế {seat.seat_number} ({seat.type || 'STANDARD'})</div>
+                                            <div>Ghế {seat.seat_number} ({seat.type || SeatType.STANDARD})</div>
                                             <div style={{ color: '#888', fontSize: '13px' }}>Giá gốc: {basePrice.toLocaleString()}đ</div>
                                         </td>
                                         <td style={{ textAlign: 'center', padding: '15px 0', borderBottom: '1px solid #222' }}>
@@ -278,18 +281,18 @@ export default function PosPayment() {
                     <div className="payment-card mt-40" style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '8px', marginTop: '30px' }}>
                         <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '20px' }}>Phương thức thanh toán</h3>
                         <div className="payment-methods" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <label className={`method-option ${paymentMethod === 'CASH' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === 'CASH' ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
-                                <input type="radio" name="payment_method" value="CASH" checked={paymentMethod === 'CASH'} onChange={(e) => setPaymentMethod(e.target.value)} style={{ display: 'none' }} />
+                            <label className={`method-option ${paymentMethod === PaymentMethod.CASH ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === PaymentMethod.CASH ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
+                                <input type="radio" name="payment_method" value={PaymentMethod.CASH} checked={paymentMethod === PaymentMethod.CASH} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)} style={{ display: 'none' }} />
                                 <img src="https://placehold.co/40x20/28a745/FFF?text=Cash" alt="Cash" />
                                 <span>Tiền mặt</span>
                             </label>
-                            <label className={`method-option ${paymentMethod === 'CARD' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === 'CARD' ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
-                                <input type="radio" name="payment_method" value="CARD" checked={paymentMethod === 'CARD'} onChange={(e) => setPaymentMethod(e.target.value)} style={{ display: 'none' }} />
+                            <label className={`method-option ${paymentMethod === PaymentMethod.CARD ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === PaymentMethod.CARD ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
+                                <input type="radio" name="payment_method" value={PaymentMethod.CARD} checked={paymentMethod === PaymentMethod.CARD} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)} style={{ display: 'none' }} />
                                 <img src="https://placehold.co/40x20/ffc107/000?text=Card" alt="Card" />
                                 <span>Quẹt thẻ POS / Chuyển khoản</span>
                             </label>
-                            <label className={`method-option ${paymentMethod === 'EWALLET' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === 'EWALLET' ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
-                                <input type="radio" name="payment_method" value="EWALLET" checked={paymentMethod === 'EWALLET'} onChange={(e) => setPaymentMethod(e.target.value)} style={{ display: 'none' }} />
+                            <label className={`method-option ${paymentMethod === PaymentMethod.EWALLET ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === PaymentMethod.EWALLET ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
+                                <input type="radio" name="payment_method" value={PaymentMethod.EWALLET} checked={paymentMethod === PaymentMethod.EWALLET} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)} style={{ display: 'none' }} />
                                 <img src="https://placehold.co/40x20/17a2b8/FFF?text=Wallet" alt="EWallet" />
                                 <span>Ví thanh toán (MoMo / ZaloPay)</span>
                             </label>

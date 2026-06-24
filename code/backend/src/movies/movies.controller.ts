@@ -3,6 +3,7 @@ import { MoviesService } from './movies.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { UserRole } from '../auth/roles.enum';
 
 @Controller('movies')
 export class MoviesController {
@@ -20,23 +21,22 @@ export class MoviesController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   create(@Body() createMovieDto: any) {
     return this.moviesService.create(createMovieDto);
   }
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   update(@Param('id') id: string, @Body() updateMovieDto: any) {
     return this.moviesService.update(+id, updateMovieDto);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   remove(@Param('id') id: string) {
     return this.moviesService.remove(+id);
   }
 }
-

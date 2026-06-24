@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useTheater } from '../../TheaterContext';
+import { SeatType, MovieType, UserRole } from '@/types/enums';
+import { AppMessage } from '@/types/messages';
 
 type Movie = {
   id: number;
@@ -51,7 +53,7 @@ export default function MovieDetail() {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
-      setUser({ id: 7, role: 'admin', fullName: 'Nhân viên POS' });
+      setUser({ id: 7, role: UserRole.ADMIN, fullName: 'Nhân viên POS' });
     }
 
     if (!params?.id) return;
@@ -120,7 +122,7 @@ export default function MovieDetail() {
 
   const calculateTotalPrice = () => {
     if (!movie) return 0;
-    const movieType = movie.type || 'TYPE_2D';
+    const movieType = (movie.type as MovieType) || MovieType.TYPE_2D;
     
     const isWeekend = (dateString: string) => {
         const day = new Date(dateString).getDay();
@@ -132,7 +134,7 @@ export default function MovieDetail() {
     
     selectedSeats.forEach(seatId => {
       const seat = dbSeats.find(s => s.seat_number === seatId);
-      const seatType = seat?.type || 'STANDARD';
+      const seatType = (seat?.type as SeatType) || SeatType.STANDARD;
 
       const priceConfig = prices.find(p => p.type_movie === movieType && p.type_seat === seatType && p.day_type === showtimeDayType);
       
@@ -140,9 +142,9 @@ export default function MovieDetail() {
       if (priceConfig) {
         price = priceConfig.price;
       } else {
-        if (seatType === 'STANDARD') price = 80000;
-        else if (seatType === 'VIP') price = 100000;
-        else if (seatType === 'SWEETBOX') price = 150000;
+        if (seatType === SeatType.STANDARD) price = 80000;
+        else if (seatType === SeatType.VIP) price = 100000;
+        else if (seatType === SeatType.SWEETBOX) price = 150000;
       }
       total += price;
     });
@@ -152,7 +154,7 @@ export default function MovieDetail() {
 
   const handleCheckout = async () => {
     if (selectedSeats.length === 0) {
-      return alert('Vui lòng chọn ít nhất 1 ghế!');
+      return alert(AppMessage.POS_BOOKING_SELECT_SEAT);
     }
     if (!selectedShowtime) return;
 
@@ -173,10 +175,10 @@ export default function MovieDetail() {
         const data = await res.json();
         router.push(`/pos2/payment/${data.id}`);
       } else {
-        alert('Có lỗi xảy ra khi đặt vé.');
+        alert(AppMessage.POS_BOOKING_ERROR);
       }
     } catch (err) {
-      alert('Lỗi kết nối server');
+      alert(AppMessage.POS_BOOKING_CONNECTION_ERROR);
     }
   };
 
@@ -326,8 +328,8 @@ export default function MovieDetail() {
                                     const isBooked = bookedSeats.includes(seatId);
                                     
                                     let seatClass = 'standard';
-                                    if (seat.type === 'VIP') seatClass = 'vip';
-                                    if (seat.type === 'SWEETBOX') seatClass = 'couple';
+                                    if (seat.type === SeatType.VIP) seatClass = 'vip';
+                                    if (seat.type === SeatType.SWEETBOX) seatClass = 'couple';
 
                                     return (
                                         <div

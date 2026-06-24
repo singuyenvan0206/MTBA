@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { UserRole } from '@/types/enums';
+import { AppMessage } from '@/types/messages';
 
 export default function Login() {
   const [emailOrPhone, setEmailOrPhone] = useState('');
@@ -23,21 +25,21 @@ export default function Login() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.message || 'Đăng nhập thất bại');
+        setError(data.message || AppMessage.LOGIN_FAILED);
         return;
       }
 
       const user = await res.json();
       
-      if (user.role === 'admin') {
-        setError('Tài khoản Quản trị vui lòng đăng nhập tại trang Admin.');
+      if (user.role === UserRole.ADMIN) {
+        setError(AppMessage.LOGIN_ADMIN_REDIRECT);
         return;
       }
 
       localStorage.setItem('user', JSON.stringify(user));
       window.location.href = '/';
     } catch (err) {
-      setError('Lỗi kết nối server');
+      setError(AppMessage.LOGIN_CONNECTION_ERROR);
     }
   };
 

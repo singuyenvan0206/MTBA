@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi">
+    <html lang="vi" suppressHydrationWarning>
       <body className={`${roboto.className} bg-[#0a0a0a] min-h-screen flex flex-col antialiased transition-colors duration-300`}>
         <ThemeProvider>
           <Header />
