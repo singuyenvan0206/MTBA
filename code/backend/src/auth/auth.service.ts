@@ -44,9 +44,15 @@ export class AuthService {
       throw new UnauthorizedException(ErrorMessage.AUTH_INVALID_CREDENTIALS);
     }
 
-    const role = user.userrole.some((ur: any) => ur.role.role_name === 'ROLE_ADMIN')
-      ? 'admin'
-      : 'user';
+    const roleNames: string[] = user.userrole.map((ur: any) => ur.role.role_name);
+    let role: string;
+    if (roleNames.includes('ROLE_ADMIN')) {
+      role = 'admin';
+    } else if (roleNames.includes('ROLE_STAFF')) {
+      role = 'staff';
+    } else {
+      role = 'user';
+    }
 
     const jwt = require('jsonwebtoken');
     const payload = { id: user.id, role: role };
