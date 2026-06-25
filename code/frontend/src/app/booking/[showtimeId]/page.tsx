@@ -148,9 +148,10 @@ export default function Booking() {
       const totalPrice = calculateTotalPrice();
       const res = await fetch('/api/bookings', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.accessToken || ''}`
+          'x-user-role': 'customer',
+          'x-user-id': String(user.id || '')
         },
         body: JSON.stringify({
           userId: user.id,

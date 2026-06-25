@@ -76,16 +76,16 @@ export default function Home() {
 
   return (
     <main className="main-content">
-        <section className="hero-banner" id="hero-banner-container" style={{ position: 'relative', overflow: 'hidden' }}>
+        <section className="hero-banner" id="hero-banner-container" style={{ position: 'relative', overflow: 'hidden', maxWidth: '1200px', margin: '0 auto', borderRadius: '12px' }}>
             {banners.length > 0 ? (
                 <>
-                  <div style={{ display: 'flex', transition: 'transform 0.5s ease-in-out', transform: `translateX(-${currentBannerIndex * 100}%)`, width: '100%' }}>
+                  <div style={{ display: 'flex', transition: 'transform 0.5s ease-in-out', transform: `translateX(-${currentBannerIndex * 100}%)`, width: '100%', height: '400px' }}>
                     {banners.map((banner, index) => (
-                      <div key={banner.id} style={{ minWidth: '100%', flexShrink: 0 }}>
+                      <div key={banner.id} style={{ minWidth: '100%', flexShrink: 0, height: '100%' }}>
                         {banner.type === 'VIDEO' ? (
-                          <iframe width="100%" height="500px" src={banner.url} title="Banner Video" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ pointerEvents: 'none' }}></iframe>
+                          <iframe width="100%" height="100%" src={banner.url} title="Banner Video" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ pointerEvents: 'none' }}></iframe>
                         ) : (
-                          <img src={banner.url} alt={`Banner ${index}`} className="w-100" style={{ width: '100%', objectFit: 'cover' }} />
+                          <img src={banner.url} alt={`Banner ${index}`} className="w-100" style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' }} />
                         )}
                       </div>
                     ))}
