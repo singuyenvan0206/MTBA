@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-
+import { usePosSync } from '@/hooks/usePosSync';
+import { AppMessage } from '@/types/messages';
+import { PaymentMethod, PaymentStatus, MovieType, SeatType } from '@/types/enums';
 export default function PosPayment() {
   const params = useParams();
   const router = useRouter();
@@ -319,17 +321,17 @@ export default function PosPayment() {
                         <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '20px' }}>Phương thức thanh toán</h3>
                         <div className="payment-methods" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <label className={`method-option ${paymentMethod === 'CASH' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === 'CASH' ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
-                                <input type="radio" name="payment_method" value="CASH" checked={paymentMethod === 'CASH'} onChange={(e) => setPaymentMethod(e.target.value)} style={{ display: 'none' }} />
+                                <input type="radio" name="payment_method" value="CASH" checked={paymentMethod === 'CASH'} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)} style={{ display: 'none' }} />
                                 <img src="https://placehold.co/40x20/28a745/FFF?text=Cash" alt="Cash" />
                                 <span>Tiền mặt</span>
                             </label>
                             <label className={`method-option ${paymentMethod === 'CARD' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === 'CARD' ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
-                                <input type="radio" name="payment_method" value="CARD" checked={paymentMethod === 'CARD'} onChange={(e) => setPaymentMethod(e.target.value)} style={{ display: 'none' }} />
+                                <input type="radio" name="payment_method" value="CARD" checked={paymentMethod === 'CARD'} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)} style={{ display: 'none' }} />
                                 <img src="https://placehold.co/40x20/ffc107/000?text=Card" alt="Card" />
                                 <span>Quẹt thẻ POS / Chuyển khoản</span>
                             </label>
                             <label className={`method-option ${paymentMethod === 'EWALLET' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === 'EWALLET' ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
-                                <input type="radio" name="payment_method" value="EWALLET" checked={paymentMethod === 'EWALLET'} onChange={(e) => setPaymentMethod(e.target.value)} style={{ display: 'none' }} />
+                                <input type="radio" name="payment_method" value="EWALLET" checked={paymentMethod === 'EWALLET'} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)} style={{ display: 'none' }} />
                                 <img src="https://placehold.co/40x20/17a2b8/FFF?text=Wallet" alt="EWallet" />
                                 <span>Ví thanh toán (MoMo / ZaloPay)</span>
                             </label>

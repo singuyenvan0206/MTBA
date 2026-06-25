@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-
+import { usePosSync } from '@/hooks/usePosSync';
+import { AppMessage } from '@/types/messages';
+import { UserRole } from '@/types/enums';
 export default function Booking() {
   const router = useRouter();
   const params = useParams();

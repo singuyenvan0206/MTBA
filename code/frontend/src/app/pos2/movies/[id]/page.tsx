@@ -3,7 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useTheater } from '../../TheaterContext';
+import { useTheater } from '@/app/pos/TheaterContext';
+import { usePosSync } from '@/hooks/usePosSync';
+import { AppMessage } from '@/types/messages';
+import { MovieType, SeatType } from '@/types/enums';
 
 type Movie = {
   id: number;
