@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     root: '../../',
   },
 
-  allowedDevOrigins: ['192.168.0.112', '192.168.0.82', '192.168.0.95'],
+  allowedDevOrigins: ['192.168.0.112', '192.168.0.82'],
   async rewrites() {
     return [
       {
