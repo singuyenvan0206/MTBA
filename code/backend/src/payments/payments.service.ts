@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { payment_payment_status, payment_payment_method } from '@prisma/client';
 import { ErrorMessage } from '../common/error-messages.enum';
@@ -206,6 +206,136 @@ export class PaymentsService {
     return { isPaid: false };
   }
 
+  async handleSePayWebhook(payload: any, authHeader: string) {
+    let apiToken = process.env.SEPAY_API_TOKEN;
+    if (!apiToken || apiToken === 'your-sepay-api-access-token') {
+      apiToken = process.env.SEPAY_API_KEY;
+    }
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Không tìm thấy hoặc Header Authorization không hợp lệ');
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (token !== apiToken) {
+      throw new UnauthorizedException('Token Webhook SePay không hợp lệ');
+    }
+
+    if (payload.transferType !== 'in') {
+      console.log(`[SePay Webhook] Bỏ qua giao dịch không phải loại nhận tiền (transferType = ${payload.transferType})`);
+      return { success: true, message: 'Skipped: Giao dịch không phải loại nhận tiền' };
+    }
+
+    const content = payload.content || '';
+    const match = content.match(/MTBA\s*(\d+)/i);
+    if (!match) {
+      console.log(`[SePay Webhook] Bỏ qua giao dịch do nội dung chuyển khoản "${content}" không chứa mã đặt vé hợp lệ`);
+      return { success: true, message: 'Skipped: Nội dung chuyển khoản không khớp mã đặt vé' };
+    }
+
+    const bookingId = parseInt(match[1], 10);
+    console.log(`[SePay Webhook] Nhận được giao dịch cho đơn vé #${bookingId}. Đang kiểm tra...`);
+
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { payment: true }
+    });
+
+    if (!booking) {
+      console.warn(`[SePay Webhook] Lỗi: Giao dịch khớp mã đơn #${bookingId} nhưng không tìm thấy đơn trong DB!`);
+      return { success: false, message: `Booking #${bookingId} không tồn tại` };
+    }
+
+    // Kiểm tra xem đơn đã được thanh toán thành công chưa
+    const isAlreadyPaid = booking.payment.some(p => p.payment_status === payment_payment_status.COMPLETED);
+    if (isAlreadyPaid) {
+      console.log(`[SePay Webhook] Đơn đặt vé #${bookingId} đã được thanh toán trước đó.`);
+      return { success: true, message: `Booking #${bookingId} đã được thanh toán` };
+    }
+
+    const amount = Number(payload.transferAmount || payload.amount || 0);
+    const transactionId = String(payload.code || payload.referenceCode || payload.id);
+
+    // Kiểm tra số tiền khớp với giá trị đơn hàng
+    if (Math.abs(amount - booking.total_price_movie) > 0.01) {
+      console.warn(`[SePay Webhook] Số tiền thanh toán (${amount}đ) không khớp với giá trị đơn hàng (${booking.total_price_movie}đ)!`);
+      // Lưu vết thanh toán FAILED
+      await this.prisma.payment.create({
+        data: {
+          booking_id: bookingId,
+          payment_method: payment_payment_method.VIETQR,
+          payment_status: payment_payment_status.FAILED,
+          amount: amount,
+          transaction_id: transactionId,
+          payment_time: new Date()
+        }
+      });
+      return { success: false, message: 'Số tiền thanh toán không khớp' };
+    }
+
+    // Kiểm tra thời hạn thanh toán
+    const createdTime = new Date(booking.created_at).getTime();
+    const elapsedMs = Date.now() - createdTime;
+    const isExpired = elapsedMs > (5 * 60 + 30) * 1000; // 5m30s
+
+    if (isExpired) {
+      console.warn(`[SePay Webhook] Đơn hàng #${bookingId} đã quá hạn thanh toán. Tiến hành kiểm tra trùng ghế...`);
+
+      const bookingSeats = await this.prisma.bookingseat.findMany({
+        where: { booking_id: bookingId },
+        select: { seat_id: true }
+      });
+      const seatIds = bookingSeats.map(bs => bs.seat_id);
+
+      const conflictBooking = await this.prisma.booking.findFirst({
+        where: {
+          showtime_id: booking.showtime_id,
+          id: { not: bookingId },
+          payment: {
+            some: {
+              payment_status: payment_payment_status.COMPLETED
+            }
+          },
+          bookingseat: {
+            some: {
+              seat_id: { in: seatIds }
+            }
+          }
+        }
+      });
+
+      if (conflictBooking) {
+        console.error(`[SePay Webhook] Lỗi trùng ghế: Ghế của đơn #${bookingId} đã bị đơn #${conflictBooking.id} mua trước.`);
+        // Lưu vết thanh toán FAILED
+        await this.prisma.payment.create({
+          data: {
+            booking_id: bookingId,
+            payment_method: payment_payment_method.VIETQR,
+            payment_status: payment_payment_status.FAILED,
+            amount: booking.total_price_movie,
+            transaction_id: transactionId,
+            payment_time: new Date()
+          }
+        });
+        return { success: false, message: 'Ghế đã bị đặt bởi đơn khác do quá hạn thanh toán' };
+      }
+    }
+
+    console.log(`[SePay Webhook] Thanh toán khớp! Tiến hành tạo giao dịch COMPLETED trong DB cho đơn #${bookingId}.`);
+    // Tạo bản ghi thanh toán thành công trong DB
+    await this.prisma.payment.create({
+      data: {
+        booking_id: bookingId,
+        payment_method: payment_payment_method.VIETQR,
+        payment_status: payment_payment_status.COMPLETED,
+        amount: booking.total_price_movie,
+        transaction_id: transactionId,
+        payment_time: new Date()
+      }
+    });
+
+    return { success: true, message: `Thanh toán đơn #${bookingId} thành công` };
+  }
 
   getPaymentConfig() {
     return {
