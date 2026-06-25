@@ -34,6 +34,11 @@ export default function Login() {
         return;
       }
 
+      if (user.role === 'staff') {
+        setError('Tài khoản Nhân viên vui lòng đăng nhập tại trang POS.');
+        return;
+      }
+
       localStorage.setItem('user', JSON.stringify(user));
       window.location.href = '/';
     } catch (err) {

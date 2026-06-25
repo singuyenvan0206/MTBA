@@ -1,11 +1,33 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { TheaterProvider } from './TheaterContext';
-import TheaterSelector from './TheaterSelector';
+import { TheaterProvider } from '../pos/TheaterContext';
+import TheaterSelector from '../pos/TheaterSelector';
+import { usePosSync } from '../../hooks/usePosSync';
+
+import { useEffect } from 'react';
 
 export default function Pos2Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  usePosSync(true);
+
+  useEffect(() => {
+    if (pathname === '/pos2/login') return;
+    const stored = localStorage.getItem('staff_user');
+    if (!stored) {
+      window.location.href = '/pos2/login';
+      return;
+    }
+    try {
+      const user = JSON.parse(stored);
+      if (user.role !== 'staff') {
+        window.location.href = '/pos2/login';
+      }
+    } catch (e) {
+      window.location.href = '/pos2/login';
+    }
+  }, [pathname]);
+
   return (
     <TheaterProvider>
       <header className="navbar">

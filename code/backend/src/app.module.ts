@@ -18,9 +18,10 @@ import { PricesModule } from './prices/prices.module';
 import { FestivalsModule } from './festivals/festivals.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AgeLimitsModule } from './age-limits/age-limits.module';
+import { PosModule } from './pos/pos.module';
 
 @Module({
-  imports: [PrismaModule, MoviesModule, GenresModule, TheatersModule, ScreensModule, SeatsModule, UsersModule, AuthModule, BookingsModule, VouchersModule, NewsModule, BannersModule, ShowtimesModule, PricesModule, FestivalsModule, PaymentsModule, AgeLimitsModule],
+  imports: [PrismaModule, MoviesModule, GenresModule, TheatersModule, ScreensModule, SeatsModule, UsersModule, AuthModule, BookingsModule, VouchersModule, NewsModule, BannersModule, ShowtimesModule, PricesModule, FestivalsModule, PaymentsModule, AgeLimitsModule, PosModule],
   controllers: [AppController],
   providers: [AppService],
 })

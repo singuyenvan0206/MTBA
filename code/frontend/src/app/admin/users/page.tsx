@@ -17,6 +17,7 @@ export default function AdminUsers() {
     address: '',
     avatar: '',
     status: 'ACTIVE',
+    role: 'ROLE_USER',
     password: ''
   });
 
@@ -50,6 +51,12 @@ export default function AdminUsers() {
   const handleOpenModal = (user: any = null) => {
     setEditingUser(user);
     if (user) {
+      let currentRole = 'ROLE_USER';
+      if (user.userrole && user.userrole.length > 0) {
+        if (user.userrole.some((ur: any) => ur.role?.role_name === 'ROLE_ADMIN')) currentRole = 'ROLE_ADMIN';
+        else if (user.userrole.some((ur: any) => ur.role?.role_name === 'ROLE_STAFF')) currentRole = 'ROLE_STAFF';
+      }
+
       setFormData({
         first_name: user.first_name || '',
         last_name: user.last_name || '',
@@ -58,6 +65,7 @@ export default function AdminUsers() {
         address: user.address || '',
         avatar: user.avatar || '',
         status: user.status || 'ACTIVE',
+        role: currentRole,
         password: '' // Don't fill password for edit
       });
     } else {
@@ -69,6 +77,7 @@ export default function AdminUsers() {
         address: '',
         avatar: '',
         status: 'ACTIVE',
+        role: 'ROLE_USER',
         password: ''
       });
     }
@@ -96,7 +105,8 @@ export default function AdminUsers() {
         setIsModalOpen(false);
         fetchUsers();
       } else {
-        alert('Lưu thất bại, vui lòng kiểm tra lại thông tin!');
+        const errorData = await res.json();
+        alert(errorData.message || 'Lưu thất bại, vui lòng kiểm tra lại thông tin!');
       }
     } catch (error) {
       console.error('Failed to save user:', error);
@@ -109,6 +119,8 @@ export default function AdminUsers() {
     const roleNames = roles.map(r => r.role?.role_name || '').join(', ');
     if (roleNames.includes('ROLE_ADMIN')) {
       return <span style={{ padding: '4px 8px', borderRadius: '4px', background: '#ff4d4f', color: '#fff', fontWeight: 'bold' }}>Admin</span>;
+    } else if (roleNames.includes('ROLE_STAFF')) {
+      return <span style={{ padding: '4px 8px', borderRadius: '4px', background: '#faad14', color: '#fff', fontWeight: 'bold' }}>Nhân viên POS</span>;
     }
     return <span style={{ padding: '4px 8px', borderRadius: '4px', background: '#1890ff', color: '#fff' }}>User</span>;
   };
@@ -194,10 +206,9 @@ export default function AdminUsers() {
         )}
       </div>
 
-      {/* Modal */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#1f1f1f', padding: '30px', borderRadius: '8px', width: '500px', maxWidth: '90%', border: '1px solid #333' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div style={{ background: '#1f1f1f', padding: '30px', borderRadius: '8px', width: '500px', maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', border: '1px solid #333' }}>
             <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#fff' }}>{editingUser ? 'Sửa Người dùng' : 'Thêm Người dùng'}</h2>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div style={{ display: 'flex', gap: '15px' }}>
@@ -241,6 +252,15 @@ export default function AdminUsers() {
                 <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #444', background: '#2a2a2a', color: '#fff' }}>
                   <option value="ACTIVE">Hoạt động (ACTIVE)</option>
                   <option value="BLOCKED">Đã khóa (BLOCKED)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', color: '#ccc' }}>Quyền hạn (Role)</label>
+                <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #444', background: '#2a2a2a', color: '#fff' }}>
+                  <option value="ROLE_USER">Khách hàng (User)</option>
+                  <option value="ROLE_STAFF">Nhân viên POS (Staff)</option>
+                  <option value="ROLE_ADMIN">Quản trị viên (Admin)</option>
                 </select>
               </div>
 

@@ -12,7 +12,7 @@ export default function Booking() {
   const [bookedSeats, setBookedSeats] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
   const [showtime, setShowtime] = useState<any>(null);
-  const { pushState } = usePosSync(true);
+  const { syncState } = usePosSync(false);
 
   // Giả lập danh sách ghế
   const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K'];
@@ -44,8 +44,10 @@ export default function Booking() {
   }, [router, params?.showtimeId]);
 
   useEffect(() => {
-    pushState({ selectedSeats });
-  }, [selectedSeats, pushState]);
+    if (syncState.selectedSeats) {
+      setSelectedSeats(syncState.selectedSeats);
+    }
+  }, [syncState.selectedSeats]);
 
   const toggleSeat = (seatId: string) => {
     if (selectedSeats.includes(seatId)) {
@@ -74,7 +76,7 @@ export default function Booking() {
 
       if (res.ok) {
         const data = await res.json();
-        router.push(`/pos2/payment/${data.id}`);
+        router.push(`/pos/payment/${data.id}`);
       } else {
         alert('Có lỗi xảy ra khi đặt vé.');
       }
@@ -86,7 +88,7 @@ export default function Booking() {
   return (
     <main className="main-content">
         <div className="container breadcrumb" style={{ margin: '20px auto', color: '#888', fontSize: '14px' }}>
-            <Link href="/pos2" style={{ color: '#ff4d4f', textDecoration: 'none' }}>Trang chủ</Link> {'>'} <span>Chọn Ghế</span>
+            <Link href="/pos" style={{ color: '#ff4d4f', textDecoration: 'none' }}>Trang chủ</Link> {'>'} <span>Chọn Ghế</span>
         </div>
 
         <section className="seat-selection-section container" style={{ padding: '30px', backgroundColor: 'var(--card-bg)', borderRadius: '10px', marginTop: '20px' }}>
@@ -125,7 +127,7 @@ export default function Booking() {
                                     <div
                                         key={seatId}
                                         className={`seat ${seatClass} ${isBooked ? 'sold' : ''} ${isSelected ? 'selected' : ''}`}
-                                        onClick={() => !isBooked && toggleSeat(seatId)}
+                                        style={{ pointerEvents: 'none' }}
                                     >
                                         {isBooked ? 'X' : seatId}
                                     </div>
@@ -157,7 +159,8 @@ export default function Booking() {
                 </div>
                 <div className="summary-actions">
                     <button className="btn btn-outline" onClick={() => router.back()}>Quay lại</button>
-                    <button className="btn btn-primary" onClick={handleCheckout}>Thanh toán</button>
+                    {/* Customer screen cannot checkout directly */}
+                    <button className="btn btn-primary" style={{ visibility: 'hidden' }}>Thanh toán</button>
                 </div>
             </div>
         </section>

@@ -25,8 +25,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi">
-      <body className={`${roboto.className} bg-[#0a0a0a] min-h-screen flex flex-col antialiased transition-colors duration-300`}>
+    <html lang="vi" suppressHydrationWarning>
+      <body suppressHydrationWarning className={`${roboto.className} bg-[#0a0a0a] min-h-screen flex flex-col antialiased transition-colors duration-300`}>
         <ThemeProvider>
           <Header />
           <main className="flex-grow">

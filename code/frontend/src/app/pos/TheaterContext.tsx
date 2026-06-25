@@ -15,9 +15,16 @@ const TheaterContext = createContext<TheaterContextType>({
 
 export const useTheater = () => useContext(TheaterContext);
 
+import { usePathname } from 'next/navigation';
+import { usePosSync } from '../../hooks/usePosSync';
+
 export const TheaterProvider = ({ children }: { children: React.ReactNode }) => {
   const [theaters, setTheaters] = useState<any[]>([]);
   const [selectedTheater, setSelectedTheater] = useState<string>('');
+  
+  const pathname = usePathname();
+  const isStaff = pathname ? pathname.startsWith('/pos2') : false;
+  const { syncState, pushState } = usePosSync(isStaff);
 
   useEffect(() => {
     fetch('/api/theaters')
@@ -27,16 +34,29 @@ export const TheaterProvider = ({ children }: { children: React.ReactNode }) => 
         const stored = localStorage.getItem('pos2_theater');
         if (stored && data.find((t: any) => t.id.toString() === stored)) {
           setSelectedTheater(stored);
+          if (isStaff) pushState({ selectedTheater: stored });
         } else if (data.length > 0) {
           setSelectedTheater(data[0].id.toString());
+          if (isStaff) pushState({ selectedTheater: data[0].id.toString() });
         }
       })
       .catch(err => console.error(err));
   }, []);
 
+  // Lắng nghe thay đổi từ syncState
+  useEffect(() => {
+    if (syncState.selectedTheater && syncState.selectedTheater !== selectedTheater) {
+      setSelectedTheater(syncState.selectedTheater);
+      localStorage.setItem('pos2_theater', syncState.selectedTheater);
+    }
+  }, [syncState.selectedTheater, selectedTheater]);
+
   const handleSelectTheater = (id: string) => {
     setSelectedTheater(id);
     localStorage.setItem('pos2_theater', id);
+    if (isStaff) {
+      pushState({ selectedTheater: id });
+    }
   };
 
   return (

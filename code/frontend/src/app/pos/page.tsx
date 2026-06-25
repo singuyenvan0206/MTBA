@@ -1,123 +1,247 @@
 'use client';
-import { useState, useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePosSync } from '../../hooks/usePosSync';
 
-export default function PosStaffDashboard() {
-  const [bookings, setBookings] = useState<any[]>([]);
+type Movie = {
+  id: number;
+  title: string;
+  description: string;
+  posterUrl: string;
+  genre: string;
+};
+
+export default function Home() {
+  usePosSync(false);
+
+  const [movies, setMovies] = useState<any[]>([]);
+  const [showingMovies, setShowingMovies] = useState<any[]>([]);
+  const [comingMovies, setComingMovies] = useState<any[]>([]);
+  const [banners, setBanners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
-  const fetchBookings = () => {
-    fetch('/api/bookings')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          // Lấy các booking mới nhất (sắp xếp giảm dần theo id hoặc created_at)
-          const sorted = data.sort((a: any, b: any) => b.id - a.id);
-          setBookings(sorted);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
+  // Tự động chuyển slide banner sau 10 giây
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [banners.length]);
+
+  const handleNextBanner = () => {
+    if (banners.length <= 1) return;
+    setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+  };
+
+  const handlePrevBanner = () => {
+    if (banners.length <= 1) return;
+    setCurrentBannerIndex((prev) => (prev - 1 + banners.length) % banners.length);
   };
 
   useEffect(() => {
-    fetchBookings();
-    // Auto-refresh every 5 seconds to get new kiosk orders
-    const interval = setInterval(fetchBookings, 5000);
-    return () => clearInterval(interval);
+    // Fetch movies
+    fetch('/api/movies')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setMovies(data);
+          const now = new Date();
+          const showing = data.filter((m: any) => m.releaseDate && new Date(m.releaseDate) <= now);
+          const coming = data.filter((m: any) => m.releaseDate && new Date(m.releaseDate) > now);
+          
+          setShowingMovies(showing.length > 0 ? showing : data.slice(0, Math.ceil(data.length / 2)));
+          setComingMovies(coming.length > 0 ? coming : data.slice(Math.ceil(data.length / 2)));
+        } else {
+          setMovies([]);
+          setShowingMovies([]);
+          setComingMovies([]);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Failed to load movies:', err);
+        setLoading(false);
+      });
+
+    // Fetch banners
+    fetch('/api/banners')
+      .then((res) => res.json())
+      .then((data) => setBanners(data))
+      .catch((err) => console.error('Failed to load banners:', err));
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-slate-900 text-white p-4 flex justify-between items-center shadow-md">
-        <div>
-          <h1 className="text-2xl font-bold text-[#ff4d4f] uppercase">POS - Bảng Điều Khiển Nhân Viên</h1>
-          <p className="text-sm text-[color:var(--text-secondary)]">Tự động cập nhật đơn hàng mới từ Kiosk</p>
-        </div>
-        <div className="flex gap-4">
-          <Link href="/pos2" target="_blank" className="bg-[#ff4d4f] text-white px-4 py-2 rounded hover:bg-red-600 transition-colors">
-            Mở màn hình Kiosk Khách Hàng
-          </Link>
-          <Link href="/admin" className="bg-slate-700 text-white px-4 py-2 rounded hover:bg-slate-600 transition-colors">
-            Quay lại Admin
-          </Link>
-        </div>
-      </header>
+    <main className="main-content">
+        <section className="hero-banner" id="hero-banner-container" style={{ position: 'relative', overflow: 'hidden' }}>
+            {banners.length > 0 ? (
+                <>
+                  <div style={{ display: 'flex', transition: 'transform 0.5s ease-in-out', transform: `translateX(-${currentBannerIndex * 100}%)`, width: '100%' }}>
+                    {banners.map((banner, index) => (
+                      <div key={banner.id} style={{ minWidth: '100%', flexShrink: 0 }}>
+                        {banner.type === 'VIDEO' ? (
+                          <iframe width="100%" height="500px" src={banner.url} title="Banner Video" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ pointerEvents: 'none' }}></iframe>
+                        ) : (
+                          <img src={banner.url} alt={`Banner ${index}`} className="w-100" style={{ width: '100%', objectFit: 'cover' }} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {banners.length > 1 && (
+                    <>
+                      <button onClick={handlePrevBanner} style={{ position: 'absolute', top: '50%', left: '20px', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>❮</button>
+                      <button onClick={handleNextBanner} style={{ position: 'absolute', top: '50%', right: '20px', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>❯</button>
+                      
+                      <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', zIndex: 10 }}>
+                        {banners.map((_, idx) => (
+                          <button 
+                            key={idx} 
+                            onClick={() => setCurrentBannerIndex(idx)}
+                            style={{ width: '12px', height: '12px', borderRadius: '50%', border: 'none', backgroundColor: idx === currentBannerIndex ? '#ff4d4f' : 'rgba(255,255,255,0.5)', cursor: 'pointer', transition: 'background-color 0.3s' }}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
+            ) : (
+                <img src="https://phimmoichills.net/wp-content/uploads/2024/05/hien-vien-kiem-han-chi-van.jpg" alt="Cinestar Banner" className="w-100" />
+            )}
+        </section>
 
-      <main className="flex-1 p-6 overflow-y-auto">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-bold mb-4 text-gray-800 border-b pb-2">Danh sách vé vừa đặt tại quầy</h2>
-          
-          {loading ? (
-            <div className="text-center py-10">
-              <p className="text-[color:var(--text-secondary)]">Đang tải dữ liệu...</p>
-            </div>
-          ) : bookings.length === 0 ? (
-            <div className="text-center py-10">
-              <p className="text-[color:var(--text-secondary)]">Chưa có vé nào được đặt.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-100 text-gray-700">
-                    <th className="p-3 font-semibold border-b">Mã vé</th>
-                    <th className="p-3 font-semibold border-b">Thời gian đặt</th>
-                    <th className="p-3 font-semibold border-b">Thông tin phim</th>
-                    <th className="p-3 font-semibold border-b">Ghế</th>
-                    <th className="p-3 font-semibold border-b">Tổng tiền</th>
-                    <th className="p-3 font-semibold border-b text-center">Trạng thái</th>
-                    <th className="p-3 font-semibold border-b text-center">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.map((booking: any) => {
-                    const date = new Date(booking.created_at || new Date());
-                    return (
-                      <tr key={booking.id} className="border-b hover:bg-gray-50 transition-colors">
-                        <td className="p-3 font-medium text-blue-600">#{booking.id}</td>
-                        <td className="p-3 text-sm text-gray-600">
-                          {date.toLocaleDateString('vi-VN')} <br/>
-                          <span className="text-xs text-[color:var(--text-secondary)]">{date.toLocaleTimeString('vi-VN')}</span>
-                        </td>
-                        <td className="p-3">
-                          <div className="font-semibold text-gray-800">{booking.showtime?.movie?.title || 'Phim không xác định'}</div>
-                          <div className="text-xs text-[color:var(--text-secondary)] mt-1">
-                            {booking.showtime?.screen?.name} - {booking.showtime?.theater?.name}
-                          </div>
-                        </td>
-                        <td className="p-3">
-                          <div className="max-w-[150px] flex flex-wrap gap-1">
-                            {booking.bookingseat?.map((bs: any) => (
-                              <span key={bs.id} className="bg-gray-200 text-xs px-2 py-1 rounded border border-gray-300">
-                                {bs.seat?.seat_row}{bs.seat?.seat_column}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="p-3 font-bold text-red-500">
-                          {booking.total_price_movie?.toLocaleString('vi-VN')} ₫
-                        </td>
-                        <td className="p-3 text-center">
-                          <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-medium border border-green-200">Đã thanh toán</span>
-                        </td>
-                        <td className="p-3 text-center">
-                          <button className="bg-blue-500 text-white text-xs px-3 py-1.5 rounded shadow hover:bg-blue-600 transition-colors mr-2">
-                            In vé
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+        <div className="container" style={{ marginTop: '30px', textAlign: 'center', position: 'relative' }}>
+            <input 
+                type="text" 
+                className="search-input"
+                placeholder="Tìm kiếm nhanh tên phim..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery.length > 0 && (
+                <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', width: '60%', maxWidth: '600px', background: 'white', color: 'black', borderRadius: '8px', zIndex: 50, maxHeight: '300px', overflowY: 'auto', textAlign: 'left', border: '1px solid #ddd' }}>
+                    {movies.filter((m: any) => m.title.toLowerCase().includes(searchQuery.toLowerCase())).length > 0 ? (
+                        movies.filter((m: any) => m.title.toLowerCase().includes(searchQuery.toLowerCase())).map((movie: any) => (
+                            <Link href={`/pos/movies/${movie.id}`} key={movie.id} style={{ display: 'flex', alignItems: 'center', padding: '10px', textDecoration: 'none', color: 'black', borderBottom: '1px solid #eee' }}>
+                                <img src={movie.posterUrl || 'https://placehold.co/40x60'} style={{ width: '40px', height: '60px', objectFit: 'cover', borderRadius: '4px', marginRight: '10px' }} />
+                                <div>
+                                    <h4 style={{ margin: 0 }}>{movie.title}</h4>
+                                    <span style={{ fontSize: '12px', color: '#666' }}>{movie.genre}</span>
+                                </div>
+                            </Link>
+                        ))
+                    ) : (
+                        <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>Không tìm thấy phim phù hợp</div>
+                    )}
+                </div>
+            )}
         </div>
-      </main>
-    </div>
+
+        <div className="container layout-grid">
+            <div className="left-column">
+                <section className="movie-section">
+                    <div className="section-header">
+                        <h2><span className="dot"></span> Phim đang chiếu</h2>
+                        <Link href="/pos/calendar" className="view-all">Xem tất cả</Link>
+                    </div>
+                    <div className="movie-grid">
+                        {loading ? (
+                            <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>Đang tải danh sách phim...</p>
+                        ) : showingMovies.length > 0 ? (
+                            showingMovies.slice(0, 6).map((movie) => (
+                                <div className="movie-card" key={movie.id} onClick={() => window.location.href = `/pos/movies/${movie.id}`}>
+                                    <div className="movie-poster">
+                                        <img src={movie.posterUrl || 'https://placehold.co/300x450'} alt={movie.title} />
+                                        <div className="age-rating">{movie.ageLimit || 'P'}</div>
+                                        <div className="movie-overlay">
+                                            <Link href={`/pos/movies/${movie.id}`} className="btn btn-primary" style={{ marginBottom: '10px', width: '80%', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>Mua vé</Link>
+                                            <Link href={`/pos/movies/${movie.id}`} className="btn btn-outline" style={{ width: '80%', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>Chi tiết</Link>
+                                        </div>
+                                    </div>
+                                    <div className="movie-info">
+                                        <h3 title={movie.title}>{movie.title}</h3>
+                                        <p>{movie.genre}</p>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>Không có phim đang chiếu.</p>
+                        )}
+                    </div>
+                </section>
+
+                <section className="movie-section mt-40">
+                    <div className="section-header">
+                        <h2><span className="dot"></span> Phim sắp chiếu</h2>
+                        <Link href="/pos/calendar" className="view-all">Xem tất cả</Link>
+                    </div>
+                    <div className="movie-grid">
+                        {loading ? (
+                            <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>Đang tải danh sách phim...</p>
+                        ) : comingMovies.length > 0 ? (
+                            comingMovies.slice(0, 6).map((movie) => (
+                                <div className="movie-card" key={movie.id} onClick={() => window.location.href = `/pos/movies/${movie.id}`}>
+                                    <div className="movie-poster">
+                                        <img src={movie.posterUrl || 'https://placehold.co/300x450'} alt={movie.title} />
+                                        <div className="age-rating">{movie.ageLimit || 'P'}</div>
+                                        <div className="movie-overlay">
+                                            <Link href={`/pos/movies/${movie.id}`} className="btn btn-primary" style={{ marginBottom: '10px', width: '80%', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>Mua vé</Link>
+                                            <Link href={`/pos/movies/${movie.id}`} className="btn btn-outline" style={{ width: '80%', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>Chi tiết</Link>
+                                        </div>
+                                    </div>
+                                    <div className="movie-info">
+                                        <h3 title={movie.title}>{movie.title}</h3>
+                                        <p>{movie.genre}</p>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>Không có phim sắp chiếu.</p>
+                        )}
+                    </div>
+                </section>
+            </div>
+
+            <div className="right-column">
+                <section className="promo-section">
+                    <div className="section-header">
+                        <h2>Khuyến mãi</h2>
+                        <Link href="/pos/promotions" className="view-all">Xem tất cả</Link>
+                    </div>
+                    <div className="promo-list">
+                        <div className="promo-item" onClick={() => window.location.href = '/pos/promotions'}>
+                            <img src="https://placehold.co/400x200/222/FFF?text=Promo" alt="Khuyến mãi" />
+                            <h4>Giảm 20% khi thanh toán qua VNPay</h4>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="event-section mt-40">
+                    <div className="section-header">
+                        <h2>Sự kiện</h2>
+                        <Link href="/pos/news" className="view-all">Xem tất cả</Link>
+                    </div>
+                    <div className="promo-list">
+                        <div className="promo-item" onClick={() => window.location.href = '/pos/news'}>
+                            <img src="https://placehold.co/400x200/222/FFF?text=Event" alt="Sự kiện" />
+                            <h4>Sự kiện ra mắt phim bom tấn</h4>
+                        </div>
+                    </div>
+                </section>
+                
+                <section className="ads-section mt-40">
+                    <div className="lhp-card" onClick={() => window.location.href='/pos/festivals'} style={{ cursor: 'pointer' }}>
+                        <div className="lhp-content">
+                            <h3>Liên Hoan Phim<br/>Quốc Tế 2026</h3>
+                            <p>Sự kiện quy tụ những kiệt tác điện ảnh xuất sắc nhất cùng dàn sao đình đám. Đừng bỏ lỡ!</p>
+                            <Link href="/pos/festivals" className="btn btn-outline" style={{ borderColor: 'white', color: 'var(--text-color)' }}>Khám phá ngay</Link>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
   );
 }

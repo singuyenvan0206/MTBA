@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function AdminLogin() {
+export default function PosLogin() {
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,23 +28,23 @@ export default function AdminLogin() {
 
       const user = await res.json();
       
-      if (user.role !== 'admin') {
-        if (user.role === 'staff') {
-          setError('Tài khoản Nhân viên vui lòng đăng nhập tại trang POS.');
+      if (user.role !== 'staff') {
+        if (user.role === 'admin') {
+          setError('Tài khoản Quản trị vui lòng đăng nhập tại trang Admin.');
         } else {
-          setError('Tài khoản này không có quyền Quản trị viên.');
+          setError('Tài khoản này không có quyền Nhân viên POS.');
         }
         return;
       }
 
-      localStorage.setItem('admin_user', JSON.stringify(user));
+      localStorage.setItem('staff_user', JSON.stringify(user));
       if (rememberMe) {
         localStorage.setItem('remember', 'true');
       } else {
         localStorage.removeItem('remember');
       }
       
-      window.location.href = '/admin';
+      window.location.href = '/pos2';
     } catch (err) {
       setError('Lỗi kết nối server');
     }
@@ -55,10 +55,10 @@ export default function AdminLogin() {
       <div className="auth-card" style={{ width: '100%', maxWidth: '400px', padding: '40px 30px', borderRadius: '10px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', border: '1px solid var(--card-border)', backgroundColor: 'var(--background)' }}>
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
           <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#ff4d4f', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            Admin Login
+            POS Login
           </h2>
           <p style={{ margin: '10px 0 0', fontSize: '14px', color: 'var(--foreground)', opacity: 0.8 }}>
-            Hệ thống Quản trị Rạp Phim
+            Dành cho nhân viên bán vé
           </p>
         </div>
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

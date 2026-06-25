@@ -33,7 +33,7 @@ export default function AdminLayout({
         if (user.role === 'admin') {
           setAdminUser(user);
         } else {
-          window.location.href = '/pos2';
+          window.location.href = '/admin/login';
         }
       } catch (e) {
         window.location.href = '/admin/login';
@@ -101,7 +101,7 @@ export default function AdminLayout({
           </Link>
           
           <div style={{ marginTop: 'auto', padding: '20px' }}>
-            <Link href="/pos" target="_blank" style={{ display: 'block', padding: '15px 20px', color: 'var(--primary)', fontWeight: 'bold', textAlign: 'center', border: '2px solid var(--primary)', borderRadius: '4px', textDecoration: 'none', marginBottom: '15px' }}>
+            <Link href="/pos2" target="_blank" style={{ display: 'block', padding: '15px 20px', color: 'var(--primary)', fontWeight: 'bold', textAlign: 'center', border: '2px solid var(--primary)', borderRadius: '4px', textDecoration: 'none', marginBottom: '15px' }}>
               💻 Quầy Bán Vé (POS)
             </Link>
             <Link href="/" style={{ display: 'block', color: 'var(--text-muted)', textAlign: 'center', textDecoration: 'none' }}>

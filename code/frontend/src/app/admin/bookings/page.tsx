@@ -5,7 +5,8 @@ import React, { useEffect, useState } from 'react';
 export default function AdminBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedBookings, setSelectedBookings] = useState<number[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingBooking, setEditingBooking] = useState<any>(null);
   const [paymentData, setPaymentData] = useState({ status: 'PENDING', method: 'CASH', id: null as any });
@@ -68,10 +69,71 @@ export default function AdminBookings() {
     }
   };
 
+  const filteredBookings = bookings.filter((b: any) => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    const idMatch = b.id?.toString().includes(term);
+    const nameMatch = b.user ? `${b.user.first_name} ${b.user.last_name}`.toLowerCase().includes(term) : false;
+    const emailMatch = b.user?.email?.toLowerCase().includes(term);
+    const movieMatch = b.showtime?.movie?.title?.toLowerCase().includes(term);
+    return idMatch || nameMatch || emailMatch || movieMatch;
+  });
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedBookings(filteredBookings.map((b: any) => b.id));
+    } else {
+      setSelectedBookings([]);
+    }
+  };
+
+  const handleSelect = (id: number) => {
+    if (selectedBookings.includes(id)) {
+      setSelectedBookings(selectedBookings.filter(bId => bId !== id));
+    } else {
+      setSelectedBookings([...selectedBookings, id]);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${selectedBookings.length} vé đã chọn?`)) return;
+    try {
+      await Promise.all(
+        selectedBookings.map(id => 
+          fetch(`/api/bookings/${id}`, { method: 'DELETE' })
+        )
+      );
+      setSelectedBookings([]);
+      fetchBookings();
+    } catch (error) {
+      console.error(error);
+      alert('Có lỗi xảy ra khi xóa!');
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <h1 style={{ fontSize: '24px', margin: 0 }}>Quản lý Đặt Vé</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <h1 style={{ fontSize: '24px', margin: 0 }}>Quản lý Đặt Vé</h1>
+          {selectedBookings.length > 0 && (
+            <button 
+              onClick={handleBulkDelete}
+              className="btn" 
+              style={{ background: '#ef4444', color: 'white', padding: '8px 16px', borderRadius: '6px' }}
+            >
+              Xóa {selectedBookings.length} đã chọn
+            </button>
+          )}
+        </div>
+        <input 
+          type="text" 
+          placeholder="Tìm theo Mã vé, Khách hàng, Tên phim..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="admin-input"
+          style={{ width: '350px', padding: '10px 15px', borderRadius: '8px', border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-color)' }}
+        />
       </div>
 
       <div className="premium-card" style={{ overflow: 'hidden' }}>
@@ -82,6 +144,13 @@ export default function AdminBookings() {
             <table className="premium-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
+                  <th style={{ padding: '15px', borderBottom: '1px solid var(--card-border)', width: '40px' }}>
+                    <input 
+                      type="checkbox" 
+                      onChange={handleSelectAll}
+                      checked={filteredBookings.length > 0 && selectedBookings.length === filteredBookings.length}
+                    />
+                  </th>
                   <th style={{ textAlign: 'left', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Mã Vé</th>
                   <th style={{ textAlign: 'left', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Khách hàng</th>
                   <th style={{ textAlign: 'left', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Phim & Suất chiếu</th>
@@ -93,10 +162,17 @@ export default function AdminBookings() {
                 </tr>
               </thead>
               <tbody>
-                {bookings.length > 0 ? bookings.map((b: any) => {
+                {filteredBookings.length > 0 ? filteredBookings.map((b: any) => {
                   const pm = b.payment?.[0];
                   return (
                   <tr key={b.id} style={{ borderBottom: '1px solid var(--card-border)' }}>
+                    <td style={{ padding: '15px' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedBookings.includes(b.id)}
+                        onChange={() => handleSelect(b.id)}
+                      />
+                    </td>
                     <td style={{ padding: '15px', opacity: 0.7, fontWeight: '500' }}>#{b.id}</td>
                     <td style={{ padding: '15px' }}>
                       <div style={{ fontWeight: '600' }}>{b.user ? `${b.user.first_name} ${b.user.last_name}` : `User ID: ${b.user_id}`}</div>

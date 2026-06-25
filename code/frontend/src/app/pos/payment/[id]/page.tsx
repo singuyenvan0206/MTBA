@@ -16,15 +16,15 @@ export default function PosPayment() {
   const [searchPhone, setSearchPhone] = useState('');
   const [customer, setCustomer] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
-  const { pushState } = usePosSync(true);
+  const { syncState, pushState } = usePosSync(false);
 
-  const handlePushQR = () => {
-    if (paymentMethod === 'CASH') {
-      alert('Vui lòng chọn thẻ hoặc ví điện tử để hiển thị mã QR!');
-      return;
+  useEffect(() => {
+    if (syncState.seatDiscounts) setSeatDiscounts(syncState.seatDiscounts);
+    if (syncState.paymentMethod) setPaymentMethod(syncState.paymentMethod);
+    if (syncState.showQR !== undefined) {
+        // We can just rely on syncState.showQR to show the modal in JSX
     }
-    pushState({ showQR: true, paymentAmount: calculateSeatPrices().finalTotal });
-  };
+  }, [syncState.seatDiscounts, syncState.paymentMethod, syncState.showQR]);
 
   useEffect(() => {
     if (!params?.id) return;
@@ -235,7 +235,7 @@ export default function PosPayment() {
                     </div>
                 </div>
 
-                <div className="payment-card mt-40" style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '8px', marginTop: '30px' }}>
+                <div className="payment-card mt-40" style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '8px', marginTop: '30px', pointerEvents: 'none' }}>
                     <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '20px' }}>Thông tin thanh toán</h3>
                     <table className="payment-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
@@ -266,7 +266,8 @@ export default function PosPayment() {
                                         <td style={{ textAlign: 'center', padding: '15px 0', borderBottom: '1px solid #222' }}>
                                             <select 
                                                 value={discount} 
-                                                onChange={(e) => handleSeatDiscountChange(seat.seat_number, e.target.value)}
+                                                onChange={(e) => {}}
+                                                disabled
                                                 style={{ width: '100%', padding: '8px', borderRadius: '5px', border: '1px solid #444', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)' }}
                                             >
                                                 <option value="NONE">Người lớn (Không ưu đãi)</option>
@@ -288,7 +289,7 @@ export default function PosPayment() {
             </div>
 
             {/* Cột phải: Phương thức thanh toán */}
-            <div className="right-column">
+            <div className="right-column" style={{ pointerEvents: 'none' }}>
                     <div className="payment-card" style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '8px' }}>
                         <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '10px' }}>Tra cứu & Khuyến mãi</h3>
                         <div className="input-group" style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
@@ -349,14 +350,14 @@ export default function PosPayment() {
                         
                         {(paymentMethod === 'EWALLET' || paymentMethod === 'CARD') && (
                             <div style={{ marginTop: '15px' }}>
-                                <button onClick={handlePushQR} className="btn w-100" style={{ backgroundColor: '#28a745', color: 'white', padding: '15px', fontWeight: 'bold' }}>
+                                <button className="btn w-100" style={{ visibility: 'hidden', backgroundColor: '#28a745', color: 'white', padding: '15px', fontWeight: 'bold' }}>
                                     ĐẨY MÃ QR SANG MÀN HÌNH KHÁCH
                                 </button>
                             </div>
                         )}
                         
                         <div style={{ marginTop: '20px' }}>
-                            <button onClick={handlePayment} className="btn w-100" style={{ backgroundColor: '#ff4d4f', color: 'white', padding: '15px', fontSize: '18px', fontWeight: 'bold' }}>
+                            <button className="btn w-100" style={{ visibility: 'hidden', backgroundColor: '#ff4d4f', color: 'white', padding: '15px', fontSize: '18px', fontWeight: 'bold' }}>
                                 TIẾN HÀNH THANH TOÁN
                             </button>
                         </div>

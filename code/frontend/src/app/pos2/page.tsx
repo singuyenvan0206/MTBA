@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePosSync } from '../../hooks/usePosSync';
 
 type Movie = {
   id: number;
@@ -12,6 +13,7 @@ type Movie = {
 };
 
 export default function Home() {
+  usePosSync(true);
   const [movies, setMovies] = useState<any[]>([]);
   const [showingMovies, setShowingMovies] = useState<any[]>([]);
   const [comingMovies, setComingMovies] = useState<any[]>([]);

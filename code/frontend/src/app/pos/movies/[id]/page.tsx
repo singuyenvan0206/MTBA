@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useTheater } from '../../../pos/TheaterContext';
+import { useTheater } from '../../TheaterContext';
 import { usePosSync } from '../../../../hooks/usePosSync';
 
 type Movie = {
@@ -25,18 +25,21 @@ type Movie = {
 export default function MovieDetail() {
   const params = useParams();
   const router = useRouter();
-  const { pushState } = usePosSync(true); // Staff mode
   const [movie, setMovie] = useState<Movie | null>(null);
   const [showtimes, setShowtimes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const { syncState } = usePosSync(false); // Khách hàng
   
   // Seat selection state
   const [selectedDate, setSelectedDate] = useState<string>('');
   const { selectedTheater } = useTheater();
   const [selectedShowtime, setSelectedShowtime] = useState<any>(null);
-  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
-  const [bookedSeats, setBookedSeats] = useState<string[]>([]);
   const [dbSeats, setDbSeats] = useState<any[]>([]);
+  const [bookedSeats, setBookedSeats] = useState<string[]>([]);
+  
+  // Lấy dữ liệu ghế đang chọn từ syncState
+  const selectedSeats = syncState.selectedSeats || [];
   const [prices, setPrices] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
   const [currentTime, setCurrentTime] = useState<string>('--:--:--');
@@ -49,6 +52,7 @@ export default function MovieDetail() {
   }, []);
 
   useEffect(() => {
+    // POS không cần bắt buộc đăng nhập (hoặc dùng admin user)
     const storedUser = localStorage.getItem('staff_user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
@@ -80,7 +84,7 @@ export default function MovieDetail() {
         console.error(err);
         setLoading(false);
       });
-  }, [params.id]);
+  }, [params.id, router]);
 
   // Handle unique dates
   const availableDates = Array.from(new Set(showtimes.map(st => {
@@ -91,16 +95,13 @@ export default function MovieDetail() {
   useEffect(() => {
     if (availableDates.length > 0 && !selectedDate) {
       setSelectedDate(availableDates[0]);
-      pushState({ selectedDate: availableDates[0] });
     }
   }, [availableDates, selectedDate]);
 
   const handleSelectShowtime = (showtime: any) => {
     setSelectedShowtime(showtime);
-    setSelectedSeats([]);
     setBookedSeats([]);
     setDbSeats([]);
-    pushState({ showtimeId: showtime.id, selectedSeats: [] });
     
     if (showtime.screen_id) {
         fetch(`/api/seats?screen_id=${showtime.screen_id}`)
@@ -116,18 +117,7 @@ export default function MovieDetail() {
   };
 
   const toggleSeat = (seatId: string) => {
-    let newSelectedSeats = [];
-    if (selectedSeats.includes(seatId)) {
-      newSelectedSeats = selectedSeats.filter(id => id !== seatId);
-    } else {
-      if (selectedSeats.length >= 8) {
-        alert('Chỉ được chọn tối đa 8 ghế!');
-        return;
-      }
-      newSelectedSeats = [...selectedSeats, seatId];
-    }
-    setSelectedSeats(newSelectedSeats);
-    pushState({ selectedSeats: newSelectedSeats, showtimeId: selectedShowtime?.id });
+      // Khách hàng không được bấm
   };
 
   const calculateTotalPrice = () => {
@@ -162,47 +152,32 @@ export default function MovieDetail() {
     return total;
   };
 
-  const handleCheckout = async () => {
-    if (selectedSeats.length === 0) {
-      return alert('Vui lòng chọn ít nhất 1 ghế!');
+  useEffect(() => {
+    // Nếu syncState.selectedDate có, tự động chọn ngày tương ứng
+    if (syncState.selectedDate && syncState.selectedDate !== selectedDate) {
+      setSelectedDate(syncState.selectedDate);
     }
-    if (!selectedShowtime) return;
+  }, [syncState.selectedDate, selectedDate]);
 
-    try {
-      const totalPrice = calculateTotalPrice();
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.accessToken || ''}`
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          showtimeId: selectedShowtime.id,
-          seats: selectedSeats,
-          totalPrice: totalPrice
-        })
-      });
-
-      if (res.ok) {
-        const booking = await res.json();
-        pushState({ currentPath: `/pos2/payment/${booking.id}`, showtimeId: selectedShowtime.id, selectedSeats: selectedSeats });
-        router.push(`/pos2/payment/${booking.id}`);
-      } else {
-        const data = await res.json().catch(() => null);
-        if (res.status === 401) {
-            alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-            localStorage.removeItem('staff_user');
-            router.push('/pos2/login');
-            return;
+  useEffect(() => {
+    // Nếu syncState.showtimeId có, đổi suất chiếu tương ứng (Customer auto select)
+    if (syncState.showtimeId && showtimes.length > 0) {
+      if (!selectedShowtime || selectedShowtime.id !== syncState.showtimeId) {
+        const st = showtimes.find(s => s.id === syncState.showtimeId);
+        if (st) {
+          handleSelectShowtime(st);
         }
-        alert(`Có lỗi xảy ra khi đặt vé: ${data?.message || res.statusText}`);
-        console.error('Lỗi đặt vé:', data || res.statusText);
       }
-    } catch (err) {
-      alert(`Lỗi kết nối server: ${err}`);
-      console.error(err);
+    } else if (syncState.showtimeId === null && selectedShowtime) {
+      // Khi nhân viên đổi ngày và clear showtime, khách hàng cũng clear
+      setSelectedShowtime(null);
+      setBookedSeats([]);
+      setDbSeats([]);
     }
+  }, [syncState.showtimeId, showtimes, selectedShowtime]);
+
+  const handleCheckout = async () => {
+      // Khách hàng không được bấm
   };
 
   if (loading) return <div className="text-center py-20 text-[color:var(--text-secondary)]">Đang tải thông tin phim...</div>;
@@ -265,7 +240,7 @@ export default function MovieDetail() {
         {/* Lịch chiếu */}
         <section className="showtimes-section container">
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
-                <div className="date-selector" id="dynamic-date-selector" style={{ margin: 0 }}>
+                <div className="date-selector" id="dynamic-date-selector" style={{ margin: 0, pointerEvents: 'none', opacity: 0.8 }}>
                     {availableDates.length === 0 ? (
                         <p style={{ color: 'var(--text-color)' }}>Phim chưa có lịch chiếu.</p>
                     ) : (
@@ -280,7 +255,6 @@ export default function MovieDetail() {
                                     onClick={() => {
                                         setSelectedDate(dateStr);
                                         setSelectedShowtime(null);
-                                        pushState({ selectedDate: dateStr, showtimeId: null, selectedSeats: [] });
                                     }}
                                 >
                                     <span className="day">{dayName}</span>
@@ -295,7 +269,7 @@ export default function MovieDetail() {
             
             <p className="age-warning">Lưu ý: Khán giả dưới 13 tuổi chỉ chọn suất chiếu kết thúc trước 22h và khán giả dưới 16 tuổi chỉ chọn suất chiếu kết thúc trước 23h.</p>
             
-            <div className="time-slots" id="dynamic-time-slots">
+            <div className="time-slots" id="dynamic-time-slots" style={{ pointerEvents: 'none', opacity: 0.9 }}>
                 {showtimesForDate.map(showtime => {
                     const time = new Date(showtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                     const isSelected = selectedShowtime?.id === showtime.id;
@@ -390,7 +364,7 @@ export default function MovieDetail() {
                         <p>Ghế đã chọn: <strong className="selected-seats-text" style={{ color: '#ff4d4f' }}>{selectedSeats.length > 0 ? selectedSeats.join(', ') : 'Chưa chọn'}</strong></p>
                         <p>Tổng tiền: <strong className="total-price">{calculateTotalPrice().toLocaleString('vi-VN')}đ</strong></p>
                     </div>
-                    <div className="summary-actions">
+                    <div className="summary-actions" style={{ display: 'none' }}>
                         <button className="btn btn-outline" onClick={() => window.scrollTo(0, 0)}>Quay lại</button>
                         <button className="btn btn-primary" onClick={handleCheckout}>Thanh toán</button>
                     </div>

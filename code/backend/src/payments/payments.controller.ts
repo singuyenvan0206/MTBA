@@ -10,19 +10,19 @@ export class PaymentsController {
   constructor(private readonly service: PaymentsService) {}
 
   @Get()
-  @Roles('admin')
+  @Roles('admin', 'staff')
   findAll() { return this.service.findAll(); }
 
   @Get(':id')
-  @Roles('admin')
+  @Roles('admin', 'staff')
   findOne(@Param('id') id: string) { return this.service.findOne(+id); }
 
   @Post()
-  @Roles('admin', 'user')
+  @Roles('admin', 'user', 'staff')
   create(@Body() data: any) { return this.service.create(data); }
 
   @Put(':id')
-  @Roles('admin')
+  @Roles('admin', 'staff')
   update(@Param('id') id: string, @Body() data: any) { return this.service.update(+id, data); }
 
   @Delete(':id')

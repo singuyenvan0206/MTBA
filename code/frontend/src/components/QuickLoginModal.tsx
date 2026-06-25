@@ -13,11 +13,12 @@ export default function QuickLoginModal() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const isAuthPage = pathname === '/login' || pathname === '/register';
+    const isAuthPage = pathname === '/login' || pathname === '/register' || pathname.startsWith('/admin') || pathname.startsWith('/pos');
     const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
+    const adminUserStr = localStorage.getItem('admin_user');
     const dismissed = sessionStorage.getItem('loginPopupDismissed');
 
-    if (!userStr && !isAuthPage && !dismissed) {
+    if (!userStr && !adminUserStr && !isAuthPage && !dismissed) {
       const timer = setTimeout(() => {
         setIsVisible(true);
       }, 500);

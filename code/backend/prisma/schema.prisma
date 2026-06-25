@@ -218,6 +218,7 @@ model agelimit {
 enum role_role_name {
   ROLE_ADMIN
   ROLE_USER
+  ROLE_STAFF
 }
 
 enum ticketprice_type_seat {

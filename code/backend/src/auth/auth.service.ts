@@ -41,13 +41,16 @@ export class AuthService {
       throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
     }
 
-    const role = user.userrole.some((ur: any) => ur.role.role_name === 'ROLE_ADMIN')
-      ? 'admin'
-      : 'user';
+    let role = 'user';
+    if (user.userrole.some((ur: any) => ur.role.role_name === 'ROLE_ADMIN')) {
+      role = 'admin';
+    } else if (user.userrole.some((ur: any) => ur.role.role_name === 'ROLE_STAFF')) {
+      role = 'staff';
+    }
 
     const jwt = require('jsonwebtoken');
     const payload = { id: user.id, role: role };
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET || 'your_jwt_secret_key', { expiresIn: '15m' });
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET || 'your_jwt_secret_key', { expiresIn: '24h' });
     const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || 'your_jwt_refresh_secret_key', { expiresIn: '7d' });
 
     return {
