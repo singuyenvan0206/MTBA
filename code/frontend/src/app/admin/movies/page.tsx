@@ -104,12 +104,25 @@ export default function AdminMovies() {
 
   const handleDelete = (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa phim này?')) return;
-    fetch(`/api/movies/${id}`, { method: 'DELETE' })
+    const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+    fetch(`/api/movies/${id}`, { 
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${adminUser.accessToken || ''}`
+      }
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.message || 'Lỗi khi xóa phim');
+        }
+        return res.json();
+      })
       .then(() => {
         alert('Xóa phim thành công!');
         fetchMovies();
       })
-      .catch(err => alert('Lỗi khi xóa phim'));
+      .catch(err => alert(err.message));
   };
 
   const handleSave = async (e: React.FormEvent) => {

@@ -106,13 +106,13 @@ export default function MovieDetail() {
     if (showtime.screen_id) {
         fetch(`/api/seats?screen_id=${showtime.screen_id}`)
           .then(res => res.json())
-          .then(seats => setDbSeats(seats))
+          .then(seats => setDbSeats(Array.isArray(seats) ? seats : []))
           .catch(err => console.error('Lỗi khi tải ghế của phòng chiếu:', err));
     }
 
     fetch(`/api/bookings/booked-seats?showtimeId=${showtime.id}`)
       .then(res => res.json())
-      .then(data => setBookedSeats(data))
+      .then(data => setBookedSeats(Array.isArray(data.bookedSeats) ? data.bookedSeats : []))
       .catch(err => console.error('Lỗi khi tải ghế:', err));
   };
 

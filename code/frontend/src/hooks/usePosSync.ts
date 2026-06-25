@@ -11,6 +11,8 @@ export interface PosSyncState {
   seatDiscounts?: Record<string, string>;
   paymentMethod?: string;
   selectedTheater?: string;
+  isPrinting?: boolean;
+  finalTotal?: number;
 }
 
 export function usePosSync(isStaff: boolean) {

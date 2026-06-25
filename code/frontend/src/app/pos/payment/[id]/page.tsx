@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePosSync } from '../../../../hooks/usePosSync';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function PosPayment() {
   const params = useParams();
@@ -16,6 +17,11 @@ export default function PosPayment() {
   const [searchPhone, setSearchPhone] = useState('');
   const [customer, setCustomer] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
+  const [paymentConfig, setPaymentConfig] = useState({
+    bankId: 'TPB',
+    accountNo: '00000003137',
+    accountName: 'NGUYEN VAN SI'
+  });
   const { syncState, pushState } = usePosSync(false);
 
   useEffect(() => {
@@ -55,6 +61,18 @@ export default function PosPayment() {
         }
         setBooking(data);
         setLoading(false);
+
+        // Fetch payment config
+        fetch('/api/payments/config', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+          .then(res => res.json())
+          .then(configData => {
+            if (configData && configData.bankId) {
+              setPaymentConfig(configData);
+            }
+          })
+          .catch(err => console.error('Lỗi khi tải cấu hình thanh toán:', err));
       })
       .catch(err => {
         console.error(err);
@@ -389,6 +407,80 @@ export default function PosPayment() {
                     </div>
             </div>
         </div>
+
+        {syncState.showQR && !syncState.isPrinting && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+                <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '15px', textAlign: 'center', color: 'black' }}>
+                    <h2 style={{ marginBottom: '20px', color: '#333' }}>Quét mã để thanh toán</h2>
+                    {(syncState.paymentMethod === 'CARD' || syncState.paymentMethod === 'EWALLET' || syncState.paymentMethod === 'TRANSFER') ? (
+                        <img 
+                            src={`https://img.vietqr.io/image/${paymentConfig.bankId}-${paymentConfig.accountNo}-compact.png?amount=${syncState.paymentAmount || 0}&addInfo=MTBA${booking?.id}&accountName=${encodeURIComponent(paymentConfig.accountName)}`} 
+                            alt="VietQR Code" 
+                            width={256} 
+                            height={256} 
+                            style={{ display: 'inline-block' }}
+                        />
+                    ) : (
+                        <QRCodeSVG 
+                            value={(booking?.id?.toString() || '0')} 
+                            size={256} 
+                            bgColor={"#ffffff"}
+                            fgColor={"#000000"}
+                            level={"Q"}
+                            includeMargin={false}
+                        />
+                    )}
+                    <p style={{ marginTop: '20px', fontSize: '20px', fontWeight: 'bold', color: '#d32f2f' }}>
+                        Tổng tiền: {(syncState.paymentAmount || 0).toLocaleString('vi-VN')}đ
+                    </p>
+                    <p style={{ marginTop: '10px', fontSize: '14px', color: '#666' }}>Vui lòng kiểm tra lại số tiền trước khi chuyển khoản</p>
+                </div>
+            </div>
+        )}
+
+        {syncState.isPrinting && (
+            <div className="print-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'white', zIndex: 10000, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '20px', overflowY: 'auto' }}>
+                <div id="printable-ticket" style={{ width: '80mm', backgroundColor: 'white', color: 'black', padding: '10px', fontFamily: 'monospace', fontSize: '12px' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                        <h2 style={{ fontSize: '16px', margin: 0 }}>RẠP CHIẾU PHIM</h2>
+                        <p style={{ margin: '5px 0' }}>Hóa đơn thanh toán / Vé xem phim</p>
+                        <p style={{ margin: '5px 0' }}>--------------------------------</p>
+                    </div>
+                    
+                    <div style={{ marginBottom: '10px' }}>
+                        <p style={{ margin: '3px 0' }}><strong>Phim:</strong> {movie?.title}</p>
+                        <p style={{ margin: '3px 0' }}><strong>Suất chiếu:</strong> {showtime?.start_time ? new Date(showtime.start_time).toLocaleString('vi-VN') : ''}</p>
+                        <p style={{ margin: '3px 0' }}><strong>Phòng chiếu:</strong> {screen?.name}</p>
+                        <p style={{ margin: '3px 0' }}><strong>Ghế:</strong> {bookedSeats.join(', ')}</p>
+                        <p style={{ margin: '3px 0' }}><strong>Ngày in:</strong> {new Date().toLocaleString('vi-VN')}</p>
+                    </div>
+
+                    <div style={{ borderTop: '1px dashed black', borderBottom: '1px dashed black', padding: '10px 0', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                            <span>Thành tiền:</span>
+                            <span>{booking?.total_price_movie?.toLocaleString('vi-VN')}đ</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                            <span>Ưu đãi:</span>
+                            <span>-{calculateSeatPrices().discountAmount.toLocaleString('vi-VN')}đ</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '14px', marginTop: '5px' }}>
+                            <span>Tổng cộng:</span>
+                            <span>{calculateSeatPrices().finalTotal.toLocaleString('vi-VN')}đ</span>
+                        </div>
+                    </div>
+                    
+                    <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                        <QRCodeSVG 
+                            value={(booking?.id?.toString() || '0')} 
+                            size={100} level="L" includeMargin={false} 
+                        />
+                        <p style={{ margin: '5px 0', fontSize: '10px' }}>Mã vé: {booking?.id}</p>
+                        <p style={{ margin: '15px 0 5px 0', fontSize: '10px' }}>Cảm ơn quý khách!</p>
+                    </div>
+                </div>
+            </div>
+        )}
     </main>
   );
 }

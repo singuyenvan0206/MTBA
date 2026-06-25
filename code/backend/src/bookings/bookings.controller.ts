@@ -12,9 +12,9 @@ export class BookingsController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'user')
+  @Roles('admin', 'user', 'staff')
   create(@Body() body: any, @Req() req: any) {
-    if (req.user.role !== 'admin' && req.user.id !== +body.userId) {
+    if (req.user.role !== 'admin' && req.user.role !== 'staff' && req.user.id !== +body.userId) {
       throw new ForbiddenException('Bạn không thể tạo đặt vé cho người dùng khác!');
     }
     return this.bookingsService.createBooking(body);
@@ -47,13 +47,13 @@ export class BookingsController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'user')
+  @Roles('admin', 'user', 'staff')
   async getBooking(@Param('id') id: string, @Req() req: any) {
     const booking = await this.bookingsService.getBooking(+id);
     if (!booking) {
       return null;
     }
-    if (req.user.role !== 'admin' && req.user.id !== booking.user_id) {
+    if (req.user.role !== 'admin' && req.user.role !== 'staff' && req.user.id !== booking.user_id) {
       throw new ForbiddenException('Bạn không có quyền xem thông tin đặt vé này!');
     }
     return booking;

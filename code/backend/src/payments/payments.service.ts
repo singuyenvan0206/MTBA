@@ -8,18 +8,18 @@ export class PaymentsService {
   private cachedTransactions: any[] = [];
   private lastFetchedTime = 0;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findAll() {
     try {
       return await (this.prisma as any).payment.findMany({ orderBy: { id: 'desc' } });
-    } catch(e) { return []; }
+    } catch (e) { return []; }
   }
 
   async findOne(id: number) {
     try {
       return await (this.prisma as any).payment.findUnique({ where: { id } });
-    } catch(e) { return null; }
+    } catch (e) { return null; }
   }
 
   async create(data: any) {
@@ -120,7 +120,7 @@ export class PaymentsService {
       const match = content.match(/MTBA\s*(\d+)/i);
       if (match && parseInt(match[1], 10) === bookingId) {
         console.log(`   => Khớp mã đơn hàng #${bookingId}!`);
-        
+
         // Khớp mã đặt vé! Truy vấn thông tin đơn hàng để kiểm tra chéo
         const booking = await this.prisma.booking.findUnique({
           where: { id: bookingId }
@@ -349,13 +349,13 @@ export class PaymentsService {
 
     try {
       return await (this.prisma as any).payment.update({ where: { id }, data });
-    } catch(e) { return null; }
+    } catch (e) { return null; }
   }
 
   async remove(id: number) {
     try {
       return await (this.prisma as any).payment.delete({ where: { id } });
-    } catch(e) { return null; }
+    } catch (e) { return null; }
   }
 }
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePosSync } from '@/hooks/usePosSync';
+import { QRCodeSVG } from 'qrcode.react';
 import { AppMessage } from '@/types/messages';
 import { PaymentMethod, PaymentStatus, MovieType, SeatType } from '@/types/enums';
 export default function PosPayment() {
@@ -17,6 +18,13 @@ export default function PosPayment() {
   const [searchPhone, setSearchPhone] = useState('');
   const [customer, setCustomer] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [isWaitingPayment, setIsWaitingPayment] = useState(false);
+  const [paymentConfig, setPaymentConfig] = useState({
+    bankId: 'TPB',
+    accountNo: '00000003137',
+    accountName: 'NGUYEN VAN SI'
+  });
   const { pushState } = usePosSync(true);
 
   const handlePushQR = () => {
@@ -24,7 +32,10 @@ export default function PosPayment() {
       alert('Vui lòng chọn thẻ hoặc ví điện tử để hiển thị mã QR!');
       return;
     }
-    pushState({ showQR: true, paymentAmount: calculateSeatPrices().finalTotal });
+    if (paymentMethod === 'TRANSFER' || paymentMethod === 'EWALLET') {
+      setIsWaitingPayment(true);
+    }
+    pushState({ showQR: true, paymentAmount: calculateSeatPrices().finalTotal, paymentMethod: paymentMethod });
   };
 
   useEffect(() => {
@@ -56,6 +67,18 @@ export default function PosPayment() {
         }
         setBooking(data);
         setLoading(false);
+
+        // Fetch payment config
+        fetch('/api/payments/config', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+          .then(res => res.json())
+          .then(configData => {
+            if (configData && configData.bankId) {
+              setPaymentConfig(configData);
+            }
+          })
+          .catch(err => console.error('Lỗi khi tải cấu hình thanh toán:', err));
       })
       .catch(err => {
         console.error(err);
@@ -66,7 +89,39 @@ export default function PosPayment() {
       .then(res => res.json())
       .then(data => setPrices(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
-  }, [params.id]);
+  }, [params?.id, router]);
+
+  // Polling for payment status from Seapay/backend
+  useEffect(() => {
+    if (!isWaitingPayment || !booking?.id) return;
+
+    const storedUser = localStorage.getItem('staff_user');
+    const token = storedUser ? JSON.parse(storedUser).accessToken : '';
+
+    const checkStatus = async () => {
+      try {
+        const res = await fetch(`/api/payments/status/${booking.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.isPaid) {
+            setIsWaitingPayment(false);
+            pushState({ showQR: false }); // Hide QR on customer screen
+            alert('Khách hàng đã thanh toán thành công qua Seapay. Vui lòng nhấn "Thanh toán ngay" để in vé!');
+          }
+        }
+      } catch (err) {
+        console.error('Lỗi khi kiểm tra trạng thái thanh toán:', err);
+      }
+    };
+
+    checkStatus();
+    const interval = setInterval(checkStatus, 3000);
+    return () => clearInterval(interval);
+  }, [isWaitingPayment, booking?.id, pushState]);
 
   const handlePayment = async () => {
     if (!booking) return;
@@ -109,8 +164,11 @@ export default function PosPayment() {
       });
 
       if (res.ok) {
-        alert('Thanh toán thành công! In vé...');
-        router.push('/pos2');
+        setIsPrinting(true);
+        pushState({ isPrinting: true, paymentMethod: paymentMethod, finalTotal: amountToPay });
+        setTimeout(() => {
+          window.print();
+        }, 500);
       } else {
         alert(AppMessage.POS_PAYMENT_FAILED);
       }
@@ -321,17 +379,17 @@ export default function PosPayment() {
                         <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '20px' }}>Phương thức thanh toán</h3>
                         <div className="payment-methods" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <label className={`method-option ${paymentMethod === 'CASH' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === 'CASH' ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
-                                <input type="radio" name="payment_method" value="CASH" checked={paymentMethod === 'CASH'} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)} style={{ display: 'none' }} />
+                                <input type="radio" name="payment_method" value="CASH" checked={paymentMethod === 'CASH'} onChange={(e) => { setPaymentMethod(e.target.value as PaymentMethod); pushState({ paymentMethod: e.target.value }); }} style={{ display: 'none' }} />
                                 <img src="https://placehold.co/40x20/28a745/FFF?text=Cash" alt="Cash" />
                                 <span>Tiền mặt</span>
                             </label>
                             <label className={`method-option ${paymentMethod === 'CARD' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === 'CARD' ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
-                                <input type="radio" name="payment_method" value="CARD" checked={paymentMethod === 'CARD'} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)} style={{ display: 'none' }} />
+                                <input type="radio" name="payment_method" value="CARD" checked={paymentMethod === 'CARD'} onChange={(e) => { setPaymentMethod(e.target.value as PaymentMethod); pushState({ paymentMethod: e.target.value }); }} style={{ display: 'none' }} />
                                 <img src="https://placehold.co/40x20/ffc107/000?text=Card" alt="Card" />
                                 <span>Quẹt thẻ POS / Chuyển khoản</span>
                             </label>
                             <label className={`method-option ${paymentMethod === 'EWALLET' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === 'EWALLET' ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
-                                <input type="radio" name="payment_method" value="EWALLET" checked={paymentMethod === 'EWALLET'} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)} style={{ display: 'none' }} />
+                                <input type="radio" name="payment_method" value="EWALLET" checked={paymentMethod === 'EWALLET'} onChange={(e) => { setPaymentMethod(e.target.value as PaymentMethod); pushState({ paymentMethod: e.target.value }); }} style={{ display: 'none' }} />
                                 <img src="https://placehold.co/40x20/17a2b8/FFF?text=Wallet" alt="EWallet" />
                                 <span>Ví thanh toán (MoMo / ZaloPay)</span>
                             </label>
@@ -356,6 +414,15 @@ export default function PosPayment() {
                         </div>
 
                         <div className="payment-actions mt-40" style={{ marginTop: '30px' }}>
+                            {(paymentMethod === 'EWALLET' || paymentMethod === 'CARD') && (
+                                <button 
+                                    className="btn btn-success w-100" 
+                                    onClick={handlePushQR} 
+                                    style={{ width: '100%', padding: '15px', fontSize: '16px', fontWeight: 'bold', marginBottom: '15px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '5px' }}
+                                >
+                                    ĐẨY MÃ QR SANG MÀN HÌNH KHÁCH
+                                </button>
+                            )}
                             <button className="btn btn-primary w-100" id="btn-pay" onClick={handlePayment} style={{ width: '100%', padding: '15px', fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>Thanh toán ngay</button>
                             <Link href={`/pos2/movies/${movie?.id}`} className="back-link" style={{ display: 'block', textAlign: 'center', color: '#888', textDecoration: 'underline' }}>Quay lại</Link>
                         </div>
@@ -364,6 +431,55 @@ export default function PosPayment() {
                     </div>
             </div>
         </div>
+
+        {isPrinting && (
+            <div className="print-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'white', zIndex: 10000, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '20px', overflowY: 'auto' }}>
+                <div id="printable-ticket" style={{ width: '80mm', backgroundColor: 'white', color: 'black', padding: '10px', fontFamily: 'monospace', fontSize: '12px' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                        <h2 style={{ fontSize: '16px', margin: 0 }}>RẠP CHIẾU PHIM</h2>
+                        <p style={{ margin: '5px 0' }}>Hóa đơn thanh toán / Vé xem phim</p>
+                        <p style={{ margin: '5px 0' }}>--------------------------------</p>
+                    </div>
+                    
+                    <div style={{ marginBottom: '10px' }}>
+                        <p style={{ margin: '3px 0' }}><strong>Phim:</strong> {movie?.title}</p>
+                        <p style={{ margin: '3px 0' }}><strong>Suất chiếu:</strong> {showtime?.start_time ? new Date(showtime.start_time).toLocaleString('vi-VN') : ''}</p>
+                        <p style={{ margin: '3px 0' }}><strong>Phòng chiếu:</strong> {screen?.name}</p>
+                        <p style={{ margin: '3px 0' }}><strong>Ghế:</strong> {bookedSeats.join(', ')}</p>
+                        <p style={{ margin: '3px 0' }}><strong>Ngày in:</strong> {new Date().toLocaleString('vi-VN')}</p>
+                    </div>
+
+                    <div style={{ borderTop: '1px dashed black', borderBottom: '1px dashed black', padding: '10px 0', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                            <span>Thành tiền:</span>
+                            <span>{booking?.total_price_movie?.toLocaleString('vi-VN')}đ</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                            <span>Ưu đãi:</span>
+                            <span>-{calculateSeatPrices().discountAmount.toLocaleString('vi-VN')}đ</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '14px', marginTop: '5px' }}>
+                            <span>Tổng cộng:</span>
+                            <span>{calculateSeatPrices().finalTotal.toLocaleString('vi-VN')}đ</span>
+                        </div>
+                    </div>
+                    
+                    <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                        <QRCodeSVG 
+                            value={(booking?.id?.toString() || '0')} 
+                            size={100} level="L" includeMargin={false} 
+                        />
+                        <p style={{ margin: '5px 0', fontSize: '10px' }}>Mã vé: {booking?.id}</p>
+                        <p style={{ margin: '15px 0 5px 0', fontSize: '10px' }}>Cảm ơn quý khách!</p>
+                    </div>
+                </div>
+                
+                <div className="no-print" style={{ marginTop: '30px', display: 'flex', gap: '10px' }}>
+                    <button onClick={() => window.print()} style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>In lại</button>
+                    <button onClick={() => { setIsPrinting(false); pushState({ showQR: false, currentPath: '/pos2' }); router.push('/pos2'); }} style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Hoàn tất & Về trang chủ</button>
+                </div>
+            </div>
+        )}
     </main>
   );
 }
