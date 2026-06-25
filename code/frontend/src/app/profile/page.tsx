@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { PaymentStatus, PaymentMethod } from '@/types/enums';
 
 export default function Profile() {
   const router = useRouter();
@@ -294,10 +295,34 @@ export default function Profile() {
                     ) : (
                         bookings.map(booking => {
                           const pm = booking.payment?.[0];
-                          const isPaid = pm?.payment_status === 'COMPLETED';
-                          const statusStr = isPaid ? 'Đã thanh toán' : 'Thanh toán tại quầy (Chưa TT)';
-                          const statusBg = isPaid ? 'rgba(52, 211, 153, 0.15)' : 'rgba(251, 191, 36, 0.15)';
-                          const statusColor = isPaid ? '#34d399' : '#fbbf24';
+                          const isPaid = pm?.payment_status === PaymentStatus.COMPLETED;
+                          
+                          let statusStr = '';
+                          let statusBg = '';
+                          let statusColor = '';
+                          let showPayButton = false;
+
+                          if (isPaid) {
+                            statusStr = 'Đã thanh toán';
+                            statusBg = 'rgba(52, 211, 153, 0.15)';
+                            statusColor = '#34d399';
+                          } else {
+                            const createdTime = new Date(booking.created_at).getTime();
+                            const elapsedMs = Date.now() - createdTime;
+                            const isBookingExpired = elapsedMs > 5 * 60 * 1000;
+                            
+                            if (isBookingExpired) {
+                              statusStr = 'Đã hết hạn / Đã hủy';
+                              statusBg = 'rgba(239, 68, 68, 0.15)';
+                              statusColor = '#ef4444';
+                            } else {
+                              const minutesLeft = Math.ceil((5 * 60 * 1000 - elapsedMs) / 60000);
+                              statusStr = `Chờ thanh toán (Còn ${minutesLeft} phút)`;
+                              statusBg = 'rgba(251, 191, 36, 0.15)';
+                              statusColor = '#fbbf24';
+                              showPayButton = true;
+                            }
+                          }
 
                           const movieTitle = booking.showtime?.movie?.title || 'Phim đã xóa';
                           const movieImage = booking.showtime?.movie?.image || 'https://placehold.co/200x300?text=No+Image';
@@ -307,7 +332,7 @@ export default function Profile() {
                           const theaterName = booking.showtime?.screen?.theater?.name || '';
                           const screenName = booking.showtime?.screen?.name || 'Phòng chiếu';
                           const seats = booking.bookingseat?.map((bs: any) => bs.seat?.seat_number).join(', ') || 'N/A';
-                          const method = pm?.payment_method || 'CASH';
+                          const method = pm?.payment_method || PaymentMethod.CASH;
 
                           return (
                             <div key={booking.id} className="ticket-card" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
@@ -353,6 +378,31 @@ export default function Profile() {
                                   </div>
                                   
                                   <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'flex-end', gap: '15px', flexWrap: 'wrap' }}>
+                                     {showPayButton && (
+                                       <button 
+                                         onClick={() => router.push(`/payment/${booking.id}`)}
+                                         className="btn btn-primary" 
+                                         style={{ 
+                                           fontSize: '13px', 
+                                           padding: '10px 20px', 
+                                           backgroundColor: 'var(--primary-color)', 
+                                           color: '#fff', 
+                                           borderRadius: '8px', 
+                                           cursor: 'pointer', 
+                                           display: 'flex', 
+                                           alignItems: 'center', 
+                                           gap: '8px',
+                                           border: 'none',
+                                           fontWeight: 'bold',
+                                           boxShadow: '0 0 10px rgba(255, 77, 79, 0.4)'
+                                         }}
+                                       >
+                                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: '18px', height: '18px' }}>
+                                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                                           </svg>
+                                           Thanh toán ngay
+                                       </button>
+                                     )}
                                      <button className="btn" style={{ fontSize: '13px', padding: '10px 20px', backgroundColor: 'transparent', border: '1px solid #444', color: '#888', borderRadius: '8px', cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: '8px' }} disabled title="Tính năng sẽ sớm ra mắt">
                                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '18px', height: '18px' }}>
                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />

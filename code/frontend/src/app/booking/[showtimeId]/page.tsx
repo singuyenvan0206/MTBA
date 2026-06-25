@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { SeatType, MovieType } from '@/types/enums';
+import { AppMessage } from '@/types/messages';
 
 export default function Booking() {
   const router = useRouter();
@@ -21,7 +23,7 @@ export default function Booking() {
   useEffect(() => {
     setCurrentTime(new Date());
     if (timeLeft <= 0) {
-      alert("Thời gian giữ ghế đã hết. Vui lòng chọn lại!");
+      alert(AppMessage.BOOKING_SESSION_EXPIRED);
       window.location.reload();
       return;
     }
@@ -45,7 +47,8 @@ export default function Booking() {
       setShowLoginModal(true);
       return;
     }
-    setUser(JSON.parse(storedUser));
+    const parsedUser = JSON.parse(storedUser);
+    setUser(parsedUser);
 
     // Lấy bảng giá
     fetch('/api/prices')
@@ -70,9 +73,27 @@ export default function Booking() {
         .catch(err => console.error('Lỗi khi tải showtime:', err));
 
       // Lấy danh sách ghế đã đặt
-      fetch(`/api/bookings/booked-seats?showtimeId=${params.showtimeId}`)
+      const userId = parsedUser?.id || '';
+      fetch(`/api/bookings/booked-seats?showtimeId=${params.showtimeId}${userId ? `&userId=${userId}` : ''}`)
         .then(res => res.json())
-        .then(data => setBookedSeats(data))
+        .then(data => {
+          if (data && typeof data === 'object' && 'bookedSeats' in data) {
+            setBookedSeats(data.bookedSeats);
+            if (data.myPendingBooking) {
+              setSelectedSeats(data.myPendingBooking.seats);
+              
+              // Cập nhật lại đếm ngược theo thời gian thực của booking đang chờ
+              const createdTime = new Date(data.myPendingBooking.created_at).getTime();
+              const elapsedSeconds = Math.floor((Date.now() - createdTime) / 1000);
+              const remaining = 300 - elapsedSeconds;
+              if (remaining > 0) {
+                setTimeLeft(remaining);
+              }
+            }
+          } else {
+            setBookedSeats(Array.isArray(data) ? data : []);
+          }
+        })
         .catch(err => console.error('Lỗi khi tải ghế đã đặt:', err));
     }
   }, [router, params?.showtimeId]);
@@ -87,7 +108,7 @@ export default function Booking() {
 
   const calculateTotalPrice = () => {
     if (!showtime?.movie) return 0;
-    const movieType = showtime.movie.type || 'TYPE_2D';
+    const movieType = (showtime.movie.type as MovieType) || MovieType.TYPE_2D;
     
     const isWeekend = (dateString: string) => {
         const day = new Date(dateString).getDay();
@@ -99,7 +120,7 @@ export default function Booking() {
     
     selectedSeats.forEach(seatId => {
       const seat = dbSeats.find(s => s.seat_number === seatId);
-      const seatType = seat?.type || 'STANDARD';
+      const seatType = (seat?.type as SeatType) || SeatType.STANDARD;
 
       // Find price config matching movieType, seatType and day_type
       const priceConfig = prices.find(p => p.type_movie === movieType && p.type_seat === seatType && p.day_type === showtimeDayType);
@@ -108,9 +129,9 @@ export default function Booking() {
       if (priceConfig) {
         price = priceConfig.price;
       } else {
-        if (seatType === 'STANDARD') price = 80000;
-        else if (seatType === 'VIP') price = 100000;
-        else if (seatType === 'SWEETBOX') price = 150000;
+        if (seatType === SeatType.STANDARD) price = 80000;
+        else if (seatType === SeatType.VIP) price = 100000;
+        else if (seatType === SeatType.SWEETBOX) price = 150000;
       }
       total += price;
     });
@@ -120,7 +141,7 @@ export default function Booking() {
 
   const handleCheckout = async () => {
     if (selectedSeats.length === 0) {
-      return alert('Vui lòng chọn ít nhất 1 ghế!');
+      return alert(AppMessage.BOOKING_SELECT_SEAT);
     }
 
     try {
@@ -143,10 +164,11 @@ export default function Booking() {
         const data = await res.json();
         router.push(`/payment/${data.id}`);
       } else {
-        alert('Có lỗi xảy ra khi đặt vé.');
+        const errData = await res.json();
+        alert(errData.message || AppMessage.BOOKING_CONNECTION_ERROR);
       }
     } catch (err) {
-      alert('Lỗi kết nối server');
+      alert(AppMessage.BOOKING_CONNECTION_ERROR);
     }
   };
 
@@ -211,8 +233,8 @@ export default function Booking() {
                                 const isBooked = bookedSeats.includes(seatId);
                                 
                                 let seatClass = 'standard';
-                                if (seat.type === 'VIP') seatClass = 'vip';
-                                if (seat.type === 'SWEETBOX') seatClass = 'couple';
+                                if (seat.type === SeatType.VIP) seatClass = 'vip';
+                                if (seat.type === SeatType.SWEETBOX) seatClass = 'couple';
 
                                 return (
                                     <div

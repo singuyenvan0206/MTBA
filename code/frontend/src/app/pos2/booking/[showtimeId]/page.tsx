@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { usePosSync } from '../../../../hooks/usePosSync';
 
 export default function Booking() {
   const router = useRouter();
@@ -25,7 +24,7 @@ export default function Booking() {
       setUser(JSON.parse(storedUser));
     } else {
       // Giả lập user admin cho POS nếu chưa đăng nhập
-      setUser({ id: 1, role: 'admin', fullName: 'Nhân viên POS' });
+      setUser({ id: 1, role: UserRole.ADMIN, fullName: 'Nhân viên POS' });
     }
 
     if (params?.showtimeId) {
@@ -57,7 +56,7 @@ export default function Booking() {
 
   const handleCheckout = async () => {
     if (selectedSeats.length === 0) {
-      return alert('Vui lòng chọn ít nhất 1 ghế!');
+      return alert(AppMessage.POS_BOOKING_SELECT_SEAT);
     }
 
     try {
@@ -76,10 +75,10 @@ export default function Booking() {
         const data = await res.json();
         router.push(`/pos2/payment/${data.id}`);
       } else {
-        alert('Có lỗi xảy ra khi đặt vé.');
+        alert(AppMessage.POS_BOOKING_ERROR);
       }
     } catch (err) {
-      alert('Lỗi kết nối server');
+      alert(AppMessage.POS_BOOKING_CONNECTION_ERROR);
     }
   };
 

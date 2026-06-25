@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import "../globals.css";
+import { UserRole } from '@/types/enums';
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -30,7 +31,7 @@ export default function AdminLayout({
     if (stored) {
       try {
         const user = JSON.parse(stored);
-        if (user.role === 'admin') {
+        if (user.role === UserRole.ADMIN) {
           setAdminUser(user);
         } else {
           window.location.href = '/admin/login';

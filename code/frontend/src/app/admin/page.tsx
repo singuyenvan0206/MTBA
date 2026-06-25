@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { PaymentStatus } from '@/types/enums';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -18,7 +19,7 @@ export default function AdminDashboard() {
       fetch('/api/payments').then(res => res.json()).catch(() => [])
     ]).then(([movies, bookings, users, payments]) => {
       const totalRevenue = Array.isArray(payments) ? payments.reduce((sum: number, p: any) => {
-        if (p.payment_status === 'COMPLETED') {
+        if (p.payment_status === PaymentStatus.COMPLETED) {
           return sum + (p.amount || 0);
         }
         return sum;

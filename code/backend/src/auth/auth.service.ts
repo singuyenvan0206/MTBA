@@ -1,5 +1,8 @@
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { role_role_name } from '@prisma/client';
+import { UserRole } from './roles.enum';
+import { ErrorMessage } from '../common/error-messages.enum';
 import * as nodemailer from 'nodemailer';
 import * as bcrypt from 'bcryptjs';
 
@@ -38,15 +41,12 @@ export class AuthService {
     const pepper = process.env.PASSWORD_PEPPER || '';
     const isPasswordValid = user ? await bcrypt.compare(pass + pepper, user.password) : false;
     if (!user || !isPasswordValid) {
-      throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
+      throw new UnauthorizedException(ErrorMessage.AUTH_INVALID_CREDENTIALS);
     }
 
-    let role = 'user';
-    if (user.userrole.some((ur: any) => ur.role.role_name === 'ROLE_ADMIN')) {
-      role = 'admin';
-    } else if (user.userrole.some((ur: any) => ur.role.role_name === 'ROLE_STAFF')) {
-      role = 'staff';
-    }
+    const role = user.userrole.some((ur: any) => ur.role.role_name === 'ROLE_ADMIN')
+      ? 'admin'
+      : 'user';
 
     const jwt = require('jsonwebtoken');
     const payload = { id: user.id, role: role };
@@ -100,10 +100,10 @@ export class AuthService {
     });
 
     let dbRole = await this.prisma.role.findUnique({
-      where: { role_name: 'ROLE_USER' },
+      where: { role_name: role_role_name.ROLE_USER },
     });
     if (!dbRole) {
-      dbRole = await this.prisma.role.create({ data: { role_name: 'ROLE_USER' } });
+      dbRole = await this.prisma.role.create({ data: { role_name: role_role_name.ROLE_USER } });
     }
 
     await this.prisma.userrole.create({

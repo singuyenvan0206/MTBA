@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { SeatType } from '@/types/enums';
 
 type Seat = {
   id: number;
@@ -17,7 +18,7 @@ export default function AdminSeats() {
 
   const [showModal, setShowModal] = useState(false);
   const [showBulkTypeModal, setShowBulkTypeModal] = useState(false);
-  const [bulkType, setBulkType] = useState('STANDARD');
+  const [bulkType, setBulkType] = useState(SeatType.STANDARD);
   const [screens, setScreens] = useState<any[]>([]);
   const [theaters, setTheaters] = useState<any[]>([]);
 
@@ -25,7 +26,7 @@ export default function AdminSeats() {
   const [formData, setFormData] = useState({
     screen_id: '',
     seat_number: '',
-    type: 'STANDARD',
+    type: SeatType.STANDARD,
     is_booked: 'false'
   });
 
@@ -56,7 +57,7 @@ export default function AdminSeats() {
 
   const openAddModal = () => {
     setEditingId(null);
-    setFormData({ screen_id: '', seat_number: '', type: 'STANDARD', is_booked: 'false' });
+    setFormData({ screen_id: '', seat_number: '', type: SeatType.STANDARD, is_booked: 'false' });
     setShowModal(true);
   };
 
@@ -65,7 +66,7 @@ export default function AdminSeats() {
     setFormData({
       screen_id: String(item.screen_id),
       seat_number: item.seat_number || '',
-      type: item.type || 'STANDARD',
+      type: (item.type as SeatType) || SeatType.STANDARD,
       is_booked: String(item.is_booked || false)
     });
     setShowModal(true);
@@ -237,9 +238,9 @@ export default function AdminSeats() {
             style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
           >
             <option value="" style={{ color: '#000' }}>Tất cả loại ghế</option>
-            <option value="STANDARD" style={{ color: '#000' }}>Thường (STANDARD)</option>
-            <option value="VIP" style={{ color: '#000' }}>VIP</option>
-            <option value="SWEETBOX" style={{ color: '#000' }}>Giường nằm (SWEETBOX)</option>
+            <option value={SeatType.STANDARD} style={{ color: '#000' }}>Thường (STANDARD)</option>
+            <option value={SeatType.VIP} style={{ color: '#000' }}>VIP</option>
+            <option value={SeatType.SWEETBOX} style={{ color: '#000' }}>Giường nằm (SWEETBOX)</option>
           </select>
         </div>
       </div>
@@ -290,8 +291,8 @@ export default function AdminSeats() {
                   </td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
                     <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '500', 
-                      backgroundColor: item.type === 'VIP' ? 'rgba(255, 193, 7, 0.2)' : item.type === 'SWEETBOX' ? 'rgba(233, 30, 99, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                      color: item.type === 'VIP' ? '#ffc107' : item.type === 'SWEETBOX' ? '#e91e63' : 'var(--text-muted)'
+                      backgroundColor: item.type === SeatType.VIP ? 'rgba(255, 193, 7, 0.2)' : item.type === SeatType.SWEETBOX ? 'rgba(233, 30, 99, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                      color: item.type === SeatType.VIP ? '#ffc107' : item.type === SeatType.SWEETBOX ? '#e91e63' : 'var(--text-muted)'
                     }}>
                       {item.type}
                     </span>
@@ -349,11 +350,11 @@ export default function AdminSeats() {
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Loại Ghế</label>
                 <select 
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
-                  value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}
+                  value={formData.type} onChange={e => setFormData({...formData, type: e.target.value as SeatType})}
                 >
-                  <option value="STANDARD" style={{ color: '#000' }}>Thường (STANDARD)</option>
-                  <option value="VIP" style={{ color: '#000' }}>VIP</option>
-                  <option value="SWEETBOX" style={{ color: '#000' }}>Giường nằm (SWEETBOX)</option>
+                  <option value={SeatType.STANDARD} style={{ color: '#000' }}>Thường (STANDARD)</option>
+                  <option value={SeatType.VIP} style={{ color: '#000' }}>VIP</option>
+                  <option value={SeatType.SWEETBOX} style={{ color: '#000' }}>Giường nằm (SWEETBOX)</option>
                 </select>
               </div>
 
@@ -390,13 +391,13 @@ export default function AdminSeats() {
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '8px', color: 'var(--foreground)' }}>Chọn loại ghế mới</label>
               <select 
                 value={bulkType} 
-                onChange={e => setBulkType(e.target.value)}
+                onChange={e => setBulkType(e.target.value as SeatType)}
                 style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
                 required
               >
-                <option value="STANDARD" style={{ color: '#000' }}>Thường (STANDARD)</option>
-                <option value="VIP" style={{ color: '#000' }}>VIP</option>
-                <option value="SWEETBOX" style={{ color: '#000' }}>Giường nằm (SWEETBOX)</option>
+                <option value={SeatType.STANDARD} style={{ color: '#000' }}>Thường (STANDARD)</option>
+                <option value={SeatType.VIP} style={{ color: '#000' }}>VIP</option>
+                <option value={SeatType.SWEETBOX} style={{ color: '#000' }}>Giường nằm (SWEETBOX)</option>
               </select>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>

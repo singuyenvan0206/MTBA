@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from './roles.guard';
 import { Roles } from './roles.decorator';
+import { UserRole } from './roles.enum';
 
 @Controller('auth')
 export class AuthController {
@@ -11,14 +12,14 @@ export class AuthController {
   // --- CÁC ENDPOINT TEST MIDDLEWARE ---
   @Get('test-admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin') // Chỉ admin mới được vào
+  @Roles(UserRole.ADMIN) // Chỉ admin mới được vào
   testAdmin() {
     return { message: 'Chúc mừng! Bạn đã lọt qua vòng bảo vệ với tư cách là ADMIN.' };
   }
 
   @Get('test-user')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('user', 'admin') // Ai đăng nhập (user hoặc admin) cũng được vào
+  @Roles(UserRole.USER, UserRole.ADMIN) // Ai đăng nhập (user hoặc admin) cũng được vào
   testUser() {
     return { message: 'Thành công! Bạn đã gọi được API với tư cách là USER (Khách hàng).' };
   }

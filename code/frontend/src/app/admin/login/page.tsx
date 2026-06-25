@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { UserRole } from '@/types/enums';
+import { AppMessage } from '@/types/messages';
 
 export default function AdminLogin() {
   const [emailOrPhone, setEmailOrPhone] = useState('');
@@ -22,18 +24,14 @@ export default function AdminLogin() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.message || 'Đăng nhập thất bại');
+        setError(data.message || AppMessage.LOGIN_FAILED);
         return;
       }
 
       const user = await res.json();
       
       if (user.role !== 'admin') {
-        if (user.role === 'staff') {
-          setError('Tài khoản Nhân viên vui lòng đăng nhập tại trang POS.');
-        } else {
-          setError('Tài khoản này không có quyền Quản trị viên.');
-        }
+        setError('Tài khoản này không có quyền quản trị viên.');
         return;
       }
 
@@ -46,7 +44,7 @@ export default function AdminLogin() {
       
       window.location.href = '/admin';
     } catch (err) {
-      setError('Lỗi kết nối server');
+      setError(AppMessage.LOGIN_CONNECTION_ERROR);
     }
   };
 
