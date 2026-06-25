@@ -209,9 +209,9 @@ export class PaymentsService {
 
   getPaymentConfig() {
     return {
-      bankId: process.env.SEPAY_BANK_ID || 'MB',
-      accountNo: process.env.SEPAY_ACCOUNT_NO || '0123456789',
-      accountName: process.env.SEPAY_ACCOUNT_NAME || 'NGUYEN VAN SI'
+      bankId: process.env.SEPAY_BANK_ID,
+      accountNo: process.env.SEPAY_ACCOUNT_NO,
+      accountName: process.env.SEPAY_ACCOUNT_NAME
     };
   }
 
