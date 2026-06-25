@@ -25,7 +25,17 @@ export default function PosPayment() {
     accountNo: '00000003137',
     accountName: 'NGUYEN VAN SI'
   });
-  const { pushState } = usePosSync(true);
+  const { pushState, syncState } = usePosSync(true);
+
+  // Khôi phục trạng thái chờ thanh toán nếu trang được reload
+  // trong khi QR đang hiển thị — chỉ áp dụng sau khi booking đã load
+  // để tránh khôi phục QR của booking cũ chưa kịp reset
+  useEffect(() => {
+    if (syncState.showQR && !isWaitingPayment && booking?.id) {
+      setIsWaitingPayment(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncState.showQR, booking?.id]);
 
   const handlePushQR = () => {
     if (paymentMethod === 'CASH') {
@@ -40,6 +50,11 @@ export default function PosPayment() {
 
   useEffect(() => {
     if (!params?.id) return;
+
+    // Reset QR state khi vào trang payment mới để xóa sạch QR của booking cũ
+    // (syncStore phía server chỉ merge, không tự clear)
+    pushState({ showQR: false, isPrinting: false, paymentAmount: 0 });
+    setIsWaitingPayment(false);
     
     const storedUser = localStorage.getItem('staff_user');
     let token = '';
@@ -89,6 +104,7 @@ export default function PosPayment() {
       .then(res => res.json())
       .then(data => setPrices(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params?.id, router]);
 
   // Polling for payment status from Seapay/backend
@@ -121,7 +137,10 @@ export default function PosPayment() {
     checkStatus();
     const interval = setInterval(checkStatus, 3000);
     return () => clearInterval(interval);
-  }, [isWaitingPayment, booking?.id, pushState]);
+  // Lưu ý: pushState được loại ra khỏi deps để tránh interval bị
+  // hủy và tạo lại mỗi khi pathname thay đổi (pushState phụ thuộc pathname).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWaitingPayment, booking?.id]);
 
   const handlePayment = async () => {
     if (!booking) return;
@@ -134,48 +153,69 @@ export default function PosPayment() {
         [PaymentMethod.TRANSFER]: PaymentMethod.TRANSFER,
       };
       
-      // finalTotal is available in scope
       const amountToPay = calculateSeatPrices().finalTotal;
-      
+      const token = user?.accessToken || '';
+
+      // Gán khách hàng vào booking (nếu có)
       if (customer) {
         await fetch(`/api/bookings/${booking.id}/user`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${user?.accessToken || ''}`
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({ userId: customer.id })
         });
       }
 
-      const res = await fetch(`/api/payments`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.accessToken || ''}`
-        },
-        body: JSON.stringify({
-          booking_id: booking.id,
-          payment_method: methodMap[paymentMethod] || PaymentMethod.CASH,
-          payment_status: PaymentStatus.COMPLETED,
-          amount: amountToPay,
-          payment_time: new Date().toISOString()
-        })
+      // Kiểm tra xem booking đã được SePay thanh toán tự động chưa
+      // (tránh gọi POST /payments khi bản ghi COMPLETED đã tồn tại trong DB)
+      const statusRes = await fetch(`/api/payments/status/${booking.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
+      const statusData = statusRes.ok ? await statusRes.json() : null;
+      const alreadyPaidBySepay = statusData?.isPaid === true;
 
-      if (res.ok) {
-        setIsPrinting(true);
-        pushState({ isPrinting: true, paymentMethod: paymentMethod, finalTotal: amountToPay });
-        setTimeout(() => {
-          window.print();
-        }, 500);
-      } else {
-        alert(AppMessage.POS_PAYMENT_FAILED);
+      if (!alreadyPaidBySepay) {
+        // Chưa có giao dịch COMPLETED → tạo mới bình thường
+        const res = await fetch(`/api/payments`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            booking_id: booking.id,
+            payment_method: methodMap[paymentMethod] || PaymentMethod.CASH,
+            payment_status: PaymentStatus.COMPLETED,
+            amount: amountToPay,
+            payment_time: new Date().toISOString()
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          // Nếu backend báo đã thanh toán rồi (race condition) → coi như thành công
+          const isAlreadyPaid = errData?.message?.includes('đã được thanh toán');
+          if (!isAlreadyPaid) {
+            alert(AppMessage.POS_PAYMENT_FAILED);
+            return;
+          }
+        }
       }
+
+      // Tiến hành in vé (dù trả tiền thủ công hay SePay đã xử lý)
+      setIsPrinting(true);
+      pushState({ isPrinting: true, showQR: false, paymentMethod: paymentMethod, finalTotal: amountToPay });
+      setTimeout(() => {
+        window.print();
+      }, 500);
+
     } catch (err) {
       alert(AppMessage.POS_PAYMENT_CONNECTION_ERROR);
     }
   };
+
 
   if (loading) return <div className="text-center py-20 ">Đang tải thông tin thanh toán...</div>;
   if (!booking) return <div className="text-center py-20 ">Không tìm thấy mã đặt vé.</div>;
