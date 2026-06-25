@@ -197,3 +197,25 @@ body.light-mode .movie-card, body.light-mode .showtime-card, body.light-mode .th
   font-size: 15px;
   color: var(--text-muted);
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-overlay, .print-overlay * {
+    visibility: visible;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-overlay {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 80mm !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: white !important;
+    color: black !important;
+  }
+}

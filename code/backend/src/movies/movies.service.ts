@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { movie_type } from '@prisma/client';
 
@@ -173,6 +173,17 @@ export class MoviesService {
   }
 
   async remove(id: number) {
+    const futureShowtimes = await this.prisma.showtime.count({
+      where: {
+        movie_id: id,
+        start_time: { gt: new Date() },
+      },
+    });
+
+    if (futureShowtimes > 0) {
+      throw new BadRequestException('Không thể xóa phim đang có lịch chiếu trong tương lai. Vui lòng xóa lịch chiếu trước.');
+    }
+
     await this.prisma.movie.delete({
       where: { id },
     });

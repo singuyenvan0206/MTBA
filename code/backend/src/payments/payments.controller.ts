@@ -15,13 +15,13 @@ export class PaymentsController {
   findAll() { return this.service.findAll(); }
 
   @Get('config')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles('admin', 'user', 'staff')
   getConfig() {
     return this.service.getPaymentConfig();
   }
 
   @Get('status/:bookingId')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles('admin', 'user', 'staff')
   checkStatus(@Param('bookingId') bookingId: string) {
     return this.service.checkPaymentStatus(+bookingId);
   }
@@ -31,7 +31,7 @@ export class PaymentsController {
   findOne(@Param('id') id: string) { return this.service.findOne(+id); }
 
   @Post()
-  @Roles('admin', 'user')
+  @Roles('admin', 'user', 'staff')
   create(@Body() data: any) { return this.service.create(data); }
 
   @Put(':id')
