@@ -70,26 +70,29 @@ export class BookingsService {
       const bookedSeatsObj = await this.getBookedSeatsTx(tx, showtimeId, userId);
       const bookedSeats = bookedSeatsObj.bookedSeats;
 
-      const seatRecords: any[] = [];
-
+      // Kiểm tra trùng ghế trong bộ nhớ trước để tránh truy vấn thừa
       for (const seatNum of seats) {
-        // Kiểm tra trùng ghế
         if (bookedSeats.includes(seatNum)) {
           throw new BadRequestException(`Ghế ${seatNum} đã được đặt hoặc đang được giữ bởi người khác. Vui lòng chọn ghế khác!`);
         }
+      }
 
-        // Lấy thông tin ghế từ database
-        const seat = await tx.seat.findFirst({
-          where: { screen_id: showtime.screen_id, seat_number: seatNum }
-        });
-
-        if (!seat) {
-          throw new BadRequestException(`Ghế ${seatNum} không tồn tại trong phòng chiếu!`);
+      // Lấy tất cả thông tin ghế cần thiết từ database trong 1 truy vấn duy nhất
+      const seatRecords = await tx.seat.findMany({
+        where: {
+          screen_id: showtime.screen_id,
+          seat_number: { in: seats }
         }
+      });
 
-        seatRecords.push(seat);
+      if (seatRecords.length !== seats.length) {
+        const foundSeatNums = seatRecords.map(s => s.seat_number);
+        const missingSeat = seats.find(s => !foundSeatNums.includes(s));
+        throw new BadRequestException(`Ghế ${missingSeat} không tồn tại trong phòng chiếu!`);
+      }
 
-        // Tính giá tiền cho ghế này
+      // Tính tổng tiền cho tất cả ghế
+      for (const seat of seatRecords) {
         const seatType = seat.type;
         const priceConfig = prices.find(p => 
           p.type_movie === movieType && 
@@ -119,13 +122,15 @@ export class BookingsService {
           include: { seat: true }
         });
 
-        for (const obs of oldBookingSeats) {
-          if (!seats.includes(obs.seat.seat_number)) {
-            await tx.seat.update({
-              where: { id: obs.seat_id },
-              data: { is_booked: false }
-            });
-          }
+        const seatIdsToRelease = oldBookingSeats
+          .filter(obs => !seats.includes(obs.seat.seat_number))
+          .map(obs => obs.seat_id);
+
+        if (seatIdsToRelease.length > 0) {
+          await tx.seat.updateMany({
+            where: { id: { in: seatIdsToRelease } },
+            data: { is_booked: false }
+          });
         }
 
         // Xóa mapping bookingseat cũ
@@ -153,23 +158,25 @@ export class BookingsService {
         });
       }
 
-      // Tạo mapping bookingseat mới và cập nhật trạng thái is_booked của ghế
-      for (const seat of seatRecords) {
-        await tx.seat.update({
-          where: { id: seat.id },
-          data: { is_booked: true }
-        });
+      // Cập nhật trạng thái is_booked của tất cả các ghế được chọn trong 1 truy vấn duy nhất
+      await tx.seat.updateMany({
+        where: { id: { in: seatRecords.map(s => s.id) } },
+        data: { is_booked: true }
+      });
 
-        await tx.bookingseat.create({
-          data: {
-            booking_id: booking.id,
-            seat_id: seat.id,
-            quantity: 1,
-          },
-        });
-      }
+      // Tạo mapping bookingseat mới bằng createMany (tối ưu hóa số lượng truy vấn)
+      await tx.bookingseat.createMany({
+        data: seatRecords.map(seat => ({
+          booking_id: booking.id,
+          seat_id: seat.id,
+          quantity: 1,
+        }))
+      });
 
       return booking;
+    }, {
+      maxWait: 10000,
+      timeout: 15000,
     });
   }
 
@@ -356,10 +363,10 @@ export class BookingsService {
         where: { booking_id: id }
       });
 
-
-      for (const bs of bookingSeats) {
-        await tx.seat.update({
-          where: { id: bs.seat_id },
+      const seatIds = bookingSeats.map(bs => bs.seat_id);
+      if (seatIds.length > 0) {
+        await tx.seat.updateMany({
+          where: { id: { in: seatIds } },
           data: { is_booked: false }
         });
       }
@@ -367,6 +374,9 @@ export class BookingsService {
       return tx.booking.delete({
         where: { id }
       });
+    }, {
+      maxWait: 10000,
+      timeout: 15000,
     });
   }
 
@@ -398,9 +408,10 @@ export class BookingsService {
         where: { booking_id: id }
       });
 
-      for (const bs of bookingSeats) {
-        await tx.seat.update({
-          where: { id: bs.seat_id },
+      const seatIds = bookingSeats.map(bs => bs.seat_id);
+      if (seatIds.length > 0) {
+        await tx.seat.updateMany({
+          where: { id: { in: seatIds } },
           data: { is_booked: false }
         });
       }
@@ -409,6 +420,9 @@ export class BookingsService {
       return tx.booking.delete({
         where: { id }
       });
+    }, {
+      maxWait: 10000,
+      timeout: 15000,
     });
   }
 
