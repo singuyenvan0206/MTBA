@@ -10,7 +10,7 @@ export default function Footer() {
     <footer className="footer">
         <div className="container footer-content">
             <div className="footer-col">
-                <img src="https://placehold.co/100x40/ff4d4f/FFF?text=LOGO" alt="Logo" />
+                <img src="https://placehold.co/100x40/ffffff/111111?text=LOGO" alt="Logo" />
                 <p>Cơ quan chủ quản: BỘ VĂN HÓA, THỂ THAO VÀ DU LỊCH</p>
                 <p>Bản quyền thuộc Trung tâm Chiếu phim Quốc gia.</p>
             </div>

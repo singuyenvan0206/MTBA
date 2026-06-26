@@ -46,17 +46,7 @@ export default function Calendar() {
 
   return (
     <main className="main-content">
-        <div className="container mt-40">
-            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                <input 
-                  type="text" 
-                  className="search-input"
-                  placeholder="Tìm kiếm nhanh..." 
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                />
-            </div>
-            
+        <div className="container mt-40">       
             <div className="calendar-header" style={{ textAlign: 'center' }}>
                 <div className="date-selector mt-40" style={{ justifyContent: 'center', marginBottom: '20px' }}>
                     <button 
@@ -70,7 +60,7 @@ export default function Calendar() {
                 </div>
             </div>
 
-            <div className="movie-grid mt-40">
+            <div className="movie-grid mt-40" style={{ marginBottom : '50px' }}>
                 {loading ? (
                     <p style={{ textAlign: 'center', color: '#888', gridColumn: '1/-1' }}>Đang tải danh sách phim...</p>
                 ) : filteredMovies.length > 0 ? (

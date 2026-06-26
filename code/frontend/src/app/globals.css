@@ -1,26 +1,14 @@
 @import "tailwindcss";
 @source "../components";
 :root {
-  /* Classic Dark Theme (Matches original #0a0a0a and #1a1a1a) */
+  /* Classic Dark Theme */
   --background: #0a0a0a;
   --foreground: #ffffff;
   --card-bg: #1a1a1a;
-  --card-border: #333333;
+  --card-border: #2a2a2a;
   --primary: #ff4d4f;
   --primary-hover: #d9363e;
   --table-hover: #222222;
-  --text-muted: #888888;
-}
-
-:root.light-mode {
-  /* Classic Light Theme */
-  --background: #f4f6f9;
-  --foreground: #333333;
-  --card-bg: #ffffff;
-  --card-border: #dddddd;
-  --primary: #ff4d4f;
-  --primary-hover: #d9363e;
-  --table-hover: #f9f9f9;
   --text-muted: #888888;
 }
 
@@ -105,12 +93,6 @@ body {
 }
 
 /* Base custom classes to match old legacy design */
-body.light-mode .movie-card, body.light-mode .showtime-card, body.light-mode .theater-card, body.light-mode .auth-card, body.light-mode .pos-card {
-  background-color: #ffffff;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  color: #333333;
-  border: 1px solid #eeeeee;
-}
 
 /* Custom Auth Layout (Bypass Tailwind) */
 .auth-card-custom {

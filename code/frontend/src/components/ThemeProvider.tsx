@@ -23,15 +23,9 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
   useEffect(() => {
     setMounted(true);
     try {
-      const stored = localStorage.getItem('theme') as Theme | null;
-      if (stored === 'light') {
-        setTheme('light');
-        document.documentElement.classList.add('light-mode');
-        document.body.classList.add('light-mode');
-      } else {
-        document.documentElement.classList.remove('light-mode');
-        document.body.classList.remove('light-mode');
-      }
+      localStorage.removeItem('theme');
+      document.documentElement.classList.remove('light-mode');
+      document.body.classList.remove('light-mode');
     } catch (e) {
       console.warn('localStorage not available', e);
     }
@@ -84,16 +78,7 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
   }, []);
 
   const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    if (newTheme === 'light') {
-      document.documentElement.classList.add('light-mode');
-      document.body.classList.add('light-mode');
-    } else {
-      document.documentElement.classList.remove('light-mode');
-      document.body.classList.remove('light-mode');
-    }
+    // Only dark theme is supported
   };
 
   return (
