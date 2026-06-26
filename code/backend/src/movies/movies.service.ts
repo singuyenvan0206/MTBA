@@ -27,6 +27,7 @@ export class MoviesService {
         genre: m.moviegenre.map((mg) => mg.genre.genre_name).join(', '),
         releaseDate: m.release_date,
         posterUrl: m.image,
+        bannerUrl: m.banner || null,
         type: m.type,
         trailer: m.trailer,
         author: m.author,
@@ -67,6 +68,7 @@ export class MoviesService {
       genre: movie.moviegenre.map((mg: any) => mg.genre.genre_name).join(', '),
       releaseDate: movie.release_date,
       posterUrl: movie.image,
+      bannerUrl: movie.banner || null,
       type: movie.type,
       trailer: movie.trailer,
       author: movie.author,
@@ -84,6 +86,7 @@ export class MoviesService {
       genre,
       releaseDate,
       posterUrl,
+      bannerUrl,
       type,
       trailer,
       author,
@@ -99,6 +102,7 @@ export class MoviesService {
         duration: parseInt(duration),
         release_date: new Date(releaseDate),
         image: posterUrl,
+        banner: bannerUrl || null,
         type: type || movie_type.TYPE_2D,
         trailer: trailer || '',
         author: author || '',
@@ -129,6 +133,7 @@ export class MoviesService {
       duration,
       releaseDate,
       posterUrl,
+      bannerUrl,
       type,
       trailer,
       author,
@@ -144,6 +149,7 @@ export class MoviesService {
     if (duration) dataToUpdate.duration = parseInt(duration);
     if (releaseDate) dataToUpdate.release_date = new Date(releaseDate);
     if (posterUrl !== undefined) dataToUpdate.image = posterUrl;
+    if (bannerUrl !== undefined) dataToUpdate.banner = bannerUrl;
     if (type) dataToUpdate.type = type;
     if (trailer !== undefined) dataToUpdate.trailer = trailer;
     if (author !== undefined) dataToUpdate.author = author;

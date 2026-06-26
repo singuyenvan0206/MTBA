@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { PaymentStatus, PaymentMethod } from '@/types/enums';
 
 export default function AdminBookings() {
-  const [bookings, setBookings] = useState([]);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBookings, setSelectedBookings] = useState<number[]>([]);
@@ -17,11 +17,12 @@ export default function AdminBookings() {
     fetch('/api/bookings')
       .then(res => res.json())
       .then(data => {
-        setBookings(data);
+        setBookings(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(err => {
         console.error(err);
+        setBookings([]);
         setLoading(false);
       });
   };
@@ -43,18 +44,27 @@ export default function AdminBookings() {
 
   const savePayment = async () => {
     try {
+      const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
       if (paymentData.id) {
         // Cập nhật payment cũ
         await fetch(`/api/payments/${paymentData.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': 'admin',
+            'x-user-id': String(adminUser.id || '')
+          },
           body: JSON.stringify({ payment_status: paymentData.status, payment_method: paymentData.method })
         });
       } else {
         // Tạo payment mới
         await fetch('/api/payments', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': 'admin',
+            'x-user-id': String(adminUser.id || '')
+          },
           body: JSON.stringify({
             booking_id: editingBooking.id,
             payment_status: paymentData.status,
@@ -99,9 +109,16 @@ export default function AdminBookings() {
   const handleBulkDelete = async () => {
     if (!confirm(`Bạn có chắc chắn muốn xóa ${selectedBookings.length} vé đã chọn?`)) return;
     try {
+      const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
       await Promise.all(
-        selectedBookings.map(id => 
-          fetch(`/api/bookings/${id}`, { method: 'DELETE' })
+        selectedBookings.map(id =>
+          fetch(`/api/bookings/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'x-user-role': 'admin',
+              'x-user-id': String(adminUser.id || '')
+            }
+          })
         )
       );
       setSelectedBookings([]);
@@ -222,7 +239,14 @@ export default function AdminBookings() {
                         </button>
                         <button onClick={() => {
                           if (confirm('Bạn có chắc chắn muốn xóa đơn này?')) {
-                            fetch(`/api/bookings/${b.id}`, { method: 'DELETE' })
+                            const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+                            fetch(`/api/bookings/${b.id}`, {
+                              method: 'DELETE',
+                              headers: {
+                                'x-user-role': 'admin',
+                                'x-user-id': String(adminUser.id || '')
+                              }
+                            })
                               .then(() => fetchBookings())
                               .catch(err => alert('Lỗi khi xóa đơn'));
                           }

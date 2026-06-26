@@ -128,9 +128,14 @@ export default function Payment() {
     }
 
     try {
+      const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
       const res = await fetch('/api/payments', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-role': 'customer',
+          'x-user-id': String(user.id || '')
+        },
         body: JSON.stringify({
           booking_id: parseInt(bookingId as string),
           payment_method: method,
@@ -143,7 +148,8 @@ export default function Payment() {
         alert(AppMessage.PAYMENT_SUCCESS);
         router.push('/');
       } else {
-        alert(AppMessage.PAYMENT_FAILED);
+        const errorData = await res.json();
+        alert(errorData.message || AppMessage.PAYMENT_FAILED);
       }
     } catch (err) {
       alert(AppMessage.PAYMENT_CONNECTION_ERROR);

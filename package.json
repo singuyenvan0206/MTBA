@@ -3,24 +3,24 @@
   "version": "1.0.0",
   "description": "MTBA Monorepo",
   "private": true,
+  "workspaces": [
+    "code/frontend",
+    "code/backend"
+  ],
   "scripts": {
-    "dev:frontend": "npm run dev --prefix code/frontend",
+    "dev:frontend": "npm run dev -w code/frontend",
     "predev:backend": "node -e \"require('fs').copyFileSync('.env', 'code/backend/.env')\"",
-    "dev:backend": "npm run start:dev --prefix code/backend",
+    "dev:backend": "npm run start:dev -w code/backend",
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
-    "build:frontend": "npm run build --prefix code/frontend",
+    "build:frontend": "npm run build -w code/frontend",
     "prebuild:backend": "node -e \"require('fs').copyFileSync('.env', 'code/backend/.env')\"",
-    "build:backend": "npm run build --prefix code/backend",
+    "build:backend": "npm run build -w code/backend",
     "build": "npm run build:backend && npm run build:frontend",
-    "install:frontend": "npm install --prefix code/frontend",
-    "install:backend": "npm install --prefix code/backend",
-    "install:all": "npm install && npm run install:frontend && npm run install:backend"
+    "install:frontend": "npm install -w code/frontend",
+    "install:backend": "npm install -w code/backend",
+    "install:all": "npm install"
   },
   "devDependencies": {
-    "@types/bcrypt": "^6.0.0",
     "concurrently": "^8.2.2"
-  },
-  "dependencies": {
-    "bcrypt": "^6.0.0"
   }
 }
