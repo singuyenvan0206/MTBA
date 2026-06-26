@@ -72,7 +72,7 @@ export default function Home() {
               backgroundImage: `url(${heroMovie.bannerUrl || heroMovie.posterUrl || 'https://placehold.co/1400x500/111/222'})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center top',
-              filter: 'brightness(0.55)',
+              filter: 'brightness(1.2)',
               transition: 'background-image 0.8s ease',
             }}
           />
@@ -82,13 +82,13 @@ export default function Home() {
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(90deg, rgba(10,10,10,0.97) 0%, rgba(10,10,10,0.75) 40%, rgba(10,10,10,0.15) 70%, transparent 100%)',
+          background: 'linear-gradient(90deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.55) 40%, rgba(10,10,10,0.1) 70%, transparent 100%)',
         }} />
         {/* Gradient overlay — bottom */}
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(to top, rgba(10,10,10,1) 0%, transparent 40%)',
+          background: 'linear-gradient(to top, rgba(10,10,10,0.8) 0%, transparent 40%)',
         }} />
 
         {/* Nội dung hero */}
@@ -282,9 +282,8 @@ export default function Home() {
             }}
           >
             {thumbnailMovies.map((m, idx) => (
-              <Link
+              <div
                 key={m.id}
-                href={`/movies/${m.id}`}
                 id={`hero-thumb-${idx}`}
                 style={{
                   display: 'flex',
@@ -294,7 +293,6 @@ export default function Home() {
                   backdropFilter: 'blur(6px)',
                   borderRadius: '8px',
                   padding: '6px',
-                  textDecoration: 'none',
                   border: '1px solid rgba(255,255,255,0.1)',
                   transition: 'all 0.2s ease',
                   cursor: 'pointer',
@@ -331,7 +329,7 @@ export default function Home() {
                     {m.genre || 'Đang chiếu'}
                   </p>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
