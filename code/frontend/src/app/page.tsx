@@ -27,8 +27,13 @@ export default function Home() {
           const now = new Date();
           const showing = data.filter((m: any) => m.releaseDate && new Date(m.releaseDate) <= now);
           const coming = data.filter((m: any) => m.releaseDate && new Date(m.releaseDate) > now);
+          
           setShowingMovies(showing.length > 0 ? showing : data.slice(0, Math.ceil(data.length / 2)));
           setComingMovies(coming.length > 0 ? coming : data.slice(Math.ceil(data.length / 2)));
+        } else {
+          setMovies([]);
+          setShowingMovies([]);
+          setComingMovies([]);
         }
         setLoading(false);
       })
