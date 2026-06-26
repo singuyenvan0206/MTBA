@@ -50,7 +50,7 @@ export default function Home() {
     <main className="main-content">
 
       {/* ═══════════════════════════════════════════════════════
-          HERO SECTION — Cinematic Banner kiểu LuPhim
+          HERO SECTION 
       ═══════════════════════════════════════════════════════ */}
       <section
         id="hero-banner"
