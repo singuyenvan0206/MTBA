@@ -6,6 +6,18 @@ function formatMovieType(type: string | null | undefined): string {
   return type.replace(/^TYPE_/, '').replace(/_/g, ' ');
 }
 
+function parseMovieType(type: string | null | undefined): any {
+  if (!type) return undefined;
+  const cleaned = type.toUpperCase().replace(/\s+/g, '');
+  if (cleaned === '2D' || cleaned === 'TYPE_2D') {
+    return 'TYPE_2D';
+  }
+  if (cleaned === '3D' || cleaned === 'TYPE_3D') {
+    return 'TYPE_3D';
+  }
+  return type;
+}
+
 @Injectable()
 export class MoviesService {
   constructor(private readonly prisma: PrismaService) { }
@@ -107,7 +119,7 @@ export class MoviesService {
         release_date: new Date(releaseDate),
         image: posterUrl,
         banner: bannerUrl,
-        type: type,
+        type: parseMovieType(type),
         trailer: trailer,
         author: author,
         actors: actors,
@@ -131,6 +143,7 @@ export class MoviesService {
   }
 
   async update(id: number, data: any) {
+    console.log("UPDATE MOVIE REQUEST:", { id, data });
     const {
       title,
       description,
@@ -154,7 +167,7 @@ export class MoviesService {
     if (releaseDate) dataToUpdate.release_date = new Date(releaseDate);
     if (posterUrl !== undefined) dataToUpdate.image = posterUrl;
     if (bannerUrl !== undefined) dataToUpdate.banner = bannerUrl;
-    if (type) dataToUpdate.type = type;
+    if (type) dataToUpdate.type = parseMovieType(type);
     if (trailer !== undefined) dataToUpdate.trailer = trailer;
     if (author !== undefined) dataToUpdate.author = author;
     if (actors !== undefined) dataToUpdate.actors = actors;
