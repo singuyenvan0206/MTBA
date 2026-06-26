@@ -58,7 +58,14 @@ export default function AdminFestivals() {
 
   const handleDelete = (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa Liên Hoan Phim này?')) return;
-    fetch(`/api/festivals/${id}`, { method: 'DELETE' })
+    const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+    fetch(`/api/festivals/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'x-user-role': 'admin',
+        'x-user-id': String(adminUser.id || '')
+      }
+    })
       .then(() => {
         alert('Xóa LHP thành công!');
         fetchData();
@@ -68,7 +75,7 @@ export default function AdminFestivals() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingId 
+    const url = editingId
       ? `/api/festivals/${editingId}`
       : '/api/festivals';
     const method = editingId ? 'PUT' : 'POST';
@@ -79,9 +86,14 @@ export default function AdminFestivals() {
       image: formData.image
     };
 
+    const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
     fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-role': 'admin',
+        'x-user-id': String(adminUser.id || '')
+      },
       body: JSON.stringify(payload)
     })
       .then(res => res.json())

@@ -42,6 +42,7 @@ model bookingseat {
 model festival {
   id         Int      @id @default(autoincrement())
   title      String   @db.VarChar(255)
+  content    String?  @db.Text
   image      String?  @db.VarChar(255)
   start_time DateTime
   end_time   DateTime
