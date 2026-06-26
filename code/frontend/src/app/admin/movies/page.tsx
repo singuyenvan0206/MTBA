@@ -9,6 +9,7 @@ type Movie = {
   genre: string;
   duration: number;
   posterUrl?: string;
+  bannerUrl?: string;
   releaseDate?: string;
   type?: string;
   description?: string;
@@ -38,6 +39,7 @@ export default function AdminMovies() {
     duration: '',
     releaseDate: '',
     posterUrl: '',
+    bannerUrl: '',
     type: MovieType.TYPE_2D,
     description: '',
     author: '',
@@ -76,7 +78,7 @@ export default function AdminMovies() {
     setEditingId(null);
     setFormData({
       title: '', genre: '', duration: '', releaseDate: '',
-      posterUrl: '', type: MovieType.TYPE_2D, description: '',
+      posterUrl: '', bannerUrl: '', type: MovieType.TYPE_2D, description: '',
       author: '', actors: '', ageLimit: '', trailer: ''
     });
 
@@ -91,6 +93,7 @@ export default function AdminMovies() {
       duration: movie.duration ? String(movie.duration) : '',
       releaseDate: movie.releaseDate ? new Date(movie.releaseDate).toISOString().split('T')[0] : '',
       posterUrl: movie.posterUrl || '',
+      bannerUrl: movie.bannerUrl || '',
       type: (movie.type as MovieType) || MovieType.TYPE_2D,
       description: movie.description || '',
       author: movie.author || '',
@@ -363,7 +366,17 @@ export default function AdminMovies() {
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>URL Ảnh Poster</label>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>URL Ảnh Banner <span style={{ color: '#888', fontWeight: '400', fontSize: '12px' }}>(landscape 16:9, dùng cho hero section trang chủ)</span></label>
+                <input 
+                  type="text" 
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
+                  placeholder="https://... (tỷ lệ 16:9)"
+                  value={formData.bannerUrl} onChange={e => setFormData({...formData, bannerUrl: e.target.value})}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>URL Ảnh Poster <span style={{ color: '#888', fontWeight: '400', fontSize: '12px' }}>(portrait 2:3, dùng cho danh sách phim)</span></label>
                 <input 
                   type="text" 
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}

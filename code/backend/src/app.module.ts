@@ -12,7 +12,6 @@ import { AuthModule } from './auth/auth.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { VouchersModule } from './vouchers/vouchers.module';
 import { NewsModule } from './news/news.module';
-import { BannersModule } from './banners/banners.module';
 import { ShowtimesModule } from './showtimes/showtimes.module';
 import { PricesModule } from './prices/prices.module';
 import { FestivalsModule } from './festivals/festivals.module';
@@ -21,7 +20,7 @@ import { AgeLimitsModule } from './age-limits/age-limits.module';
 import { PosModule } from './pos/pos.module';
 
 @Module({
-  imports: [PrismaModule, MoviesModule, GenresModule, TheatersModule, ScreensModule, SeatsModule, UsersModule, AuthModule, BookingsModule, VouchersModule, NewsModule, BannersModule, ShowtimesModule, PricesModule, FestivalsModule, PaymentsModule, AgeLimitsModule, PosModule],
+  imports: [PrismaModule, MoviesModule, GenresModule, TheatersModule, ScreensModule, SeatsModule, UsersModule, AuthModule, BookingsModule, VouchersModule, NewsModule, ShowtimesModule, PricesModule, FestivalsModule, PaymentsModule, AgeLimitsModule, PosModule],
   controllers: [AppController],
   providers: [AppService],
 })
