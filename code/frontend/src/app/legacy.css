@@ -1,57 +1,20 @@
 :root {
     --bg-color: #0f1115;
+    --bg-secondary: #1a1c22;
+    --bg-card: #141414;
+    --bg-input: #111111;
+    --border-color: rgba(255,255,255,0.08);
+    --border-strong: #333333;
     --text-color: #ffffff;
     --text-secondary: #aaaaaa;
+    --text-muted: #666666;
     --primary-color: #ff4d4f;
     --hover-color: #d9363e;
     --nav-bg: #1a1c22;
+    --section-header-border: #2a2a2a;
+    --overlay-bg: rgba(0,0,0,0.75);
 }
 
-body.light-mode {
-    --bg-color: #f4f6f9;
-    --text-color: #333333;
-    --text-secondary: #666666;
-    --nav-bg: #ffffff;
-}
-
-body.light-mode .navbar {
-    background-color: #ffffff;
-    border-bottom: 1px solid #eeeeee;
-}
-body.light-mode .navbar a,
-body.light-mode .navbar .btn-outline {
-    color: #333333;
-    border-color: #333333;
-}
-body.light-mode .navbar .btn-outline:hover {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-body.light-mode .hamburger span {
-    background-color: #333333;
-}
-body.light-mode footer {
-    background-color: #ffffff !important;
-    border-top: 1px solid #eeeeee;
-}
-body.light-mode footer p,
-body.light-mode footer a {
-    color: #666666 !important;
-}
-body.light-mode .search-input {
-    background-color: #ffffff;
-    color: #333333;
-    border-color: #dddddd;
-}
-body.light-mode .search-results {
-    background-color: #ffffff;
-    color: #333333;
-    border-color: #dddddd;
-}
-body.light-mode .search-results a {
-    color: #333333 !important;
-    border-bottom: 1px solid #eeeeee !important;
-}
 
 .search-input {
     padding: 12px 20px;
@@ -267,85 +230,152 @@ a {
     gap: 20px;
 }
 
+/* ── Movie Card ── */
 .movie-card {
     cursor: pointer;
-    transition: transform 0.3s;
-    min-width: 0;
+    border-radius: 12px;
     overflow: hidden;
+    background: #141414;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .movie-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,77,79,0.35);
+    border-color: rgba(255,77,79,0.4);
 }
 
-.movie-card img {
-    width: 100%;
-    height: 100%;
-    border-radius: 8px;
-    margin-bottom: 0px;
-    object-fit: cover;
-    display: block;
-}
-
+/* Poster wrapper */
 .movie-poster {
     position: relative;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-bottom: 10px;
     width: 100%;
     aspect-ratio: 2 / 3;
+    overflow: hidden;
+    border-radius: 0;
+    margin-bottom: 0;
+    flex-shrink: 0;
 }
 
-.age-rating {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background-color: var(--primary-color);
-    color: white;
-    padding: 3px 8px;
-    font-size: 14px;
-    font-weight: bold;
-    border-radius: 4px;
-    z-index: 2;
-}
-
-.movie-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
+.movie-poster img {
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    object-fit: cover;
+    display: block;
+    transition: transform 0.45s ease;
+}
+
+.movie-card:hover .movie-poster img {
+    transform: scale(1.06);
+}
+
+/* Age badge */
+.age-rating {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--primary-color);
+    color: #fff;
+    padding: 2px 7px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 4px;
+    z-index: 3;
+    letter-spacing: 0.03em;
+    box-shadow: 0 2px 6px rgba(255,77,79,0.5);
+}
+
+/* Gradient overlay luôn hiện nhẹ ở đáy — tăng khi hover */
+.movie-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    /* chỉ chiếm phần dưới */
+    height: 55%;
+    background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 50%, transparent 100%);
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
-    padding: 20px;
+    padding: 0 12px 14px;
+    gap: 7px;
     opacity: 0;
-    transition: opacity 0.3s;
-    z-index: 1;
+    transition: opacity 0.3s ease;
+    z-index: 2;
 }
 
 .movie-card:hover .movie-overlay {
     opacity: 1;
 }
 
+/* Overlay buttons */
 .movie-overlay .btn {
-    width: 80%;
-    margin: 5px 0;
+    width: 88%;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    text-align: center;
+    letter-spacing: 0.02em;
+    margin: 0;
+    transition: all 0.2s ease;
+}
+
+.movie-overlay .btn-primary {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(255,77,79,0.4);
+}
+
+.movie-overlay .btn-primary:hover {
+    background: var(--hover-color);
+    transform: scale(1.03);
+}
+
+.movie-overlay .btn-outline {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.35);
+    color: #fff;
+    backdrop-filter: blur(4px);
+}
+
+.movie-overlay .btn-outline:hover {
+    background: rgba(255,255,255,0.22);
+    border-color: rgba(255,255,255,0.6);
+}
+
+/* Info section bên dưới poster */
+.movie-card .movie-info {
+    padding: 10px 12px 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #141414;
 }
 
 .movie-card h3 {
-    font-size: 15px;
-    margin-bottom: 5px;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    color: #f0f0f0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.4;
 }
 
 .movie-card p {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* PROMO LIST */
@@ -1717,5 +1747,287 @@ a {
 @media screen and (max-width: 768px) {
     .auth-card {
         padding: 20px !important;
+    }
+}
+
+/* =====================================================
+   MOBILE RESPONSIVE — Cải thiện toàn diện
+   ===================================================== */
+
+/* --- Navbar mobile --- */
+@media screen and (max-width: 992px) {
+    .nav-container {
+        height: 60px;
+        padding: 0 16px;
+    }
+    .logo img {
+        height: 32px;
+    }
+}
+
+/* --- Hero Banner mobile --- */
+@media screen and (max-width: 768px) {
+    /* Hero section tổng thể */
+    #hero-banner {
+        min-height: 320px !important;
+    }
+
+    /* Nội dung hero: bỏ flex 2 cột, xếp dọc */
+    #hero-banner .container > div {
+        flex-direction: column !important;
+        gap: 16px !important;
+    }
+
+    /* Phần text bên trái */
+    #hero-banner .container > div > div:first-child {
+        max-width: 100% !important;
+    }
+
+    /* Thumbnail list bên phải: ẩn đi trên mobile nhỏ */
+    #hero-banner .container > div > div:last-child {
+        display: none !important;
+    }
+
+    /* Tiêu đề phim hero */
+    #hero-banner h1 {
+        font-size: 22px !important;
+        line-height: 1.3 !important;
+    }
+
+    /* Các badge / tag */
+    #hero-banner [style*="display: flex"][style*="gap: 10px"] {
+        flex-wrap: wrap;
+    }
+
+    /* Nút mua vé & chi tiết */
+    #hero-btn-buy,
+    #hero-btn-detail {
+        padding: 10px 18px !important;
+        font-size: 13px !important;
+    }
+
+    /* Dots */
+    #hero-banner div[style*="gap: 6px"] {
+        margin-top: 14px !important;
+    }
+}
+
+/* --- Search bar --- */
+@media screen and (max-width: 768px) {
+    .search-input {
+        width: 90%;
+        font-size: 14px;
+        padding: 10px 16px;
+    }
+    .search-results {
+        width: 90%;
+    }
+}
+
+/* --- Layout chính (left + right column) --- */
+@media screen and (max-width: 768px) {
+    .layout-grid {
+        flex-direction: column;
+        gap: 0;
+        margin-bottom: 32px;
+    }
+    .left-column,
+    .right-column {
+        width: 100%;
+        flex: none;
+    }
+    /* Right column (khuyến mãi, sự kiện) hiển thị gọn hơn */
+    .right-column {
+        margin-top: 24px;
+    }
+}
+
+/* --- Movie grid mobile --- */
+@media screen and (max-width: 768px) {
+    .movie-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    .movie-card h3 {
+        font-size: 13px;
+    }
+    .movie-card p {
+        font-size: 11px;
+    }
+    /* Overlay chỉ hiện icon nhỏ hơn */
+    .movie-overlay {
+        padding: 10px;
+    }
+    .movie-overlay .btn {
+        font-size: 11px;
+        padding: 6px 10px;
+        margin: 3px 0;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .movie-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    .movie-poster {
+        border-radius: 6px;
+    }
+    .age-rating {
+        font-size: 11px;
+        padding: 2px 5px;
+    }
+}
+
+/* --- Section header --- */
+@media screen and (max-width: 480px) {
+    .section-header h2 {
+        font-size: 16px;
+    }
+    .view-all {
+        font-size: 12px;
+    }
+    .mt-40 {
+        margin-top: 28px;
+    }
+}
+
+/* --- Pagination buttons trên mobile --- */
+@media screen and (max-width: 600px) {
+    /* Pagination wrapper được viết inline style trong TSX,
+       dùng selector chung cho button trong container pagination */
+    .movie-section button {
+        font-size: 12px !important;
+    }
+}
+
+/* --- Promo / Event cards --- */
+@media screen and (max-width: 768px) {
+    .promo-item img,
+    .promo-img {
+        border-radius: 8px;
+        width: 100%;
+    }
+    .lhp-card {
+        padding: 20px 16px;
+    }
+    .lhp-card h3 {
+        font-size: 18px;
+    }
+    .promo-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+/* --- Footer mobile --- */
+@media screen and (max-width: 768px) {
+    .footer {
+        padding: 32px 0;
+    }
+    .footer-content {
+        flex-direction: column;
+        gap: 24px;
+    }
+    .footer-col {
+        width: 100%;
+    }
+    .footer-col h4 {
+        font-size: 15px;
+        margin-bottom: 10px;
+    }
+    .footer-col a,
+    .footer-col p {
+        font-size: 13px;
+    }
+}
+
+/* --- Container padding mobile --- */
+@media screen and (max-width: 480px) {
+    .container {
+        padding: 0 12px;
+    }
+}
+
+/* --- Movie detail banner mobile --- */
+@media screen and (max-width: 600px) {
+    .movie-banner {
+        padding: 32px 0;
+    }
+    .movie-banner-content {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+    .movie-banner-content .movie-poster {
+        width: 180px !important;
+        flex: none;
+        margin-bottom: 0;
+    }
+    .movie-info h1 {
+        font-size: 22px;
+        text-align: center;
+        justify-content: center;
+    }
+    .movie-meta {
+        font-size: 14px;
+        text-align: center;
+    }
+    .movie-synopsis {
+        font-size: 14px;
+    }
+    .movie-actions {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+    .movie-actions .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* --- Booking summary mobile --- */
+@media screen and (max-width: 600px) {
+    .booking-summary {
+        flex-direction: column;
+        gap: 16px;
+        padding: 16px;
+    }
+    .summary-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .summary-actions .btn {
+        flex: 1;
+        text-align: center;
+        font-size: 13px;
+    }
+    .summary-info .total-price {
+        font-size: 18px;
+    }
+}
+
+/* --- Nav mobile menu positioning --- */
+@media screen and (max-width: 992px) {
+    .nav-auth.active {
+        top: auto;
+        /* Tự canh sau nav-links */
+        position: static;
+        width: 100%;
+        padding: 12px 20px 20px;
+        background-color: var(--nav-bg);
+        justify-content: center;
+        border-bottom: 1px solid #333;
+    }
+    .nav-links.active {
+        gap: 8px;
+        padding: 16px 20px;
+    }
+    .nav-links.active a {
+        font-size: 15px;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
     }
 }

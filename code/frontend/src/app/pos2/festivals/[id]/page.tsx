@@ -30,7 +30,7 @@ export default function FestivalDetail() {
       </div>
       {festival.image && <img src={festival.image} alt={festival.title} className="w-full h-auto rounded-lg mb-8" />}
       <div className="text-lg leading-relaxed text-gray-200">
-        {festival.content.split('\n').map((paragraph: string, i: number) => (
+        {(festival.content || '').split('\n').map((paragraph: string, i: number) => (
           <p key={i} className="mb-4">{paragraph}</p>
         ))}
       </div>

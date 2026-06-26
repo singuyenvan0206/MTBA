@@ -233,7 +233,11 @@ export default function PosPayment() {
       const dayType = showtime?.start_time ? isWeekend(showtime.start_time) : false;
       const movieType = (movie?.type as MovieType) || MovieType.TYPE_2D;
       
-      const priceConfig = prices.find(p => p.type_movie === movieType && p.type_seat === seatType && p.day_type === dayType);
+      const priceConfig = prices.find(p => 
+        (p.type_movie === movieType || p.type_movie?.replace(/^TYPE_/, '') === (movieType as string)?.replace(/^TYPE_/, '')) && 
+        p.type_seat === seatType && 
+        p.day_type === dayType
+      );
       return priceConfig ? priceConfig.price : (seatType === SeatType.VIP ? 100000 : seatType === SeatType.SWEETBOX ? 150000 : 80000);
   };
 

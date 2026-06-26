@@ -23,7 +23,7 @@ export default function NewsDetail() {
       <p className="text-[color:var(--text-secondary)] mb-8 text-sm">Đăng ngày: {new Date(news.created_at).toLocaleDateString('vi-VN')}</p>
       {news.image && <img src={news.image} alt={news.title} className="w-full h-auto rounded-lg mb-8" />}
       <div className="text-lg leading-relaxed text-gray-200">
-        {news.content.split('\n').map((paragraph: string, i: number) => (
+        {(news.content || '').split('\n').map((paragraph: string, i: number) => (
           <p key={i} className="mb-4">{paragraph}</p>
         ))}
       </div>

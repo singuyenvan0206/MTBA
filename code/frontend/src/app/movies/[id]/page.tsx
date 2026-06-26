@@ -91,35 +91,38 @@ export default function MovieDetail() {
             <Link href="/" style={{ color: '#ff4d4f', textDecoration: 'none' }}>Trang chủ</Link> {'>'} <span>Phim đang chiếu</span> {'>'} <span style={{ color: 'var(--text-color)' }}>{movie.title}</span>
         </div>
 
-        <div className="container movie-detail-wrapper" id="movie-detail-container" style={{ display: 'flex', gap: '30px', backgroundColor: 'var(--card-bg)', padding: '30px', borderRadius: '10px' }}>
-            <div className="movie-poster" style={{ flex: '0 0 300px' }}>
-                <img src={movie.posterUrl || 'https://placehold.co/300x450'} alt={movie.title} style={{ width: '100%', borderRadius: '8px' }} />
-            </div>
-            <div className="movie-info" style={{ flex: 1 }}>
-                <h1 style={{ fontSize: '32px', marginBottom: '10px' }}>{movie.title} <span className="badge" style={{ fontSize: '14px', background: '#ff4d4f', padding: '3px 8px', borderRadius: '4px', verticalAlign: 'middle' }}>{movie.type || '2D'}</span></h1>
-                <p className="movie-meta" style={{ color: '#aaa', marginBottom: '20px' }}>{movie.genre} - {movie.duration} phút</p>
-                
-                <div className="movie-details" style={{ marginBottom: '20px', lineHeight: 1.8 }}>
-                    <p><strong>Khởi chiếu:</strong> {new Date(movie.releaseDate).toLocaleDateString('vi-VN')}</p>
-                    <p><strong>Tác giả:</strong> {movie.author || 'Đang cập nhật'}</p>
-                    <p><strong>Diễn viên:</strong> {movie.actors || 'Đang cập nhật'}</p>
+        <section className="movie-banner">
+            <div className="movie-banner-bg" style={{ backgroundImage: `url(${movie.posterUrl || 'https://placehold.co/1440x600/222/FFF?text=Background'})` }}></div>
+            <div className="container movie-banner-content" id="movie-detail-container">
+                <div className="movie-poster">
+                    <img src={movie.posterUrl || 'https://placehold.co/300x450/333/FFF?text=Poster'} alt={`Poster ${movie.title}`} />
                 </div>
-                
-                <p className="movie-synopsis" style={{ color: '#ccc', marginBottom: '20px', lineHeight: 1.6 }}>
-                    {movie.description || 'Chưa có thông tin mô tả cho bộ phim này.'}
-                </p>
-                
-                <p className="movie-warning" style={{ color: '#ff4d4f', fontSize: '14px', marginBottom: '20px', fontWeight: 'bold' }}>
-                    Kiểm duyệt: {movie.ageLimit || 'P'} - {movie.ageLimitDescription || (movie.ageLimit === 'P' ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.ageLimit === 'K' ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.ageLimit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)}
-                </p>
-                
-                <div className="movie-actions">
-                    {movie.trailer && (
-                        <a href={movie.trailer} target="_blank" rel="noreferrer" className="btn btn-outline" style={{ borderColor: '#ff4d4f', color: '#ff4d4f', padding: '10px 20px', borderRadius: '5px', textDecoration: 'none', display: 'inline-block' }}>Xem trailer</a>
-                    )}
+                <div className="movie-info">
+                    <h1>{movie.title} <span className="badge">{movie.type?.replace(/^TYPE_/, '') || '2D'}</span></h1>
+                    <p className="movie-meta">{movie.genre} - {movie.duration} phút</p>
+                    
+                    <div className="movie-details">
+                        <p><strong>Đạo diễn:</strong> {movie.author || 'Đang cập nhật'}</p>
+                        <p><strong>Diễn viên:</strong> {movie.actors || 'Đang cập nhật'}</p>
+                        <p><strong>Khởi chiếu:</strong> {new Date(movie.releaseDate).toLocaleDateString('vi-VN')}</p>
+                    </div>
+                    
+                    <p className="movie-synopsis">
+                        {movie.description || 'Chưa có thông tin mô tả cho bộ phim này.'}
+                    </p>
+                    
+                    <p className="movie-warning">
+                        Kiểm duyệt: {movie.ageLimit || 'P'} - {movie.ageLimitDescription || (movie.ageLimit === 'P' ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.ageLimit === 'K' ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.ageLimit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)}
+                    </p>
+                    
+                    <div className="movie-actions">
+                        {movie.trailer && (
+                            <a href={movie.trailer} target="_blank" rel="noreferrer" className="btn btn-outline" style={{ borderColor: '#ff4d4f', color: '#ff4d4f', padding: '10px 20px', borderRadius: '5px', textDecoration: 'none', display: 'inline-block' }}>Xem trailer</a>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         {/* Chọn Lịch Chiếu */}
         <div className="container showtime-section mt-40" style={{ marginBottom: '50px' }}>

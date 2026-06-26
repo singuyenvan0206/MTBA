@@ -5,7 +5,6 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ThemeProvider from "@/components/ThemeProvider";
-import ThemeToggle from "@/components/ThemeToggle";
 import QuickLoginModal from "@/components/QuickLoginModal";
 
 const roboto = Roboto({
@@ -26,14 +25,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body className={`${roboto.className} bg-[#0a0a0a] min-h-screen flex flex-col antialiased transition-colors duration-300`}>
+      <body className={`${roboto.className} min-h-screen flex flex-col antialiased transition-colors duration-300`}>
         <ThemeProvider>
           <Header />
           <main className="flex-grow">
             {children}
           </main>
           <Footer />
-          <ThemeToggle />
           <QuickLoginModal />
         </ThemeProvider>
       </body>

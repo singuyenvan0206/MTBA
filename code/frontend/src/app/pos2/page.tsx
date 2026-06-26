@@ -20,6 +20,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [heroIndex, setHeroIndex] = useState(0);
+  const [showingPage, setShowingPage] = useState(0);
+  const [comingPage, setComingPage] = useState(0);
+  const PAGE_SIZE = 8;
 
   // Auto-rotate hero movie mỗi 8 giây
   useEffect(() => {
@@ -39,8 +42,8 @@ export default function Home() {
           const showing = data.filter((m: any) => m.releaseDate && new Date(m.releaseDate) <= now);
           const coming = data.filter((m: any) => m.releaseDate && new Date(m.releaseDate) > now);
 
-          setShowingMovies(showing.slice(0, 8));
-          setComingMovies(coming.slice(0, 8));
+          setShowingMovies(showing);
+          setComingMovies(coming);
         } else {
           setMovies([]);
           setShowingMovies([]);
@@ -140,7 +143,6 @@ export default function Home() {
               </p>
 
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                {heroMovie.type && (
                   <span style={{
                     background: '#e5a020',
                     color: '#000',
@@ -150,9 +152,8 @@ export default function Home() {
                     borderRadius: '4px',
                     letterSpacing: '0.5px',
                   }}>
-                    {heroMovie.type}
+                    {heroMovie.type.replace(/^TYPE_/, '')}
                   </span>
-                )}
                 {heroMovie.ageLimit && (
                   <span style={{
                     background: heroMovie.ageLimit === 'P' ? '#28a745' : heroMovie.ageLimit === 'C13' ? '#ffc107' : '#ff4d4f',
@@ -348,19 +349,19 @@ export default function Home() {
                 onChange={(e) => setSearchQuery(e.target.value)}
             />
             {searchQuery.length > 0 && (
-                <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', width: '60%', maxWidth: '600px', background: 'white', color: 'black', borderRadius: '8px', zIndex: 50, maxHeight: '300px', overflowY: 'auto', textAlign: 'left', border: '1px solid #ddd' }}>
+                <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', width: '60%', maxWidth: '600px', background: 'var(--card-bg)', color: 'var(--text-color)', borderRadius: '8px', zIndex: 50, maxHeight: '300px', overflowY: 'auto', textAlign: 'left', border: '1px solid var(--card-border)' }}>
                     {movies.filter((m: any) => m.title.toLowerCase().includes(searchQuery.toLowerCase())).length > 0 ? (
                         movies.filter((m: any) => m.title.toLowerCase().includes(searchQuery.toLowerCase())).map((movie: any) => (
-                            <Link href={`/pos2/movies/${movie.id}`} key={movie.id} style={{ display: 'flex', alignItems: 'center', padding: '10px', textDecoration: 'none', color: 'black', borderBottom: '1px solid #eee' }}>
+                            <Link href={`/pos2/movies/${movie.id}`} key={movie.id} style={{ display: 'flex', alignItems: 'center', padding: '10px', textDecoration: 'none', color: 'var(--text-color)', borderBottom: '1px solid var(--card-border)' }}>
                                 <img src={movie.posterUrl || 'https://placehold.co/40x60'} style={{ width: '40px', height: '60px', objectFit: 'cover', borderRadius: '4px', marginRight: '10px' }} />
                                 <div>
                                     <h4 style={{ margin: 0 }}>{movie.title}</h4>
-                                    <span style={{ fontSize: '12px', color: '#666' }}>{movie.genre}</span>
+                                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{movie.genre}</span>
                                 </div>
                             </Link>
                         ))
                     ) : (
-                        <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>Không tìm thấy phim phù hợp</div>
+                        <div style={{ padding: '15px', textAlign: 'center', color: 'var(--text-secondary)' }}>Không tìm thấy phim phù hợp</div>
                     )}
                 </div>
             )}
@@ -377,7 +378,7 @@ export default function Home() {
                         {loading ? (
                             <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>Đang tải danh sách phim...</p>
                         ) : showingMovies.length > 0 ? (
-                            showingMovies.slice(0, 6).map((movie) => (
+                            showingMovies.slice(showingPage * PAGE_SIZE, (showingPage + 1) * PAGE_SIZE).map((movie) => (
                                 <div className="movie-card" key={movie.id} onClick={() => window.location.href = `/pos2/movies/${movie.id}`}>
                                     <div className="movie-poster">
                                         <img src={movie.posterUrl || 'https://placehold.co/300x450'} alt={movie.title} />
@@ -397,6 +398,45 @@ export default function Home() {
                             <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>Không có phim đang chiếu.</p>
                         )}
                     </div>
+                    {/* Pagination - Phim đang chiếu */}
+                    {!loading && showingMovies.length > PAGE_SIZE && (
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '28px' }}>
+                        <button
+                          onClick={() => setShowingPage(p => Math.max(0, p - 1))}
+                          disabled={showingPage === 0}
+                          style={{
+                            padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)',
+                            background: showingPage === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)',
+                            color: showingPage === 0 ? '#555' : '#fff', cursor: showingPage === 0 ? 'not-allowed' : 'pointer',
+                            fontWeight: 600, fontSize: '14px', transition: 'all 0.2s',
+                          }}
+                        >&#8592; Trước</button>
+                        {Array.from({ length: Math.ceil(showingMovies.length / PAGE_SIZE) }, (_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setShowingPage(i)}
+                            style={{
+                              width: '36px', height: '36px', borderRadius: '8px',
+                              border: showingPage === i ? '2px solid #ff4d4f' : '1px solid rgba(255,255,255,0.15)',
+                              background: showingPage === i ? '#ff4d4f' : 'rgba(255,255,255,0.07)',
+                              color: '#fff', cursor: 'pointer', fontWeight: showingPage === i ? 700 : 400,
+                              fontSize: '14px', transition: 'all 0.2s',
+                            }}
+                          >{i + 1}</button>
+                        ))}
+                        <button
+                          onClick={() => setShowingPage(p => Math.min(Math.ceil(showingMovies.length / PAGE_SIZE) - 1, p + 1))}
+                          disabled={showingPage >= Math.ceil(showingMovies.length / PAGE_SIZE) - 1}
+                          style={{
+                            padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)',
+                            background: showingPage >= Math.ceil(showingMovies.length / PAGE_SIZE) - 1 ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)',
+                            color: showingPage >= Math.ceil(showingMovies.length / PAGE_SIZE) - 1 ? '#555' : '#fff',
+                            cursor: showingPage >= Math.ceil(showingMovies.length / PAGE_SIZE) - 1 ? 'not-allowed' : 'pointer',
+                            fontWeight: 600, fontSize: '14px', transition: 'all 0.2s',
+                          }}
+                        >Tiếp &#8594;</button>
+                      </div>
+                    )}
                 </section>
 
                 <section className="movie-section mt-40">
@@ -408,7 +448,7 @@ export default function Home() {
                         {loading ? (
                             <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>Đang tải danh sách phim...</p>
                         ) : comingMovies.length > 0 ? (
-                            comingMovies.slice(0, 6).map((movie) => (
+                            comingMovies.slice(comingPage * PAGE_SIZE, (comingPage + 1) * PAGE_SIZE).map((movie) => (
                                 <div className="movie-card" key={movie.id} onClick={() => window.location.href = `/pos2/movies/${movie.id}`}>
                                     <div className="movie-poster">
                                         <img src={movie.posterUrl || 'https://placehold.co/300x450'} alt={movie.title} />
@@ -428,6 +468,45 @@ export default function Home() {
                             <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>Không có phim sắp chiếu.</p>
                         )}
                     </div>
+                    {/* Pagination - Phim sắp chiếu */}
+                    {!loading && comingMovies.length > PAGE_SIZE && (
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '28px' }}>
+                        <button
+                          onClick={() => setComingPage(p => Math.max(0, p - 1))}
+                          disabled={comingPage === 0}
+                          style={{
+                            padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)',
+                            background: comingPage === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)',
+                            color: comingPage === 0 ? '#555' : '#fff', cursor: comingPage === 0 ? 'not-allowed' : 'pointer',
+                            fontWeight: 600, fontSize: '14px', transition: 'all 0.2s',
+                          }}
+                        >&#8592; Trước</button>
+                        {Array.from({ length: Math.ceil(comingMovies.length / PAGE_SIZE) }, (_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setComingPage(i)}
+                            style={{
+                              width: '36px', height: '36px', borderRadius: '8px',
+                              border: comingPage === i ? '2px solid #ff4d4f' : '1px solid rgba(255,255,255,0.15)',
+                              background: comingPage === i ? '#ff4d4f' : 'rgba(255,255,255,0.07)',
+                              color: '#fff', cursor: 'pointer', fontWeight: comingPage === i ? 700 : 400,
+                              fontSize: '14px', transition: 'all 0.2s',
+                            }}
+                          >{i + 1}</button>
+                        ))}
+                        <button
+                          onClick={() => setComingPage(p => Math.min(Math.ceil(comingMovies.length / PAGE_SIZE) - 1, p + 1))}
+                          disabled={comingPage >= Math.ceil(comingMovies.length / PAGE_SIZE) - 1}
+                          style={{
+                            padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)',
+                            background: comingPage >= Math.ceil(comingMovies.length / PAGE_SIZE) - 1 ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)',
+                            color: comingPage >= Math.ceil(comingMovies.length / PAGE_SIZE) - 1 ? '#555' : '#fff',
+                            cursor: comingPage >= Math.ceil(comingMovies.length / PAGE_SIZE) - 1 ? 'not-allowed' : 'pointer',
+                            fontWeight: 600, fontSize: '14px', transition: 'all 0.2s',
+                          }}
+                        >Tiếp &#8594;</button>
+                      </div>
+                    )}
                 </section>
             </div>
 

@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model booking {
   id                Int           @id @default(autoincrement())
   user_id           Int
@@ -46,6 +45,7 @@ model festival {
   image      String?  @db.VarChar(255)
   start_time DateTime
   end_time   DateTime
+  content    String?  @db.Text
   news       news[]
 }
 
@@ -61,7 +61,6 @@ model movie {
   descriptions String?      @db.Text
   author       String?      @db.VarChar(100)
   image        String?      @db.Text
-  banner       String?      @db.Text
   trailer      String?      @db.VarChar(255)
   type         movie_type   @default(TYPE_2D)
   duration     Int
@@ -70,6 +69,7 @@ model movie {
   updated_at   DateTime     @updatedAt
   actors       String?      @db.VarChar(255)
   age_limit    String?      @db.VarChar(10)
+  banner       String?      @db.Text
   moviegenre   moviegenre[]
   showtime     showtime[]
 }
@@ -91,6 +91,7 @@ model news {
   festival_id Int?
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
+  image       String?   @db.VarChar(255)
   festival    festival? @relation(fields: [festival_id], references: [id], map: "News_festival_id_fkey")
 
   @@index([festival_id], map: "News_festival_id_fkey")

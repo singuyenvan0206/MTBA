@@ -207,7 +207,7 @@ export default function Payment() {
                         <img src={booking.showtime?.movie?.image || "https://placehold.co/100x150"} alt="Poster" style={{ width: '120px', height: '180px', objectFit: 'cover', borderRadius: '8px' }} />
                         <div>
                             <h2 style={{ fontSize: '24px', margin: 0, color: '#fff' }}>{booking.showtime?.movie?.title || 'Phim đã xóa'}</h2>
-                            <p style={{ color: '#ff4d4f', margin: '5px 0', fontWeight: 'bold' }}>{booking.showtime?.movie?.type || MovieType.TYPE_2D}</p>
+                            <p style={{ color: '#ff4d4f', margin: '5px 0', fontWeight: 'bold' }}>{(booking.showtime?.movie?.type || MovieType.TYPE_2D).replace(/^TYPE_/, '')}</p>
                             <p style={{ color: '#888', margin: '10px 0 0 0', fontSize: '14px' }}>Thời gian đặt: {new Date(booking.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                         </div>
                     </div>

@@ -1,6 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { movie_type } from '@prisma/client';
+
+function formatMovieType(type: string | null | undefined): string {
+  if (!type) return '';
+  return type.replace(/^TYPE_/, '').replace(/_/g, ' ');
+}
 
 @Injectable()
 export class MoviesService {
@@ -28,7 +32,7 @@ export class MoviesService {
         releaseDate: m.release_date,
         posterUrl: m.image,
         bannerUrl: m.banner || null,
-        type: m.type,
+        type: formatMovieType(m.type),
         trailer: m.trailer,
         author: m.author,
         actors: m.actors,
@@ -69,7 +73,7 @@ export class MoviesService {
       releaseDate: movie.release_date,
       posterUrl: movie.image,
       bannerUrl: movie.banner || null,
-      type: movie.type,
+      type: formatMovieType(movie.type),
       trailer: movie.trailer,
       author: movie.author,
       actors: movie.actors,
@@ -98,16 +102,16 @@ export class MoviesService {
     const newMovie = await this.prisma.movie.create({
       data: {
         title,
-        descriptions: description || '',
+        descriptions: description,
         duration: parseInt(duration),
         release_date: new Date(releaseDate),
         image: posterUrl,
-        banner: bannerUrl || null,
-        type: type || movie_type.TYPE_2D,
-        trailer: trailer || '',
-        author: author || '',
-        actors: actors || '',
-        age_limit: ageLimit || 'P',
+        banner: bannerUrl,
+        type: type,
+        trailer: trailer,
+        author: author,
+        actors: actors,
+        age_limit: ageLimit,
       },
     });
 

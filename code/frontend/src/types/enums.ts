@@ -22,9 +22,9 @@ export enum SeatType {
  * Giá trị phải khớp với Prisma enum movie_type của Backend.
  */
 export enum MovieType {
-  TYPE_2D = 'TYPE_2D',
-  TYPE_3D = 'TYPE_3D',
-  TYPE_IMAX = 'TYPE_IMAX',
+  TYPE_2D = '2D',
+  TYPE_3D = '3D',
+  TYPE_IMAX = 'IMAX',
 }
 
 /**

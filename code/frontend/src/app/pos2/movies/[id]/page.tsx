@@ -147,7 +147,11 @@ export default function MovieDetail() {
       const seat = dbSeats.find(s => s.seat_number === seatId);
       const seatType = (seat?.type as SeatType) || SeatType.STANDARD;
 
-      const priceConfig = prices.find(p => p.type_movie === movieType && p.type_seat === seatType && p.day_type === showtimeDayType);
+      const priceConfig = prices.find(p => 
+        (p.type_movie === movieType || p.type_movie?.replace(/^TYPE_/, '') === (movieType as string)?.replace(/^TYPE_/, '')) && 
+        p.type_seat === seatType && 
+        p.day_type === showtimeDayType
+      );
       
       let price = 0;
       if (priceConfig) {
@@ -223,13 +227,13 @@ export default function MovieDetail() {
   return (
     <main className="main-content">
         <section className="movie-banner">
-            <div className="movie-banner-bg" style={{ backgroundImage: "url('https://placehold.co/1440x600/222/FFF?text=Background')" }}></div>
+            <div className="movie-banner-bg" style={{ backgroundImage: `url(${movie.posterUrl || 'https://placehold.co/1440x600/222/FFF?text=Background'})` }}></div>
             <div className="container movie-banner-content" id="movie-detail-container">
                 <div className="movie-poster">
                     <img src={movie.posterUrl || 'https://placehold.co/300x450/333/FFF?text=Poster'} alt={`Poster ${movie.title}`} />
                 </div>
                 <div className="movie-info">
-                    <h1>{movie.title} <span className="badge">{movie.type || '2D'}</span></h1>
+                    <h1>{movie.title} <span className="badge">{movie.type?.replace(/^TYPE_/, '') || '2D'}</span></h1>
                     <p className="movie-meta">{movie.genre} - {movie.duration} phút</p>
                     
                     <div className="movie-details">
