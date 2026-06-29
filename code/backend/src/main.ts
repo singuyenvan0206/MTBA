@@ -4,8 +4,19 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors(); // Enable CORS for Next.js frontend
-  app.useGlobalFilters(new HttpExceptionFilter()); // Use global exception filter for JSON responses
-  await app.listen(process.env.PORT ?? 3001, '0.0.0.0'); // Run backend on 3001
+
+  // Enable CORS for Next.js frontend
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true,
+  });
+
+  // Use global exception filter for JSON responses
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  await app.listen(process.env.PORT ?? 3001, '0.0.0.0');
+
+  console.log(`Application is running on: http://localhost:${process.env.PORT || 3001}`);
+  console.log(`Frontend: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
 }
 bootstrap();
