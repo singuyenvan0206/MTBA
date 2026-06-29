@@ -20,7 +20,7 @@ export default function QuickLoginModal() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const isAuthPage = pathname === APP_ROUTES.LOGIN || pathname === APP_ROUTES.REGISTER || pathname.startsWith('/admin') || pathname.startsWith('/pos');
+    const isAuthPage = pathname === APP_ROUTES.LOGIN || pathname === APP_ROUTES.REGISTER || pathname.startsWith('/admin') || pathname.startsWith('/pos') || pathname.startsWith('/booking');
     const userStr = sessionStorage.getItem(ROLES.USER) || localStorage.getItem(ROLES.USER);
     const adminUserStr = localStorage.getItem(STORAGE_KEYS.ADMIN_USER);
     const dismissed = sessionStorage.getItem(STORAGE_KEYS.LOGIN_POPUP_DISMISSED);

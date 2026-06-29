@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 import { UI_MESSAGES } from '@/constants/messages';
@@ -8,6 +8,14 @@ import { API_ENDPOINTS } from '@/constants/endpoints';
 import { APP_ROUTES } from '@/constants/routes';
 export default function Register() {
   const [step, setStep] = useState(1);
+  const [redirectUrl, setRedirectUrl] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      setRedirectUrl(searchParams.get('redirect') || '');
+    }
+  }, []);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -165,7 +173,7 @@ export default function Register() {
       }
 
       alert(UI_MESSAGES.__NG_K__T_I_KHO_N_TH_NH_C_NG);
-      window.location.href = '/login';
+      window.location.href = redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : '/login';
     } catch (err: any) {
       setError('Lỗi kết nối Server: ' + err.message);
       setIsLoading(false);
@@ -303,7 +311,7 @@ export default function Register() {
               </button>
 
               <div style={{ textAlign: 'center', marginTop: '20px', color: 'var(--text-muted)' }}>
-                Đã có tài khoản? <Link href={APP_ROUTES.LOGIN} style={{ color: '#ff4d4f', textDecoration: 'none' }}>Đăng nhập</Link>
+                Đã có tài khoản? <Link href={redirectUrl ? `${APP_ROUTES.LOGIN}?redirect=${encodeURIComponent(redirectUrl)}` : APP_ROUTES.LOGIN} style={{ color: '#ff4d4f', textDecoration: 'none' }}>Đăng nhập</Link>
               </div>
             </form>
           </>

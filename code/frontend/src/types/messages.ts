@@ -38,4 +38,15 @@ export enum AppMessage {
   POS_BOOKING_SELECT_SEAT = 'Vui lòng chọn ít nhất 1 ghế!',
   POS_BOOKING_ERROR = 'Có lỗi xảy ra khi đặt vé.',
   POS_BOOKING_CONNECTION_ERROR = 'Lỗi kết nối server',
+
+  // --- UI Modal Titles & Headings ---
+  TITLE_EXPIRED = 'Hết thời gian giao dịch',
+  TITLE_NO_SEATS = 'Chưa chọn ghế',
+  TITLE_BOOKING_FAILED = 'Đặt vé thất bại',
+  TITLE_CONNECTION_ERROR = 'Lỗi kết nối',
+  TITLE_CANCEL_CONFIRM = 'Xác nhận hủy đặt vé',
+  TITLE_CANCEL_SUCCESS = 'Hủy vé thành công',
+  TITLE_CANCEL_FAILED = 'Hủy vé thất bại',
+  TITLE_QR_CODE = 'Mã QR Vé Xem Phim',
+  TITLE_PAYMENT_SUCCESS = 'Thanh toán thành công!',
 }

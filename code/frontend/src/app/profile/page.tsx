@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { PaymentStatus, PaymentMethod } from '@/types/enums';
+import { AppMessage } from '@/types/messages';
 
 import { API_ENDPOINTS } from '@/constants/endpoints';
 import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
@@ -12,6 +13,7 @@ export default function Profile() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [bookings, setBookings] = useState<any[]>([]);
+  const [activeQrBooking, setActiveQrBooking] = useState<any | null>(null);
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -181,6 +183,16 @@ export default function Profile() {
             .ticket-header-right {
                text-align: right;
             }
+            .ticket-qrcode-section {
+              border-left: 1px dashed #333;
+              background-color: rgba(0,0,0,0.15);
+              min-width: 180px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              padding: 25px;
+            }
             
             @media (max-width: 768px) {
               .profile-layout {
@@ -209,6 +221,12 @@ export default function Profile() {
               }
               .ticket-header-right {
                  text-align: left;
+              }
+              .ticket-qrcode-section {
+                border-left: none !important;
+                border-top: 1px dashed #333 !important;
+                width: 100% !important;
+                padding: 20px !important;
               }
             }
           `}</style>
@@ -406,13 +424,30 @@ export default function Profile() {
                                            Thanh toán ngay
                                        </button>
                                      )}
-                                     <button className="btn" style={{ fontSize: '13px', padding: '10px 20px', backgroundColor: 'transparent', border: '1px solid #444', color: '#888', borderRadius: '8px', cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: '8px' }} disabled title="Tính năng sẽ sớm ra mắt">
-                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '18px', height: '18px' }}>
-                                           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
-                                           <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h1.5v-1.5H18v1.5h1.5v-1.5H21v-1.5h-1.5v-1.5h-1.5v1.5h-1.5v1.5h-1.5v-1.5H15v-1.5h-1.5v1.5h-1.5v1.5h1.5v1.5Z" />
-                                         </svg>
-                                         QR Đối chiếu
-                                     </button>
+                                     <button 
+                                          className="btn" 
+                                          style={{ 
+                                              fontSize: '13px', 
+                                              padding: '10px 20px', 
+                                              backgroundColor: isPaid ? 'rgba(255,255,255,0.05)' : 'transparent', 
+                                              border: '1px solid #444', 
+                                              color: isPaid ? 'var(--text-color)' : '#888', 
+                                              borderRadius: '8px', 
+                                              cursor: isPaid ? 'pointer' : 'not-allowed', 
+                                              display: 'flex', 
+                                              alignItems: 'center', 
+                                              gap: '8px' 
+                                          }} 
+                                          disabled={!isPaid} 
+                                          title={isPaid ? "Quét mã QR để đối chiếu vé vào cổng" : "Vui lòng thanh toán để lấy mã QR"}
+                                          onClick={() => isPaid && setActiveQrBooking(booking)}
+                                      >
+                                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '18px', height: '18px' }}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h1.5v-1.5H18v1.5h1.5v-1.5H21v-1.5h-1.5v-1.5h-1.5v1.5h-1.5v1.5h-1.5v-1.5H15v-1.5h-1.5v1.5h-1.5v1.5h1.5v1.5Z" />
+                                          </svg>
+                                          QR Đối chiếu
+                                      </button>
                                      <button className="btn" style={{ fontSize: '13px', padding: '10px 20px', backgroundColor: 'transparent', border: '1px solid #444', color: '#888', borderRadius: '8px', cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: '8px' }} disabled title="Tính năng sẽ sớm ra mắt">
                                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '18px', height: '18px' }}>
                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
@@ -421,6 +456,18 @@ export default function Profile() {
                                      </button>
                                   </div>
                                </div>
+                               {isPaid && (
+                                   <div className="ticket-qrcode-section">
+                                      <div style={{ backgroundColor: '#fff', padding: '8px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)', display: 'inline-block' }}>
+                                         <img 
+                                           src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${booking.id}`} 
+                                           alt={`QR Code Đơn ${booking.id}`} 
+                                           style={{ width: '120px', height: '120px', display: 'block' }} 
+                                         />
+                                      </div>
+                                      <span style={{ fontSize: '11px', color: '#888', marginTop: '10px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold', textAlign: 'center' }}>Vé Vào Cổng</span>
+                                   </div>
+                                )}
                             </div>
                           );
                         })
@@ -428,6 +475,34 @@ export default function Profile() {
                 </div>
             </div>
         </div>
+
+        {/* Enlarged QR Code Modal */}
+        {activeQrBooking && (
+            <div className="modal" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.85)', zIndex: 9999 }}>
+                <div className="modal-content" style={{ backgroundColor: 'var(--card-bg)', padding: '40px 30px', borderRadius: '15px', textAlign: 'center', maxWidth: '400px', width: '100%', margin: '20px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '20px', marginBottom: '5px', color: '#fff', fontWeight: 'bold' }}>{AppMessage.TITLE_QR_CODE}</h3>
+                    <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '20px' }}>Phim: <strong style={{ color: '#fff' }}>{activeQrBooking.showtime?.movie?.title}</strong></p>
+                    
+                    <div style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.3)', display: 'inline-block', marginBottom: '15px' }}>
+                        <img 
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${activeQrBooking.id}`} 
+                            alt={`QR Code Đơn ${activeQrBooking.id}`} 
+                            style={{ width: '200px', height: '200px', display: 'block' }} 
+                        />
+                    </div>
+                    
+                    <p style={{ color: '#fff', fontWeight: 'bold', fontSize: '18px', margin: '0 0 10px 0', fontFamily: 'monospace' }}>Mã đơn: #{activeQrBooking.id}</p>
+                    <p style={{ color: '#888', fontSize: '13px', marginBottom: '25px', lineHeight: '1.5' }}>
+                        Vui lòng xuất trình mã này tại quầy soát vé của rạp <br/>
+                        <strong>{activeQrBooking.showtime?.screen?.theater?.name}</strong> để vào phòng chiếu.
+                    </p>
+                    
+                    <button onClick={() => setActiveQrBooking(null)} className="btn btn-outline" style={{ width: '100%', padding: '12px', fontSize: '15px', fontWeight: 'bold' }}>
+                        Đóng lại
+                    </button>
+                </div>
+            </div>
+        )}
     </main>
   );
 }

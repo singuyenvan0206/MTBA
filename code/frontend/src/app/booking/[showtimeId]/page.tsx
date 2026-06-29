@@ -22,12 +22,27 @@ export default function Booking() {
   const [prices, setPrices] = useState<any[]>([]);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes timer
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const [alertModal, setAlertModal] = useState<{ 
+    show: boolean; 
+    title: string; 
+    message: string; 
+    type: 'info' | 'error' | 'success'; 
+    onConfirm?: () => void 
+  } | null>(null);
 
   useEffect(() => {
     setCurrentTime(new Date());
     if (timeLeft <= 0) {
-      alert(AppMessage.BOOKING_SESSION_EXPIRED);
-      window.location.reload();
+      setAlertModal({
+        show: true,
+        title: AppMessage.TITLE_EXPIRED,
+        message: AppMessage.BOOKING_SESSION_EXPIRED,
+        type: 'error',
+        onConfirm: () => {
+          setAlertModal(null);
+          window.location.reload();
+        }
+      });
       return;
     }
     const timer = setInterval(() => {
@@ -46,12 +61,10 @@ export default function Booking() {
   useEffect(() => {
     // Check login
     const storedUser = localStorage.getItem(ROLES.USER) || sessionStorage.getItem(ROLES.USER);
-    if (!storedUser) {
-      setShowLoginModal(true);
-      return;
+    const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+    if (parsedUser) {
+      setUser(parsedUser);
     }
-    const parsedUser = JSON.parse(storedUser);
-    setUser(parsedUser);
 
     // Lấy bảng giá
     fetch(API_ENDPOINTS.PRICES)
@@ -82,7 +95,16 @@ export default function Booking() {
         .then(data => {
           if (data && typeof data === 'object' && 'bookedSeats' in data) {
             setBookedSeats(data.bookedSeats);
-            if (data.myPendingBooking) {
+            
+            // Khôi phục ghế đã chọn từ sessionStorage nếu có
+            const pendingSeatsStr = sessionStorage.getItem('pendingBookingSeats');
+            if (pendingSeatsStr) {
+              const pending = JSON.parse(pendingSeatsStr);
+              if (String(pending.showtimeId) === String(params.showtimeId)) {
+                setSelectedSeats(pending.seats);
+              }
+              sessionStorage.removeItem('pendingBookingSeats');
+            } else if (data.myPendingBooking) {
               setSelectedSeats(data.myPendingBooking.seats);
               
               // Cập nhật lại đếm ngược theo thời gian thực của booking đang chờ
@@ -95,6 +117,16 @@ export default function Booking() {
             }
           } else {
             setBookedSeats(Array.isArray(data) ? data : []);
+            
+            // Khôi phục ghế đã chọn từ sessionStorage nếu có
+            const pendingSeatsStr = sessionStorage.getItem('pendingBookingSeats');
+            if (pendingSeatsStr) {
+              const pending = JSON.parse(pendingSeatsStr);
+              if (String(pending.showtimeId) === String(params.showtimeId)) {
+                setSelectedSeats(pending.seats);
+              }
+              sessionStorage.removeItem('pendingBookingSeats');
+            }
           }
         })
         .catch(err => console.error('Lỗi khi tải ghế đã đặt:', err));
@@ -144,7 +176,22 @@ export default function Booking() {
 
   const handleCheckout = async () => {
     if (selectedSeats.length === 0) {
-      return alert(AppMessage.BOOKING_SELECT_SEAT);
+      setAlertModal({
+        show: true,
+        title: AppMessage.TITLE_NO_SEATS,
+        message: AppMessage.BOOKING_SELECT_SEAT,
+        type: 'info'
+      });
+      return;
+    }
+
+    if (!user) {
+      sessionStorage.setItem('pendingBookingSeats', JSON.stringify({
+        showtimeId: params?.showtimeId,
+        seats: selectedSeats
+      }));
+      setShowLoginModal(true);
+      return;
     }
 
     try {
@@ -169,10 +216,20 @@ export default function Booking() {
         router.push(`${APP_ROUTES.PAYMENT}/${data.id}`);
       } else {
         const errData = await res.json();
-        alert(errData.message || AppMessage.BOOKING_CONNECTION_ERROR);
+        setAlertModal({
+          show: true,
+          title: AppMessage.TITLE_BOOKING_FAILED,
+          message: errData.message || AppMessage.BOOKING_CONNECTION_ERROR,
+          type: 'error'
+        });
       }
     } catch (err) {
-      alert(AppMessage.BOOKING_CONNECTION_ERROR);
+      setAlertModal({
+        show: true,
+        title: AppMessage.TITLE_CONNECTION_ERROR,
+        message: AppMessage.BOOKING_CONNECTION_ERROR,
+        type: 'error'
+      });
     }
   };
 
@@ -285,14 +342,48 @@ export default function Booking() {
 
         {/* Login Modal */}
         {showLoginModal && (
-            <div className="modal" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.8)' }}>
-                <div className="modal-content" style={{ backgroundColor: 'var(--card-bg)', padding: '30px', borderRadius: '10px', textAlign: 'center', maxWidth: '400px' }}>
-                    <h2 style={{ fontSize: '24px', marginBottom: '10px', color: 'var(--text-color)' }}>Chưa đăng nhập</h2>
-                    <p style={{ color: '#888', marginBottom: '20px' }}>Vui lòng đăng nhập để tiếp tục đặt vé.</p>
+            <div className="modal" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.85)', zIndex: 9999 }}>
+                <div className="modal-content" style={{ backgroundColor: 'var(--card-bg)', padding: '30px', borderRadius: '10px', textAlign: 'center', maxWidth: '400px', width: '100%', margin: '20px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', border: '1px solid var(--card-border)' }}>
+                    <h2 style={{ fontSize: '24px', marginBottom: '10px', color: 'var(--text-color)' }}>Yêu cầu đăng nhập</h2>
+                    <p style={{ color: '#888', marginBottom: '20px' }}>Vui lòng đăng nhập để thực hiện thanh toán đặt vé.</p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <button onClick={() => router.push(APP_ROUTES.LOGIN)} className="btn btn-primary">Đăng nhập ngay</button>
-                        <button onClick={() => router.push('/')} className="btn btn-outline">Trở về Trang chủ</button>
+                        <button onClick={() => router.push(`${APP_ROUTES.LOGIN}?redirect=/booking/${params?.showtimeId}`)} className="btn btn-primary">Đăng nhập ngay</button>
+                        <button onClick={() => setShowLoginModal(false)} className="btn btn-outline">Hủy</button>
                     </div>
+                </div>
+            </div>
+        )}
+
+        {/* Custom Alert Modal */}
+        {alertModal && alertModal.show && (
+            <div className="modal" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.85)', zIndex: 9999 }}>
+                <div className="modal-content" style={{ backgroundColor: 'var(--card-bg)', padding: '40px 30px', borderRadius: '15px', textAlign: 'center', maxWidth: '420px', width: '100%', margin: '20px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {alertModal.type === 'success' && (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(52, 211, 153, 0.1)', color: '#34d399', marginBottom: '20px' }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" style={{ width: '36px', height: '36px' }}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            </svg>
+                        </div>
+                    )}
+                    {(alertModal.type === 'error' || alertModal.type === 'info') && (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '50%', backgroundColor: alertModal.type === 'error' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)', color: alertModal.type === 'error' ? '#ef4444' : '#3b82f6', marginBottom: '20px' }}>
+                            {alertModal.type === 'error' ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" style={{ width: '36px', height: '36px' }}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                                </svg>
+                            ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" style={{ width: '36px', height: '36px' }}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.086.796l-.845 2.536a.75.75 0 00.187.816l.034.027a.75.75 0 01-1.086-.796l.845-2.536a.75.75 0 00-.187-.816l-.034-.027zm1.5-3.75a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                </svg>
+                            )}
+                        </div>
+                    )}
+                    <h3 style={{ fontSize: '22px', marginBottom: '10px', color: '#fff', fontWeight: 'bold' }}>{alertModal.title}</h3>
+                    <p style={{ color: '#aaa', fontSize: '15px', marginBottom: '25px', lineHeight: '1.6' }}>{alertModal.message}</p>
+                    
+                    <button onClick={alertModal.onConfirm || (() => setAlertModal(null))} className="btn btn-primary" style={{ width: '100%', padding: '12px', fontSize: '15px', fontWeight: 'bold', border: 'none', backgroundColor: '#ff4d4f', color: '#fff', borderRadius: '8px', cursor: 'pointer' }}>
+                        Đóng
+                    </button>
                 </div>
             </div>
         )}

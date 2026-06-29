@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { UserRole } from '@/types/enums';
 import { AppMessage } from '@/types/messages';
@@ -10,6 +10,14 @@ import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enum
 import { APP_ROUTES } from '@/constants/routes';
 export default function Login() {
   const [emailOrPhone, setEmailOrPhone] = useState('');
+  const [redirectUrl, setRedirectUrl] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      setRedirectUrl(searchParams.get('redirect') || '');
+    }
+  }, []);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -45,7 +53,11 @@ export default function Login() {
       }
 
       localStorage.setItem(ROLES.USER, JSON.stringify(user));
-      window.location.href = '/';
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else {
+        window.location.href = '/';
+      }
     } catch (err) {
       setError(AppMessage.LOGIN_CONNECTION_ERROR);
     }
@@ -124,7 +136,7 @@ export default function Login() {
         </form>
 
         <div className="auth-links-custom">
-          Chưa có tài khoản? <a href={APP_ROUTES.REGISTER} style={{ color: '#ff4d4f', textDecoration: 'none', fontWeight: 'bold' }}>Đăng ký ngay</a>
+          Chưa có tài khoản? <a href={redirectUrl ? `${APP_ROUTES.REGISTER}?redirect=${encodeURIComponent(redirectUrl)}` : APP_ROUTES.REGISTER} style={{ color: '#ff4d4f', textDecoration: 'none', fontWeight: 'bold' }}>Đăng ký ngay</a>
         </div>
       </div>
     </main>
