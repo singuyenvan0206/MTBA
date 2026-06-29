@@ -47,8 +47,9 @@ export class AuthService {
     }
 
     const role = user.userrole.some((ur: any) => ur.role.role_name === 'ROLE_ADMIN')
-      ? Role.ADMIN
-      : Role.USER;
+      ? 'admin'
+      : 'user';
+
 
     const jwt = require('jsonwebtoken');
     const payload = { id: user.id, role: role };

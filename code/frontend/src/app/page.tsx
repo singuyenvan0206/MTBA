@@ -54,15 +54,15 @@ export default function Home() {
     <main className="main-content">
 
       {/* ═══════════════════════════════════════════════════════
-          HERO SECTION 
+          HERO SECTION
       ═══════════════════════════════════════════════════════ */}
       <section
         id="hero-banner"
         style={{
           position: 'relative',
           width: '100%',
-          minHeight: '440px',
-          overflow: 'hidden',
+          minHeight: '550px',
+          overflow: 'visibility',
           background: '#0a0a0a',
         }}
       >
@@ -342,7 +342,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════
           PHIM ĐANG CHIẾU & SẮP CHIẾU
       ═══════════════════════════════════════════════════════ */}
-      <div className="container layout-grid" style={{ marginTop: '75px' }}>
+      <div className="container layout-grid" style={{ marginTop: '50px' }}>
         <div className="left-column">
           <section className="movie-section">
             <div className="section-header">
