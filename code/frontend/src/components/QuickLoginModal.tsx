@@ -1,9 +1,16 @@
-'use client';
+"use client";
+import { DISCOUNT_CODES, AGE_LIMITS, MOVIE_STATUS, USER_STATUS } from '@/constants/enums';
+import { STORAGE_KEYS } from '@/constants/storage';
+
 
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
+import { APP_ROUTES } from '@/constants/routes';
 export default function QuickLoginModal() {
   const [isVisible, setIsVisible] = useState(false);
   const [emailOrPhone, setEmailOrPhone] = useState('');
@@ -13,10 +20,10 @@ export default function QuickLoginModal() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const isAuthPage = pathname === '/login' || pathname === '/register' || pathname.startsWith('/admin') || pathname.startsWith('/pos');
-    const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
-    const adminUserStr = localStorage.getItem('admin_user');
-    const dismissed = sessionStorage.getItem('loginPopupDismissed');
+    const isAuthPage = pathname === APP_ROUTES.LOGIN || pathname === APP_ROUTES.REGISTER || pathname.startsWith('/admin') || pathname.startsWith('/pos');
+    const userStr = sessionStorage.getItem(ROLES.USER) || localStorage.getItem(ROLES.USER);
+    const adminUserStr = localStorage.getItem(STORAGE_KEYS.ADMIN_USER);
+    const dismissed = sessionStorage.getItem(STORAGE_KEYS.LOGIN_POPUP_DISMISSED);
 
     if (!userStr && !adminUserStr && !isAuthPage && !dismissed) {
       const timer = setTimeout(() => {
@@ -29,7 +36,7 @@ export default function QuickLoginModal() {
   if (!isVisible) return null;
 
   const handleClose = () => {
-    sessionStorage.setItem('loginPopupDismissed', 'true');
+    sessionStorage.setItem(STORAGE_KEYS.LOGIN_POPUP_DISMISSED, 'true');
     setIsVisible(false);
   };
 
@@ -42,7 +49,7 @@ export default function QuickLoginModal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(API_ENDPOINTS.AUTH_LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emailOrPhone, password })
@@ -51,18 +58,18 @@ export default function QuickLoginModal() {
       if (res.ok) {
         const user = await res.json();
         if (rememberMe) {
-          localStorage.setItem('user', JSON.stringify(user));
+          localStorage.setItem(ROLES.USER, JSON.stringify(user));
         } else {
-          sessionStorage.setItem('user', JSON.stringify(user));
+          sessionStorage.setItem(ROLES.USER, JSON.stringify(user));
         }
         window.location.reload();
       } else {
         const err = await res.json();
-        alert('Lỗi: ' + (err.message || 'Sai tài khoản hoặc mật khẩu!'));
+        alert(UI_MESSAGES.ERROR + ' ' + (err.message || UI_MESSAGES.INVALID_CREDENTIALS)); // Consider using Toast and UI_MESSAGES
       }
     } catch (error) {
       console.error(error);
-      alert('Không thể kết nối đến máy chủ.');
+      alert(UI_MESSAGES.KH_NG_TH__K_T_N_I___N_M_Y_CH);
     }
   };
 
@@ -138,7 +145,7 @@ export default function QuickLoginModal() {
               />
               Ghi nhớ tôi
             </label>
-            <Link href="/forgot-password" style={{ color: 'var(--text-muted)', fontSize: '14px', textDecoration: 'none' }}>Quên mật khẩu?</Link>
+            <Link href={APP_ROUTES.FORGOT_PASSWORD} style={{ color: 'var(--text-muted)', fontSize: '14px', textDecoration: 'none' }}>Quên mật khẩu?</Link>
           </div>
 
           <div className="auth-actions-custom">
@@ -149,7 +156,7 @@ export default function QuickLoginModal() {
         </form>
 
         <div className="auth-links-custom">
-          Chưa có tài khoản? <a href="/register" style={{ color: '#ff4d4f', textDecoration: 'none', fontWeight: 'bold' }}>Đăng ký ngay</a>
+          Chưa có tài khoản? <a href={APP_ROUTES.REGISTER} style={{ color: '#ff4d4f', textDecoration: 'none', fontWeight: 'bold' }}>Đăng ký ngay</a>
         </div>
       </div>
     </div>

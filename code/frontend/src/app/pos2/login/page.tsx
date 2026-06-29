@@ -1,7 +1,12 @@
-'use client';
+"use client";
+import { STORAGE_KEYS } from '@/constants/storage';
+
 
 import { useState } from 'react';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
+import { APP_ROUTES } from '@/constants/routes';
 export default function PosLogin() {
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -14,7 +19,7 @@ export default function PosLogin() {
     setError('');
     
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(API_ENDPOINTS.AUTH_LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emailOrPhone, password })
@@ -28,8 +33,8 @@ export default function PosLogin() {
 
       const user = await res.json();
       
-      if (user.role !== 'staff') {
-        if (user.role === 'admin') {
+      if (user.role !== ROLES.STAFF) {
+        if (user.role === ROLES.ADMIN) {
           setError('Tài khoản Quản trị vui lòng đăng nhập tại trang Admin.');
         } else {
           setError('Tài khoản này không có quyền Nhân viên POS.');
@@ -37,11 +42,11 @@ export default function PosLogin() {
         return;
       }
 
-      localStorage.setItem('staff_user', JSON.stringify(user));
+      localStorage.setItem(STORAGE_KEYS.STAFF_USER, JSON.stringify(user));
       if (rememberMe) {
-        localStorage.setItem('remember', 'true');
+        localStorage.setItem(STORAGE_KEYS.REMEMBER, 'true');
       } else {
-        localStorage.removeItem('remember');
+        localStorage.removeItem(STORAGE_KEYS.REMEMBER);
       }
       
       window.location.href = '/pos2';
@@ -121,7 +126,7 @@ export default function PosLogin() {
           </button>
           
           <div style={{ textAlign: 'center', marginTop: '15px' }}>
-            <a href="/pos2" style={{ fontSize: '14px', color: '#007bff', textDecoration: 'none' }}>
+            <a href={APP_ROUTES.POS2} style={{ fontSize: '14px', color: '#007bff', textDecoration: 'none' }}>
               &larr; Hệ thống POS tại quầy
             </a>
           </div>

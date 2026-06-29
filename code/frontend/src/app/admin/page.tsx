@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { PaymentStatus } from '@/types/enums';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
     movies: 0,
@@ -13,10 +14,10 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/movies').then(res => res.json()).catch(() => []),
-      fetch('/api/bookings').then(res => res.json()).catch(() => []),
-      fetch('/api/users').then(res => res.json()).catch(() => []),
-      fetch('/api/payments').then(res => res.json()).catch(() => [])
+      fetch(API_ENDPOINTS.MOVIES).then(res => res.json()).catch(() => []),
+      fetch(API_ENDPOINTS.BOOKINGS).then(res => res.json()).catch(() => []),
+      fetch(API_ENDPOINTS.USERS).then(res => res.json()).catch(() => []),
+      fetch(API_ENDPOINTS.PAYMENTS).then(res => res.json()).catch(() => [])
     ]).then(([movies, bookings, users, payments]) => {
       const totalRevenue = Array.isArray(payments) ? payments.reduce((sum: number, p: any) => {
         if (p.payment_status === PaymentStatus.COMPLETED) {

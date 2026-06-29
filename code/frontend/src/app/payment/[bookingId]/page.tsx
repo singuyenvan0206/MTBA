@@ -4,6 +4,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { PaymentMethod, PaymentStatus, MovieType } from '@/types/enums';
 import { AppMessage } from '@/types/messages';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
 export default function Payment() {
   const router = useRouter();
   const { bookingId } = useParams();
@@ -18,10 +20,10 @@ export default function Payment() {
   });
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+    const storedUser = localStorage.getItem(ROLES.USER) || sessionStorage.getItem(ROLES.USER);
     const token = storedUser ? JSON.parse(storedUser).accessToken : '';
 
-    fetch('/api/payments/config', {
+    fetch(API_ENDPOINTS.PAYMENTS_CONFIG, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -37,10 +39,10 @@ export default function Payment() {
 
   useEffect(() => {
     // Gọi API lấy thông tin booking với Auth token
-    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+    const storedUser = localStorage.getItem(ROLES.USER) || sessionStorage.getItem(ROLES.USER);
     const token = storedUser ? JSON.parse(storedUser).accessToken : '';
 
-    fetch(`/api/bookings/${bookingId}`, {
+    fetch(`${API_ENDPOINTS.BOOKINGS_}${bookingId}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -54,12 +56,12 @@ export default function Payment() {
   useEffect(() => {
     if (!booking || method !== PaymentMethod.TRANSFER) return;
 
-    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+    const storedUser = localStorage.getItem(ROLES.USER) || sessionStorage.getItem(ROLES.USER);
     const token = storedUser ? JSON.parse(storedUser).accessToken : '';
 
     const checkStatus = async () => {
       try {
-        const res = await fetch(`/api/payments/status/${bookingId}`, {
+        const res = await fetch(`${API_ENDPOINTS.PAYMENTS_STATUS_}${bookingId}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -128,8 +130,8 @@ export default function Payment() {
     }
 
     try {
-      const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
-      const res = await fetch('/api/payments', {
+      const user = JSON.parse(localStorage.getItem(ROLES.USER) || sessionStorage.getItem(ROLES.USER) || '{}');
+      const res = await fetch(API_ENDPOINTS.PAYMENTS, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -162,10 +164,10 @@ export default function Payment() {
     }
 
     try {
-      const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+      const storedUser = localStorage.getItem(ROLES.USER) || sessionStorage.getItem(ROLES.USER);
       const token = storedUser ? JSON.parse(storedUser).accessToken : '';
 
-      const res = await fetch(`/api/bookings/${bookingId}/cancel`, {
+      const res = await fetch(`${API_ENDPOINTS.BOOKINGS_}${bookingId}/cancel`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

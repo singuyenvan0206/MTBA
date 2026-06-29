@@ -1,4 +1,7 @@
-'use client';
+"use client";
+import { DISCOUNT_CODES, AGE_LIMITS, MOVIE_STATUS, USER_STATUS } from '@/constants/enums';
+import { STORAGE_KEYS } from '@/constants/storage';
+
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -8,6 +11,10 @@ import { usePosSync } from '@/hooks/usePosSync';
 import { AppMessage } from '@/types/messages';
 import { MovieType, SeatType } from '@/types/enums';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
+import { APP_ROUTES } from '@/constants/routes';
 type Movie = {
   id: number;
   title: string;
@@ -51,26 +58,26 @@ export default function MovieDetail() {
   }, []);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('staff_user');
+    const storedUser = localStorage.getItem(STORAGE_KEYS.STAFF_USER);
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
-      setUser({ id: 7, role: 'admin', fullName: 'Nhân viên POS' });
+      setUser({ id: 7, role: ROLES.ADMIN, fullName: 'Nhân viên POS' });
     }
 
     if (!params?.id) return;
     
     // Lấy bảng giá
-    fetch('/api/prices')
+    fetch(API_ENDPOINTS.PRICES)
       .then(res => res.json())
       .then(data => setPrices(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
 
-    fetch(`/api/movies/${params.id}`)
+    fetch(`${API_ENDPOINTS.MOVIES_}${params.id}`)
       .then(res => res.json())
       .then(data => {
         setMovie(data);
-        return fetch(`/api/showtimes?movieId=${params.id}`);
+        return fetch(`${API_ENDPOINTS.SHOWTIMES}?movieId=${params.id}`);
       })
       .then(res => res.json())
       .then(data => {
@@ -104,13 +111,13 @@ export default function MovieDetail() {
     pushState({ showtimeId: showtime.id, selectedSeats: [] });
     
     if (showtime.screen_id) {
-        fetch(`/api/seats?screen_id=${showtime.screen_id}`)
+        fetch(`${API_ENDPOINTS.SEATS}?screen_id=${showtime.screen_id}`)
           .then(res => res.json())
           .then(seats => setDbSeats(Array.isArray(seats) ? seats : []))
           .catch(err => console.error('Lỗi khi tải ghế của phòng chiếu:', err));
     }
 
-    fetch(`/api/bookings/booked-seats?showtimeId=${showtime.id}`)
+    fetch(`${API_ENDPOINTS.BOOKINGS_BOOKEDSEATS}?showtimeId=${showtime.id}`)
       .then(res => res.json())
       .then(data => setBookedSeats(Array.isArray(data.bookedSeats) ? data.bookedSeats : []))
       .catch(err => console.error('Lỗi khi tải ghế:', err));
@@ -122,7 +129,7 @@ export default function MovieDetail() {
       newSelectedSeats = selectedSeats.filter(id => id !== seatId);
     } else {
       if (selectedSeats.length >= 8) {
-        alert('Chỉ được chọn tối đa 8 ghế!');
+        alert(UI_MESSAGES.CH_____C_CH_N_T_I__A_8_GH);
         return;
       }
       newSelectedSeats = [...selectedSeats, seatId];
@@ -175,7 +182,7 @@ export default function MovieDetail() {
 
     try {
       const totalPrice = calculateTotalPrice();
-      const res = await fetch('/api/bookings', {
+      const res = await fetch(API_ENDPOINTS.BOOKINGS, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -192,13 +199,13 @@ export default function MovieDetail() {
       if (res.ok) {
         const booking = await res.json();
         pushState({ currentPath: `/pos2/payment/${booking.id}`, showtimeId: selectedShowtime.id, selectedSeats: selectedSeats });
-        router.push(`/pos2/payment/${booking.id}`);
+        router.push(`${APP_ROUTES.POS2}/payment/${booking.id}`);
       } else {
         const errorData = await res.json().catch(() => null);
-        alert(errorData?.message || 'Có lỗi xảy ra khi đặt vé.');
+        alert(errorData?.message || UI_MESSAGES.BOOKING_ERROR_OCCURRED);
       }
     } catch (err) {
-      alert('Lỗi kết nối server');
+      alert(UI_MESSAGES.L_I_K_T_N_I_SERVER_43);
     }
   };
 
@@ -247,7 +254,7 @@ export default function MovieDetail() {
                     </p>
                     
                     <p className="movie-warning">
-                        Kiểm duyệt: {movie.ageLimit || 'P'} - {movie.ageLimitDescription || (movie.ageLimit === 'P' ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.ageLimit === 'K' ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.ageLimit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)}
+                        Kiểm duyệt: {movie.ageLimit || AGE_LIMITS.P} - {movie.ageLimitDescription || (movie.ageLimit === AGE_LIMITS.P ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.ageLimit === AGE_LIMITS.K ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.ageLimit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)}
                     </p>
                     
                     <div className="movie-actions">

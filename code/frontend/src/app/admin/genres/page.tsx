@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
 export default function GenresPage() {
   const [genres, setGenres] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +18,7 @@ export default function GenresPage() {
   }, []);
 
   const fetchGenres = () => {
-    fetch('/api/genres')
+    fetch(API_ENDPOINTS.GENRES)
       .then(res => res.json())
       .then(data => {
         setGenres(data);
@@ -43,10 +45,10 @@ export default function GenresPage() {
   const handleDelete = async (id: number) => {
     if (confirm('Bạn có chắc chắn muốn xóa thể loại này?')) {
       try {
-        await fetch(`/api/genres/${id}`, { method: 'DELETE' });
+        await fetch(`${API_ENDPOINTS.GENRES_}${id}`, { method: 'DELETE' });
         fetchGenres();
       } catch (err) {
-        alert('Lỗi khi xóa thể loại');
+        alert(UI_MESSAGES.L_I_KHI_X_A_TH__LO_I);
       }
     }
   };
@@ -54,8 +56,8 @@ export default function GenresPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const url = editingId 
-      ? `/api/genres/${editingId}` 
-      : '/api/genres';
+      ? `${API_ENDPOINTS.GENRES_}${editingId}` 
+      : API_ENDPOINTS.GENRES;
     const method = editingId ? 'PUT' : 'POST';
 
     try {
@@ -68,10 +70,10 @@ export default function GenresPage() {
         setShowModal(false);
         fetchGenres();
       } else {
-        alert('Có lỗi xảy ra khi lưu.');
+        alert(UI_MESSAGES.C__L_I_X_Y_RA_KHI_L_U);
       }
     } catch (err) {
-      alert('Lỗi kết nối server.');
+      alert(UI_MESSAGES.L_I_K_T_N_I_SERVER);
     }
   };
 

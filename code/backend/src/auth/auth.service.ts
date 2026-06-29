@@ -1,8 +1,10 @@
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { role_role_name } from '@prisma/client';
-import { UserRole } from './roles.enum';
-import { ErrorMessage } from '../common/error-messages.enum';
+import { Role } from '../common/enums/role.enum';
+import { ERROR_MESSAGES } from '../common/constants/error-messages.constant';
+import { SUCCESS_MESSAGES } from '../common/constants/success-messages.constant';
+import { CONFIG_DEFAULTS } from '../common/constants/config.constant';
 import * as nodemailer from 'nodemailer';
 import * as bcrypt from 'bcryptjs';
 
@@ -38,20 +40,20 @@ export class AuthService {
       include: { userrole: { include: { role: true } } },
     });
 
-    const pepper = process.env.PASSWORD_PEPPER || '';
+    const pepper = process.env.PASSWORD_PEPPER || CONFIG_DEFAULTS.PASSWORD_PEPPER;
     const isPasswordValid = user ? await bcrypt.compare(pass + pepper, user.password) : false;
     if (!user || !isPasswordValid) {
-      throw new UnauthorizedException(ErrorMessage.AUTH_INVALID_CREDENTIALS);
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
     }
 
     const role = user.userrole.some((ur: any) => ur.role.role_name === 'ROLE_ADMIN')
-      ? 'admin'
-      : 'user';
+      ? Role.ADMIN
+      : Role.USER;
 
     const jwt = require('jsonwebtoken');
     const payload = { id: user.id, role: role };
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET || 'your_jwt_secret_key', { expiresIn: '24h' });
-    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || 'your_jwt_refresh_secret_key', { expiresIn: '7d' });
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET || CONFIG_DEFAULTS.JWT_SECRET, { expiresIn: '24h' });
+    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || CONFIG_DEFAULTS.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 
     return {
       id: user.id,
@@ -68,13 +70,13 @@ export class AuthService {
   async refreshToken(token: string) {
     const jwt = require('jsonwebtoken');
     try {
-      const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || 'your_jwt_refresh_secret_key');
+      const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || CONFIG_DEFAULTS.JWT_REFRESH_SECRET);
       const payload = { id: decoded.id, role: decoded.role };
-      const accessToken = jwt.sign(payload, process.env.JWT_SECRET || 'your_jwt_secret_key', { expiresIn: '15m' });
-      const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || 'your_jwt_refresh_secret_key', { expiresIn: '7d' });
+      const accessToken = jwt.sign(payload, process.env.JWT_SECRET || CONFIG_DEFAULTS.JWT_SECRET, { expiresIn: '15m' });
+      const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || CONFIG_DEFAULTS.JWT_REFRESH_SECRET, { expiresIn: '7d' });
       return { accessToken, refreshToken };
     } catch (e) {
-      throw new UnauthorizedException('Refresh token không hợp lệ hoặc đã hết hạn');
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.REFRESH_TOKEN_INVALID);
     }
   }
 
@@ -86,14 +88,14 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new BadRequestException('Email hoặc SĐT đã được sử dụng!');
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.EMAIL_OR_PHONE_EXISTS);
     }
 
     const nameParts = fullName.trim().split(' ');
     const first_name = nameParts.length > 1 ? nameParts[0] : fullName;
     const last_name = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
-    const pepper = process.env.PASSWORD_PEPPER || '';
+    const pepper = process.env.PASSWORD_PEPPER || CONFIG_DEFAULTS.PASSWORD_PEPPER;
     const hashedPassword = await bcrypt.hash(password + pepper, 10);
     const newUser = await this.prisma.user.create({
       data: { first_name, last_name, email, phone, password: hashedPassword },
@@ -120,12 +122,12 @@ export class AuthService {
       where: { OR: [{ email }, { phone }] },
     });
     if (existingUser) {
-      throw new BadRequestException('Email hoặc Số điện thoại đã được sử dụng!');
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.EMAIL_OR_PHONE_EXISTS_ALT);
     }
 
     const otp = generateOTP();
 
-    const expiresMinutes = parseInt(process.env.OTP_EXPIRES_MINUTES || '5', 10);
+    const expiresMinutes = parseInt(process.env.OTP_EXPIRES_MINUTES || CONFIG_DEFAULTS.OTP_EXPIRES_MINUTES, 10);
 
     try {
       await getTransporter().sendMail({
@@ -138,7 +140,7 @@ export class AuthService {
       });
     } catch (e) {
       console.error(e);
-      throw new BadRequestException('Lỗi khi gửi mail.');
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.MAIL_SEND_ERROR);
     }
 
     otpStore.set(email, {
@@ -147,19 +149,19 @@ export class AuthService {
       expiresAt: Date.now() + expiresMinutes * 60 * 1000,
     });
 
-    return { message: 'Đã gửi OTP qua Email' };
+    return { message: SUCCESS_MESSAGES.AUTH.OTP_SENT };
   }
 
   async verifyEmailOtp(body: any) {
     const { email, otp } = body;
     const record = otpStore.get(email);
 
-    if (!record) throw new BadRequestException('OTP không tồn tại hoặc đã hết hạn!');
+    if (!record) throw new BadRequestException(ERROR_MESSAGES.AUTH.OTP_NOT_FOUND_OR_EXPIRED);
     if (Date.now() > record.expiresAt) {
       otpStore.delete(email);
-      throw new BadRequestException('Mã OTP đã hết hạn!');
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.OTP_EXPIRED);
     }
-    if (record.otp !== otp) throw new BadRequestException('Mã OTP không chính xác!');
+    if (record.otp !== otp) throw new BadRequestException(ERROR_MESSAGES.AUTH.OTP_INVALID);
 
     const user = await this.register(record.userData);
     otpStore.delete(email);
@@ -172,11 +174,11 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException('Email không tồn tại trong hệ thống!');
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
     }
 
     const otp = generateOTP();
-    const expiresMinutes = parseInt(process.env.OTP_EXPIRES_MINUTES || '5', 10);
+    const expiresMinutes = parseInt(process.env.OTP_EXPIRES_MINUTES || CONFIG_DEFAULTS.OTP_EXPIRES_MINUTES, 10);
 
     try {
       await getTransporter().sendMail({
@@ -189,7 +191,7 @@ export class AuthService {
       });
     } catch (e) {
       console.error(e);
-      throw new BadRequestException('Lỗi khi gửi mail khôi phục mật khẩu.');
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.PASSWORD_RESET_MAIL_ERROR);
     }
 
     resetPasswordStore.set(email, {
@@ -197,7 +199,7 @@ export class AuthService {
       expiresAt: Date.now() + expiresMinutes * 60 * 1000,
     });
 
-    return { message: 'Đã gửi mã khôi phục mật khẩu qua Email' };
+    return { message: SUCCESS_MESSAGES.AUTH.PASSWORD_RESET_OTP_SENT };
   }
 
   async resetPassword(body: any) {
@@ -205,29 +207,29 @@ export class AuthService {
 
     const record = resetPasswordStore.get(email);
     if (!record) {
-      throw new BadRequestException('Yêu cầu khôi phục mật khẩu không tồn tại hoặc đã hết hạn!');
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.PASSWORD_RESET_NOT_FOUND_OR_EXPIRED);
     }
 
     if (Date.now() > record.expiresAt) {
       resetPasswordStore.delete(email);
-      throw new BadRequestException('Mã OTP khôi phục mật khẩu đã hết hạn!');
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.PASSWORD_RESET_OTP_EXPIRED);
     }
 
     if (record.otp !== otp) {
-      throw new BadRequestException('Mã OTP không chính xác!');
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.OTP_INVALID);
     }
 
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
     if (!user) {
-      throw new BadRequestException('Người dùng không tồn tại!');
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.USER_NOT_FOUND);
     }
 
-    const pepper = process.env.PASSWORD_PEPPER || '';
+    const pepper = process.env.PASSWORD_PEPPER || CONFIG_DEFAULTS.PASSWORD_PEPPER;
     const isSameAsOld = await bcrypt.compare(newPassword + pepper, user.password);
     if (isSameAsOld) {
-      throw new BadRequestException('Mật khẩu mới không được trùng với mật khẩu cũ gần nhất!');
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.PASSWORD_SAME_AS_OLD);
     }
 
     const hashedPassword = await bcrypt.hash(newPassword + pepper, 10);
@@ -239,6 +241,6 @@ export class AuthService {
 
     resetPasswordStore.delete(email);
 
-    return { message: 'Mật khẩu của bạn đã được thay đổi thành công!' };
+    return { message: SUCCESS_MESSAGES.AUTH.PASSWORD_CHANGED };
   }
 }

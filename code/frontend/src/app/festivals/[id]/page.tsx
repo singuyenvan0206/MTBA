@@ -2,13 +2,14 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
 export default function FestivalDetail() {
   const { id } = useParams();
   const [festival, setFestival] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/festivals/${id}`)
+    fetch(`${API_ENDPOINTS.FESTIVALS_}${id}`)
       .then(res => res.json())
       .then(data => { setFestival(data); setLoading(false); })
       .catch(() => setLoading(false));

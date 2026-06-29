@@ -3,7 +3,7 @@ import { PricesService } from './prices.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { UserRole } from '../auth/roles.enum';
+import { Role } from '../common/enums/role.enum';
 
 @Controller('prices')
 export class PricesController {
@@ -17,16 +17,16 @@ export class PricesController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(Role.ADMIN)
   create(@Body() data: any) { return this.service.create(data); }
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(Role.ADMIN)
   update(@Param('id') id: string, @Body() data: any) { return this.service.update(+id, data); }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(Role.ADMIN)
   remove(@Param('id') id: string) { return this.service.remove(+id); }
 }

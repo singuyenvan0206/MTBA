@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react';
 import { SeatType, MovieType } from '@/types/enums';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
 type TicketPrice = {
   id: number;
   type_seat: string;
@@ -27,7 +30,7 @@ export default function AdminPrices() {
   });
 
   const fetchData = () => {
-    fetch('/api/prices')
+    fetch(API_ENDPOINTS.PRICES)
       .then(res => res.json())
       .then(d => {
         if (Array.isArray(d)) setData(d);
@@ -63,19 +66,19 @@ export default function AdminPrices() {
 
   const handleDelete = (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa giá vé này?')) return;
-    fetch(`/api/prices/${id}`, { method: 'DELETE' })
+    fetch(`${API_ENDPOINTS.PRICES_}${id}`, { method: 'DELETE' })
       .then(() => {
-        alert('Xóa giá vé thành công!');
+        alert(UI_MESSAGES.X_A_GI__V__TH_NH_C_NG);
         fetchData();
       })
-      .catch(err => alert('Lỗi khi xóa giá vé'));
+      .catch(err => alert(UI_MESSAGES.L_I_KHI_X_A_GI__V));
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     const url = editingId 
-      ? `/api/prices/${editingId}`
-      : '/api/prices';
+      ? `${API_ENDPOINTS.PRICES_}${editingId}`
+      : API_ENDPOINTS.PRICES;
     const method = editingId ? 'PUT' : 'POST';
 
     const payload = {
@@ -98,7 +101,7 @@ export default function AdminPrices() {
         setShowModal(false);
         fetchData();
       })
-      .catch(err => alert('Lỗi khi lưu giá vé'));
+      .catch(err => alert(UI_MESSAGES.L_I_KHI_L_U_GI__V));
   };
 
   return (
@@ -132,7 +135,7 @@ export default function AdminPrices() {
               data.map((item) => (
                 <tr key={item.id}>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>#{item.id}</td>
-                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)', fontWeight: 'bold', color: 'var(--foreground)' }}>{item.type_seat === SeatType.STANDARD ? 'Thường' : (item.type_seat === SeatType.VIP ? 'VIP' : 'Sweetbox')}</td>
+                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)', fontWeight: 'bold', color: 'var(--foreground)' }}>{item.type_seat === SeatType.STANDARD ? 'Thường' : (item.type_seat === SeatType.VIP ? SEAT_TYPES.VIP : 'Sweetbox')}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.type_movie === MovieType.TYPE_2D ? '2D' : '3D'}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.day_type ? 'Cuối tuần / Lễ' : 'Ngày thường'}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</td>

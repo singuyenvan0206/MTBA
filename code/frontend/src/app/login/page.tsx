@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { UserRole } from '@/types/enums';
 import { AppMessage } from '@/types/messages';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
+import { APP_ROUTES } from '@/constants/routes';
 export default function Login() {
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -17,7 +20,7 @@ export default function Login() {
     setError('');
     
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(API_ENDPOINTS.AUTH_LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emailOrPhone, password })
@@ -36,12 +39,12 @@ export default function Login() {
         return;
       }
 
-      if (user.role === 'staff') {
+      if (user.role === ROLES.STAFF) {
         setError('Tài khoản Nhân viên vui lòng đăng nhập tại trang POS.');
         return;
       }
 
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem(ROLES.USER, JSON.stringify(user));
       window.location.href = '/';
     } catch (err) {
       setError(AppMessage.LOGIN_CONNECTION_ERROR);
@@ -110,7 +113,7 @@ export default function Login() {
               />
               Ghi nhớ tôi
             </label>
-            <Link href="/forgot-password" style={{ color: 'var(--text-muted)', fontSize: '14px', textDecoration: 'none' }}>Quên mật khẩu?</Link>
+            <Link href={APP_ROUTES.FORGOT_PASSWORD} style={{ color: 'var(--text-muted)', fontSize: '14px', textDecoration: 'none' }}>Quên mật khẩu?</Link>
           </div>
 
           <div className="auth-actions-custom">
@@ -121,7 +124,7 @@ export default function Login() {
         </form>
 
         <div className="auth-links-custom">
-          Chưa có tài khoản? <a href="/register" style={{ color: '#ff4d4f', textDecoration: 'none', fontWeight: 'bold' }}>Đăng ký ngay</a>
+          Chưa có tài khoản? <a href={APP_ROUTES.REGISTER} style={{ color: '#ff4d4f', textDecoration: 'none', fontWeight: 'bold' }}>Đăng ký ngay</a>
         </div>
       </div>
     </main>

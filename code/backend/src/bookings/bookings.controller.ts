@@ -3,8 +3,8 @@ import { BookingsService } from './bookings.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { UserRole } from '../auth/roles.enum';
-import { ErrorMessage } from '../common/error-messages.enum';
+import { Role } from '../common/enums/role.enum';
+import { ERROR_MESSAGES } from '../common/constants/error-messages.constant';
 
 @Controller('bookings')
 export class BookingsController {
@@ -12,27 +12,27 @@ export class BookingsController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'user', 'staff')
+  @Roles(Role.ADMIN, Role.USER, Role.STAFF)
   create(@Body() body: any, @Req() req: any) {
-    if (req.user.role !== 'admin' && req.user.role !== 'staff' && req.user.id !== +body.userId) {
-      throw new ForbiddenException('Bạn không thể tạo đặt vé cho người dùng khác!');
+    if (req.user.role !== Role.ADMIN && req.user.role !== Role.STAFF && req.user.id !== +body.userId) {
+      throw new ForbiddenException(ERROR_MESSAGES.BOOKING.CREATE_FOR_OTHER_USER);
     }
     return this.bookingsService.createBooking(body);
   }
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   findAll() {
     return this.bookingsService.findAll();
   }
 
   @Get('user/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'user')
+  @Roles(Role.ADMIN, Role.USER)
   getUserBookings(@Param('id') id: string, @Req() req: any) {
-    if (req.user.role !== 'admin' && req.user.id !== +id) {
-      throw new ForbiddenException('Bạn không có quyền xem danh sách vé của người dùng khác!');
+    if (req.user.role !== Role.ADMIN && req.user.id !== +id) {
+      throw new ForbiddenException(ERROR_MESSAGES.BOOKING.VIEW_OTHER_USER_BOOKINGS);
     }
     return this.bookingsService.getUserBookings(+id);
   }
@@ -47,28 +47,28 @@ export class BookingsController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'user', 'staff')
+  @Roles(Role.ADMIN, Role.USER, Role.STAFF)
   async getBooking(@Param('id') id: string, @Req() req: any) {
     const booking = await this.bookingsService.getBooking(+id);
     if (!booking) {
       return null;
     }
-    if (req.user.role !== 'admin' && req.user.role !== 'staff' && req.user.id !== booking.user_id) {
-      throw new ForbiddenException('Bạn không có quyền xem thông tin đặt vé này!');
+    if (req.user.role !== Role.ADMIN && req.user.role !== Role.STAFF && req.user.id !== booking.user_id) {
+      throw new ForbiddenException(ERROR_MESSAGES.BOOKING.VIEW_OTHER_USER_BOOKING_DETAIL);
     }
     return booking;
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.bookingsService.removeBooking(+id);
   }
 
   @Post(':id/cancel')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(Role.ADMIN, Role.USER)
   cancelBooking(@Param('id') id: string, @Req() req: any) {
     return this.bookingsService.cancelBooking(+id, req.user.id, req.user.role);
   }

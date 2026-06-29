@@ -2,12 +2,13 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
 export default function Festivals() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/festivals')
+    fetch(API_ENDPOINTS.FESTIVALS)
       .then(res => res.json())
       .then(resData => { setData(resData); setLoading(false); })
       .catch(() => setLoading(false));

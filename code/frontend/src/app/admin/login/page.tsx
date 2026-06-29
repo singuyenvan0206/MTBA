@@ -1,9 +1,14 @@
-'use client';
+"use client";
+import { STORAGE_KEYS } from '@/constants/storage';
+
 
 import { useState } from 'react';
 import { UserRole } from '@/types/enums';
 import { AppMessage } from '@/types/messages';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
+import { APP_ROUTES } from '@/constants/routes';
 export default function AdminLogin() {
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -16,7 +21,7 @@ export default function AdminLogin() {
     setError('');
     
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(API_ENDPOINTS.AUTH_LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emailOrPhone, password })
@@ -30,16 +35,16 @@ export default function AdminLogin() {
 
       const user = await res.json();
       
-      if (user.role !== 'admin') {
+      if (user.role !== ROLES.ADMIN) {
         setError('Tài khoản này không có quyền quản trị viên.');
         return;
       }
 
-      localStorage.setItem('admin_user', JSON.stringify(user));
+      localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(user));
       if (rememberMe) {
-        localStorage.setItem('remember', 'true');
+        localStorage.setItem(STORAGE_KEYS.REMEMBER, 'true');
       } else {
-        localStorage.removeItem('remember');
+        localStorage.removeItem(STORAGE_KEYS.REMEMBER);
       }
       
       window.location.href = '/admin';
@@ -119,7 +124,7 @@ export default function AdminLogin() {
           </button>
           
           <div style={{ textAlign: 'center', marginTop: '15px' }}>
-            <a href="/pos2" style={{ fontSize: '14px', color: '#007bff', textDecoration: 'none' }}>
+            <a href={APP_ROUTES.POS2} style={{ fontSize: '14px', color: '#007bff', textDecoration: 'none' }}>
               &larr; Hệ thống POS tại quầy
             </a>
           </div>

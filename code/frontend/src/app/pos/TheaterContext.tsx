@@ -1,4 +1,6 @@
-'use client';
+"use client";
+import { STORAGE_KEYS } from '@/constants/storage';
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
 type TheaterContextType = {
@@ -18,6 +20,7 @@ export const useTheater = () => useContext(TheaterContext);
 import { usePathname } from 'next/navigation';
 import { usePosSync } from '../../hooks/usePosSync';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
 export const TheaterProvider = ({ children }: { children: React.ReactNode }) => {
   const [theaters, setTheaters] = useState<any[]>([]);
   const [selectedTheater, setSelectedTheater] = useState<string>('');
@@ -27,11 +30,11 @@ export const TheaterProvider = ({ children }: { children: React.ReactNode }) => 
   const { syncState, pushState } = usePosSync(isStaff);
 
   useEffect(() => {
-    fetch('/api/theaters')
+    fetch(API_ENDPOINTS.THEATERS)
       .then(res => res.json())
       .then(data => {
         setTheaters(Array.isArray(data) ? data : []);
-        const stored = localStorage.getItem('pos2_theater');
+        const stored = localStorage.getItem(STORAGE_KEYS.POS2_THEATER);
         if (stored && data.find((t: any) => t.id.toString() === stored)) {
           setSelectedTheater(stored);
           if (isStaff) pushState({ selectedTheater: stored });
@@ -47,13 +50,13 @@ export const TheaterProvider = ({ children }: { children: React.ReactNode }) => 
   useEffect(() => {
     if (syncState.selectedTheater && syncState.selectedTheater !== selectedTheater) {
       setSelectedTheater(syncState.selectedTheater);
-      localStorage.setItem('pos2_theater', syncState.selectedTheater);
+      localStorage.setItem(STORAGE_KEYS.POS2_THEATER, syncState.selectedTheater);
     }
   }, [syncState.selectedTheater, selectedTheater]);
 
   const handleSelectTheater = (id: string) => {
     setSelectedTheater(id);
-    localStorage.setItem('pos2_theater', id);
+    localStorage.setItem(STORAGE_KEYS.POS2_THEATER, id);
     if (isStaff) {
       pushState({ selectedTheater: id });
     }

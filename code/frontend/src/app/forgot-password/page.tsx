@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { APP_ROUTES } from '@/constants/routes';
 export default function ForgotPassword() {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
@@ -22,7 +25,7 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/auth/forgot-password', {
+      const res = await fetch(API_ENDPOINTS.AUTH_FORGOTPASSWORD, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -56,7 +59,7 @@ export default function ForgotPassword() {
     }
 
     try {
-      const res = await fetch('/api/auth/reset-password', {
+      const res = await fetch(API_ENDPOINTS.AUTH_RESETPASSWORD, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp: otpCode, newPassword })
@@ -70,7 +73,7 @@ export default function ForgotPassword() {
         return;
       }
 
-      alert('Khôi phục mật khẩu thành công! Hãy đăng nhập bằng mật khẩu mới.');
+      alert(UI_MESSAGES.KH_I_PH_C_M_T_KH_U_TH_NH_C_NG);
       window.location.href = '/login';
     } catch (err: any) {
       setError('Lỗi kết nối Server: ' + err.message);
@@ -106,7 +109,7 @@ export default function ForgotPassword() {
               </button>
 
               <div style={{ textAlign: 'center', marginTop: '20px', color: 'var(--text-muted)' }}>
-                Quay lại <Link href="/login" style={{ color: '#ff4d4f', textDecoration: 'none' }}>Đăng nhập</Link>
+                Quay lại <Link href={APP_ROUTES.LOGIN} style={{ color: '#ff4d4f', textDecoration: 'none' }}>Đăng nhập</Link>
               </div>
             </form>
           </>

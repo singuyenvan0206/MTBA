@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
 type Screen = {
   id: number;
   name?: string;
@@ -29,7 +31,7 @@ export default function AdminScreens() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const fetchData = () => {
-    fetch('/api/screens')
+    fetch(API_ENDPOINTS.SCREENS)
       .then(res => res.json())
       .then(d => {
         if (Array.isArray(d)) setData(d);
@@ -45,7 +47,7 @@ export default function AdminScreens() {
 
   useEffect(() => {
     fetchData();
-    fetch('/api/theaters')
+    fetch(API_ENDPOINTS.THEATERS)
       .then(res => res.json())
       .then(t => setTheaters(t))
       .catch(err => console.error(err));
@@ -69,19 +71,19 @@ export default function AdminScreens() {
 
   const handleDelete = (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa phòng chiếu này?')) return;
-    fetch(`/api/screens/${id}`, { method: 'DELETE' })
+    fetch(`${API_ENDPOINTS.SCREENS_}${id}`, { method: 'DELETE' })
       .then(() => {
-        alert('Xóa phòng chiếu thành công!');
+        alert(UI_MESSAGES.X_A_PH_NG_CHI_U_TH_NH_C_NG);
         fetchData();
       })
-      .catch(err => alert('Lỗi khi xóa phòng chiếu'));
+      .catch(err => alert(UI_MESSAGES.L_I_KHI_X_A_PH_NG_CHI_U));
   };
 
   const handleDeleteSelected = () => {
     if (selectedIds.length === 0) return;
     if (!confirm(`Bạn có chắc chắn muốn xóa ${selectedIds.length} phòng chiếu đã chọn?`)) return;
 
-    fetch('/api/screens/bulk-delete', {
+    fetch(API_ENDPOINTS.SCREENS_BULKDELETE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids: selectedIds })
@@ -89,20 +91,20 @@ export default function AdminScreens() {
       .then(res => res.json())
       .then(d => {
         if (d.success) {
-          alert('Xóa thành công!');
+          alert(UI_MESSAGES.X_A_TH_NH_C_NG);
           fetchData();
         } else {
           alert('Lỗi: ' + d.error);
         }
       })
-      .catch(err => alert('Lỗi khi xóa hàng loạt'));
+      .catch(err => alert(UI_MESSAGES.L_I_KHI_X_A_H_NG_LO_T));
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     const url = editingId 
-      ? `/api/screens/${editingId}`
-      : '/api/screens';
+      ? `${API_ENDPOINTS.SCREENS_}${editingId}`
+      : API_ENDPOINTS.SCREENS;
     const method = editingId ? 'PUT' : 'POST';
 
     const payload = {
@@ -122,7 +124,7 @@ export default function AdminScreens() {
         setShowModal(false);
         fetchData();
       })
-      .catch(err => alert('Lỗi khi lưu phòng chiếu'));
+      .catch(err => alert(UI_MESSAGES.L_I_KHI_L_U_PH_NG_CHI_U));
   };
 
   const filteredData = data.filter((item: any) => {
@@ -223,14 +225,14 @@ export default function AdminScreens() {
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
                     <button onClick={() => {
                       if(confirm('Bạn có muốn tạo tự động các ghế cho phòng này theo sức chứa?')) {
-                        fetch('/api/seats/generate', {
+                        fetch(API_ENDPOINTS.SEATS_GENERATE, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ screen_id: item.id })
                         })
                         .then(res => res.json())
-                        .then(d => alert('Tạo thành công ' + (d.created || 0) + ' ghế!'))
-                        .catch(err => alert('Lỗi khi tạo ghế'));
+                        .then(d => alert(UI_MESSAGES.CREATE_SUCCESS_SEATS))
+                        .catch(err => alert(UI_MESSAGES.L_I_KHI_T_O_GH));
                       }
                     }} style={{ padding: '8px 15px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', marginRight: '5px' }}>Tạo ghế</button>
                     <button onClick={() => openEditModal(item)} style={{ padding: '8px 15px', backgroundColor: '#007bff', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', marginRight: '5px' }}>Sửa</button>

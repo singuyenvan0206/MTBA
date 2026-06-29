@@ -1,8 +1,12 @@
-'use client';
+"use client";
+import { DISCOUNT_CODES, AGE_LIMITS, MOVIE_STATUS, USER_STATUS } from '@/constants/enums';
+
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
 type Movie = {
   id: number;
   title: string;
@@ -22,11 +26,11 @@ export default function Calendar() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [type, setType] = useState('showing');
+  const [type, setType] = useState(MOVIE_TABS.SHOWING);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    fetch('/api/movies')
+    fetch(API_ENDPOINTS.MOVIES)
       .then(res => res.json())
       .then(data => {
         setMovies(data);
@@ -39,7 +43,7 @@ export default function Calendar() {
   }, []);
 
   const filteredMovies = movies.filter(movie => {
-    const isMatchingType = type === 'showing' ? new Date(movie.releaseDate) <= new Date() : new Date(movie.releaseDate) > new Date();
+    const isMatchingType = type === MOVIE_TABS.SHOWING ? new Date(movie.releaseDate) <= new Date() : new Date(movie.releaseDate) > new Date();
     const isMatchingSearch = movie.title.toLowerCase().includes(search.toLowerCase());
     return isMatchingType && isMatchingSearch;
   });
@@ -60,12 +64,12 @@ export default function Calendar() {
             <div className="calendar-header" style={{ textAlign: 'center' }}>
                 <div className="date-selector mt-40" style={{ justifyContent: 'center', marginBottom: '20px' }}>
                     <button 
-                      className={`date-btn ${type === 'showing' ? 'active' : ''}`} 
-                      onClick={() => setType('showing')}
+                      className={`date-btn ${type === MOVIE_TABS.SHOWING ? 'active' : ''}`} 
+                      onClick={() => setType(MOVIE_TABS.SHOWING)}
                     >Phim đang chiếu</button>
                     <button 
-                      className={`date-btn ${type === 'coming' ? 'active' : ''}`} 
-                      onClick={() => setType('coming')}
+                      className={`date-btn ${type === MOVIE_TABS.COMING ? 'active' : ''}`} 
+                      onClick={() => setType(MOVIE_TABS.COMING)}
                     >Phim sắp chiếu</button>
                 </div>
             </div>
@@ -78,7 +82,7 @@ export default function Calendar() {
                         <div className="movie-card" key={movie.id}>
                             <div className="movie-poster">
                                 <img src={movie.posterUrl || 'https://placehold.co/300x450'} alt={movie.title} />
-                                <div className="age-rating">{movie.ageLimit || 'P'}</div>
+                                <div className="age-rating">{movie.ageLimit || AGE_LIMITS.P}</div>
                                 <div className="movie-overlay">
                                     <Link href={`/pos/movies/${movie.id}`} className="btn btn-primary" style={{ marginBottom: '10px', width: '80%', textAlign: 'center' }}>Mua vé</Link>
                                     <Link href={`/pos/movies/${movie.id}`} className="btn btn-outline" style={{ width: '80%', textAlign: 'center' }}>Chi tiết</Link>

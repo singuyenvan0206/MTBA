@@ -1,8 +1,13 @@
-'use client';
+"use client";
+import { STORAGE_KEYS } from '@/constants/storage';
+
 
 import React, { useEffect, useState } from 'react';
 import { PaymentStatus, PaymentMethod } from '@/types/enums';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
 export default function AdminBookings() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -14,7 +19,7 @@ export default function AdminBookings() {
 
   const fetchBookings = () => {
     setLoading(true);
-    fetch('/api/bookings')
+    fetch(API_ENDPOINTS.BOOKINGS)
       .then(res => res.json())
       .then(data => {
         setBookings(Array.isArray(data) ? data : []);
@@ -44,25 +49,25 @@ export default function AdminBookings() {
 
   const savePayment = async () => {
     try {
-      const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+      const adminUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || '{}');
       if (paymentData.id) {
         // Cập nhật payment cũ
-        await fetch(`/api/payments/${paymentData.id}`, {
+        await fetch(`${API_ENDPOINTS.PAYMENTS_}${paymentData.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'x-user-role': 'admin',
+            'x-user-role': ROLES.ADMIN,
             'x-user-id': String(adminUser.id || '')
           },
           body: JSON.stringify({ payment_status: paymentData.status, payment_method: paymentData.method })
         });
       } else {
         // Tạo payment mới
-        await fetch('/api/payments', {
+        await fetch(API_ENDPOINTS.PAYMENTS, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-user-role': 'admin',
+            'x-user-role': ROLES.ADMIN,
             'x-user-id': String(adminUser.id || '')
           },
           body: JSON.stringify({
@@ -76,7 +81,7 @@ export default function AdminBookings() {
       setShowModal(false);
       fetchBookings();
     } catch (err) {
-      alert('Lỗi khi lưu thanh toán');
+      alert(UI_MESSAGES.L_I_KHI_L_U_THANH_TO_N);
     }
   };
 
@@ -109,13 +114,13 @@ export default function AdminBookings() {
   const handleBulkDelete = async () => {
     if (!confirm(`Bạn có chắc chắn muốn xóa ${selectedBookings.length} vé đã chọn?`)) return;
     try {
-      const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+      const adminUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || '{}');
       await Promise.all(
         selectedBookings.map(id =>
-          fetch(`/api/bookings/${id}`, {
+          fetch(`${API_ENDPOINTS.BOOKINGS_}${id}`, {
             method: 'DELETE',
             headers: {
-              'x-user-role': 'admin',
+              'x-user-role': ROLES.ADMIN,
               'x-user-id': String(adminUser.id || '')
             }
           })
@@ -125,7 +130,7 @@ export default function AdminBookings() {
       fetchBookings();
     } catch (error) {
       console.error(error);
-      alert('Có lỗi xảy ra khi xóa!');
+      alert(UI_MESSAGES.C__L_I_X_Y_RA_KHI_X_A);
     }
   };
 
@@ -239,16 +244,16 @@ export default function AdminBookings() {
                         </button>
                         <button onClick={() => {
                           if (confirm('Bạn có chắc chắn muốn xóa đơn này?')) {
-                            const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
-                            fetch(`/api/bookings/${b.id}`, {
+                            const adminUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || '{}');
+                            fetch(`${API_ENDPOINTS.BOOKINGS_}${b.id}`, {
                               method: 'DELETE',
                               headers: {
-                                'x-user-role': 'admin',
+                                'x-user-role': ROLES.ADMIN,
                                 'x-user-id': String(adminUser.id || '')
                               }
                             })
                               .then(() => fetchBookings())
-                              .catch(err => alert('Lỗi khi xóa đơn'));
+                              .catch(err => alert(UI_MESSAGES.L_I_KHI_X_A___N));
                           }
                         }} style={{ backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', fontSize: '13px' }}>
                           Xóa

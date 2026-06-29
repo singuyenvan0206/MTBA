@@ -1,9 +1,11 @@
-import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from './roles.guard';
 import { Roles } from './roles.decorator';
-import { UserRole } from './roles.enum';
+import { Role } from '../common/enums/role.enum';
+import { SUCCESS_MESSAGES } from '../common/constants/success-messages.constant';
+import { ERROR_MESSAGES } from '../common/constants/error-messages.constant';
 
 @Controller('auth')
 export class AuthController {
@@ -12,16 +14,16 @@ export class AuthController {
   // --- CÁC ENDPOINT TEST MIDDLEWARE ---
   @Get('test-admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN) // Chỉ admin mới được vào
+  @Roles(Role.ADMIN) // Chỉ admin mới được vào
   testAdmin() {
-    return { message: 'Chúc mừng! Bạn đã lọt qua vòng bảo vệ với tư cách là ADMIN.' };
+    return { message: SUCCESS_MESSAGES.AUTH.TEST_ADMIN };
   }
 
   @Get('test-user')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.USER, UserRole.ADMIN) // Ai đăng nhập (user hoặc admin) cũng được vào
+  @Roles(Role.USER, Role.ADMIN) // Ai đăng nhập (user hoặc admin) cũng được vào
   testUser() {
-    return { message: 'Thành công! Bạn đã gọi được API với tư cách là USER (Khách hàng).' };
+    return { message: SUCCESS_MESSAGES.AUTH.TEST_USER };
   }
   // ------------------------------------
 
@@ -33,7 +35,7 @@ export class AuthController {
   @Post('refresh-token')
   refreshToken(@Body() body: { refreshToken: string }) {
     if (!body.refreshToken) {
-      throw new Error('Refresh token is required');
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.REFRESH_TOKEN_REQUIRED);
     }
     return this.authService.refreshToken(body.refreshToken);
   }

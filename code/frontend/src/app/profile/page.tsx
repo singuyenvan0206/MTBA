@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { PaymentStatus, PaymentMethod } from '@/types/enums';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
+import { APP_ROUTES } from '@/constants/routes';
 export default function Profile() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -20,9 +23,9 @@ export default function Profile() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+    const storedUser = localStorage.getItem(ROLES.USER) || sessionStorage.getItem(ROLES.USER);
     if (!storedUser) {
-      router.push('/login');
+      router.push(APP_ROUTES.LOGIN);
       return;
     }
     const parsedUser = JSON.parse(storedUser);
@@ -36,7 +39,7 @@ export default function Profile() {
     });
 
     // Lấy lịch sử đặt vé
-    fetch(`/api/bookings/user/${parsedUser.id}`, {
+    fetch(`${API_ENDPOINTS.BOOKINGS_USER_}${parsedUser.id}`, {
       headers: {
         'Authorization': `Bearer ${parsedUser.accessToken || ''}`
       }
@@ -79,7 +82,7 @@ export default function Profile() {
         payload.password = formData.password;
       }
 
-      const res = await fetch(`/api/users/${user.id}`, {
+      const res = await fetch(`${API_ENDPOINTS.USERS_}${user.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -104,10 +107,10 @@ export default function Profile() {
         avatar: updatedUserFromDb.avatar,
       };
 
-      if (localStorage.getItem('user')) {
-        localStorage.setItem('user', JSON.stringify(newUserSession));
+      if (localStorage.getItem(ROLES.USER)) {
+        localStorage.setItem(ROLES.USER, JSON.stringify(newUserSession));
       } else {
-        sessionStorage.setItem('user', JSON.stringify(newUserSession));
+        sessionStorage.setItem(ROLES.USER, JSON.stringify(newUserSession));
       }
 
       setUser(newUserSession);
@@ -380,7 +383,7 @@ export default function Profile() {
                                   <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'flex-end', gap: '15px', flexWrap: 'wrap' }}>
                                      {showPayButton && (
                                        <button 
-                                         onClick={() => router.push(`/payment/${booking.id}`)}
+                                         onClick={() => router.push(`${APP_ROUTES.PAYMENT}/${booking.id}`)}
                                          className="btn btn-primary" 
                                          style={{ 
                                            fontSize: '13px', 

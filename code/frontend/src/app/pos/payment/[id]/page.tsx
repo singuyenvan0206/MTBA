@@ -1,4 +1,7 @@
-'use client';
+"use client";
+import { DISCOUNT_CODES, AGE_LIMITS, MOVIE_STATUS, USER_STATUS } from '@/constants/enums';
+import { STORAGE_KEYS } from '@/constants/storage';
+
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -6,12 +9,16 @@ import Link from 'next/link';
 import { usePosSync } from '../../../../hooks/usePosSync';
 import { QRCodeSVG } from 'qrcode.react';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
+import { APP_ROUTES } from '@/constants/routes';
 export default function PosPayment() {
   const params = useParams();
   const router = useRouter();
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState('CASH');
+  const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS.CASH);
   const [prices, setPrices] = useState<any[]>([]);
   const [seatDiscounts, setSeatDiscounts] = useState<Record<string, string>>({});
   const [searchPhone, setSearchPhone] = useState('');
@@ -35,35 +42,35 @@ export default function PosPayment() {
   useEffect(() => {
     if (!params?.id) return;
     
-    const storedUser = localStorage.getItem('staff_user');
+    const storedUser = localStorage.getItem(STORAGE_KEYS.STAFF_USER);
     let token = '';
     if (storedUser) {
       const u = JSON.parse(storedUser);
       setUser(u);
       token = u.accessToken || '';
     } else {
-      alert('Vui lòng đăng nhập để sử dụng hệ thống POS.');
-      router.push('/pos2/login');
+      alert(UI_MESSAGES.VUI_L_NG___NG_NH_P____S__D_NG);
+      router.push(`${APP_ROUTES.POS2}/login`);
       return;
     }
 
     // fetch booking details
-    fetch(`/api/bookings/${params.id}`, {
+    fetch(`${API_ENDPOINTS.BOOKINGS_}${params.id}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
       .then(data => {
         if (data.statusCode === 401) {
-            alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-            localStorage.removeItem('staff_user');
-            router.push('/pos2/login');
+            alert(UI_MESSAGES.PHI_N___NG_NH_P____H_T_H_N__VU);
+            localStorage.removeItem(STORAGE_KEYS.STAFF_USER);
+            router.push(`${APP_ROUTES.POS2}/login`);
             return;
         }
         setBooking(data);
         setLoading(false);
 
         // Fetch payment config
-        fetch('/api/payments/config', {
+        fetch(API_ENDPOINTS.PAYMENTS_CONFIG, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
           .then(res => res.json())
@@ -79,7 +86,7 @@ export default function PosPayment() {
         setLoading(false);
       });
       
-    fetch('/api/prices')
+    fetch(API_ENDPOINTS.PRICES)
       .then(res => res.json())
       .then(data => setPrices(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
@@ -90,16 +97,16 @@ export default function PosPayment() {
 
     try {
       const methodMap: any = {
-        'CASH': 'CASH',
-        'CARD': 'CARD', 
-        'EWALLET': 'EWALLET'
+        'CASH': PAYMENT_METHODS.CASH,
+        'CARD': PAYMENT_METHODS.CARD, 
+        'EWALLET': PAYMENT_METHODS.EWALLET
       };
       
       // finalTotal is available in scope
       const amountToPay = calculateSeatPrices().finalTotal;
       
       if (customer) {
-        await fetch(`/api/bookings/${booking.id}/user`, {
+        await fetch(`${API_ENDPOINTS.BOOKINGS_}${booking.id}/user`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json',
@@ -109,7 +116,7 @@ export default function PosPayment() {
         });
       }
 
-      const res = await fetch(`/api/payments`, {
+      const res = await fetch(`${API_ENDPOINTS.PAYMENTS}`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -117,7 +124,7 @@ export default function PosPayment() {
         },
         body: JSON.stringify({
           booking_id: booking.id,
-          payment_method: methodMap[paymentMethod] || 'CASH',
+          payment_method: methodMap[paymentMethod] || PAYMENT_METHODS.CASH,
           payment_status: 'COMPLETED',
           amount: amountToPay,
           payment_time: new Date().toISOString()
@@ -125,14 +132,14 @@ export default function PosPayment() {
       });
 
       if (res.ok) {
-        alert('Thanh toán thành công! In vé...');
+        alert(UI_MESSAGES.THANH_TO_N_TH_NH_C_NG__IN_V);
         pushState({ showQR: false, currentPath: '/pos2' }); // Close QR on customer screen
-        router.push('/pos2');
+        router.push(APP_ROUTES.POS2);
       } else {
-        alert('Thanh toán thất bại.');
+        alert(UI_MESSAGES.THANH_TO_N_TH_T_B_I);
       }
     } catch (err) {
-      alert('Lỗi kết nối server khi thanh toán.');
+      alert(UI_MESSAGES.L_I_K_T_N_I_SERVER_KHI_THANH_T);
     }
   };
 
@@ -157,7 +164,7 @@ export default function PosPayment() {
         p.type_seat === seatType && 
         p.day_type === dayType
       );
-      return priceConfig ? priceConfig.price : (seatType === 'VIP' ? 100000 : seatType === 'SWEETBOX' ? 150000 : 80000);
+      return priceConfig ? priceConfig.price : (seatType === SEAT_TYPES.VIP ? 100000 : seatType === SEAT_TYPES.SWEETBOX ? 150000 : 80000);
   };
 
   const calculateSeatPrices = () => {
@@ -166,17 +173,17 @@ export default function PosPayment() {
       let finalTotal = 0;
       booking.bookingseat.forEach((bs: any) => {
           const seat = bs.seat;
-          const basePrice = getSeatBasePrice(seat.type || 'STANDARD');
+          const basePrice = getSeatBasePrice(seat.type || SEAT_TYPES.STANDARD);
           const discount = seatDiscounts[seat.seat_number] || 'NONE';
           
           let finalPrice = basePrice;
-          if (discount === 'U22') {
+          if (discount === DISCOUNT_CODES.U22) {
               finalPrice = 55000;
-          } else if (discount === 'MINUS_20') {
+          } else if (discount === DISCOUNT_CODES.MINUS_20) {
               finalPrice = basePrice * 0.8;
-          } else if (discount === 'MINUS_50') {
+          } else if (discount === DISCOUNT_CODES.MINUS_50) {
               finalPrice = basePrice * 0.5;
-          } else if (discount === 'MINUS_100') {
+          } else if (discount === DISCOUNT_CODES.MINUS_100) {
               finalPrice = 0;
           }
           finalTotal += finalPrice;
@@ -197,7 +204,7 @@ export default function PosPayment() {
   const handleSearchCustomer = async () => {
       if (!searchPhone) return;
       try {
-          const res = await fetch(`/api/users/search/phone?q=${searchPhone}`, {
+          const res = await fetch(`${API_ENDPOINTS.USERS_SEARCH_PHONE}?q=${searchPhone}`, {
             headers: { 'Authorization': `Bearer ${user?.accessToken || ''}` }
           });
           const data = await res.json();
@@ -205,11 +212,11 @@ export default function PosPayment() {
               setCustomer(data);
           } else {
               setCustomer(null);
-              alert('Không tìm thấy khách hàng với số điện thoại này!');
+              alert(UI_MESSAGES.KH_NG_T_M_TH_Y_KH_CH_H_NG_V_I);
           }
       } catch (err) {
           setCustomer(null);
-          alert('Không tìm thấy khách hàng hoặc lỗi kết nối.');
+          alert(UI_MESSAGES.KH_NG_T_M_TH_Y_KH_CH_H_NG_HO_C);
       }
   };
 
@@ -270,19 +277,19 @@ export default function PosPayment() {
                         <tbody id="ticket-list-body">
                             {booking.bookingseat?.map((bs: any) => {
                                 const seat = bs.seat;
-                                const basePrice = getSeatBasePrice(seat.type || 'STANDARD');
+                                const basePrice = getSeatBasePrice(seat.type || SEAT_TYPES.STANDARD);
                                 const discount = seatDiscounts[seat.seat_number] || 'NONE';
                                 
                                 let finalPrice = basePrice;
-                                if (discount === 'U22') finalPrice = 55000;
-                                else if (discount === 'MINUS_20') finalPrice = basePrice * 0.8;
-                                else if (discount === 'MINUS_50') finalPrice = basePrice * 0.5;
-                                else if (discount === 'MINUS_100') finalPrice = 0;
+                                if (discount === DISCOUNT_CODES.U22) finalPrice = 55000;
+                                else if (discount === DISCOUNT_CODES.MINUS_20) finalPrice = basePrice * 0.8;
+                                else if (discount === DISCOUNT_CODES.MINUS_50) finalPrice = basePrice * 0.5;
+                                else if (discount === DISCOUNT_CODES.MINUS_100) finalPrice = 0;
 
                                 return (
                                     <tr key={seat.id}>
                                         <td style={{ padding: '15px 0', borderBottom: '1px solid #222' }}>
-                                            <div>Ghế {seat.seat_number} ({seat.type || 'STANDARD'})</div>
+                                            <div>Ghế {seat.seat_number} ({seat.type || SEAT_TYPES.STANDARD})</div>
                                             <div style={{ color: '#888', fontSize: '13px' }}>Giá gốc: {basePrice.toLocaleString()}đ</div>
                                         </td>
                                         <td style={{ textAlign: 'center', padding: '15px 0', borderBottom: '1px solid #222' }}>
@@ -293,10 +300,10 @@ export default function PosPayment() {
                                                 style={{ width: '100%', padding: '8px', borderRadius: '5px', border: '1px solid #444', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)' }}
                                             >
                                                 <option value="NONE">Người lớn (Không ưu đãi)</option>
-                                                <option value="U22">Học sinh, Sinh viên (55k)</option>
-                                                <option value="MINUS_20">Trẻ em, Người cao tuổi (-20%)</option>
-                                                <option value="MINUS_50">Khuyết tật nặng (-50%)</option>
-                                                <option value="MINUS_100">Trẻ em dưới 0.7m (-100%)</option>
+                                                <option value={DISCOUNT_CODES.U22}>Học sinh, Sinh viên (55k)</option>
+                                                <option value={DISCOUNT_CODES.MINUS_20}>Trẻ em, Người cao tuổi (-20%)</option>
+                                                <option value={DISCOUNT_CODES.MINUS_50}>Khuyết tật nặng (-50%)</option>
+                                                <option value={DISCOUNT_CODES.MINUS_100}>Trẻ em dưới 0.7m (-100%)</option>
                                             </select>
                                         </td>
                                         <td style={{ textAlign: 'right', padding: '15px 0', borderBottom: '1px solid #222', fontWeight: 'bold' }}>
@@ -343,34 +350,34 @@ export default function PosPayment() {
                         <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '20px' }}>Phương thức thanh toán</h3>
                         <div className="payment-methods" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <div 
-                                className={`payment-method-item ${paymentMethod === 'CASH' ? 'active' : ''}`}
-                                onClick={() => { setPaymentMethod('CASH'); pushState({ paymentMethod: 'CASH', showQR: false }); }}
-                                style={{ padding: '15px', border: '1px solid #444', borderRadius: '5px', marginBottom: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px', backgroundColor: paymentMethod === 'CASH' ? 'rgba(255,77,79,0.1)' : 'transparent', borderColor: paymentMethod === 'CASH' ? '#ff4d4f' : '#444' }}
+                                className={`payment-method-item ${paymentMethod === PAYMENT_METHODS.CASH ? 'active' : ''}`}
+                                onClick={() => { setPaymentMethod(PAYMENT_METHODS.CASH); pushState({ paymentMethod: PAYMENT_METHODS.CASH, showQR: false }); }}
+                                style={{ padding: '15px', border: '1px solid #444', borderRadius: '5px', marginBottom: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px', backgroundColor: paymentMethod === PAYMENT_METHODS.CASH ? 'rgba(255,77,79,0.1)' : 'transparent', borderColor: paymentMethod === PAYMENT_METHODS.CASH ? '#ff4d4f' : '#444' }}
                             >
                                 <span style={{ backgroundColor: '#28a745', color: '#fff', padding: '5px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>Cash</span>
                                 <strong>Tiền mặt</strong>
                             </div>
 
                             <div 
-                                className={`payment-method-item ${paymentMethod === 'CARD' ? 'active' : ''}`}
-                                onClick={() => { setPaymentMethod('CARD'); pushState({ paymentMethod: 'CARD', showQR: false }); }}
-                                style={{ padding: '15px', border: '1px solid #444', borderRadius: '5px', marginBottom: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px', backgroundColor: paymentMethod === 'CARD' ? 'rgba(255,77,79,0.1)' : 'transparent', borderColor: paymentMethod === 'CARD' ? '#ff4d4f' : '#444' }}
+                                className={`payment-method-item ${paymentMethod === PAYMENT_METHODS.CARD ? 'active' : ''}`}
+                                onClick={() => { setPaymentMethod(PAYMENT_METHODS.CARD); pushState({ paymentMethod: PAYMENT_METHODS.CARD, showQR: false }); }}
+                                style={{ padding: '15px', border: '1px solid #444', borderRadius: '5px', marginBottom: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px', backgroundColor: paymentMethod === PAYMENT_METHODS.CARD ? 'rgba(255,77,79,0.1)' : 'transparent', borderColor: paymentMethod === PAYMENT_METHODS.CARD ? '#ff4d4f' : '#444' }}
                             >
                                 <span style={{ backgroundColor: '#ffc107', color: '#000', padding: '5px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>Card</span>
                                 <strong>Quẹt thẻ POS / Chuyển khoản</strong>
                             </div>
 
                             <div 
-                                className={`payment-method-item ${paymentMethod === 'EWALLET' ? 'active' : ''}`}
-                                onClick={() => { setPaymentMethod('EWALLET'); pushState({ paymentMethod: 'EWALLET', showQR: false }); }}
-                                style={{ padding: '15px', border: '1px solid #444', borderRadius: '5px', marginBottom: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px', backgroundColor: paymentMethod === 'EWALLET' ? 'rgba(255,77,79,0.1)' : 'transparent', borderColor: paymentMethod === 'EWALLET' ? '#ff4d4f' : '#444' }}
+                                className={`payment-method-item ${paymentMethod === PAYMENT_METHODS.EWALLET ? 'active' : ''}`}
+                                onClick={() => { setPaymentMethod(PAYMENT_METHODS.EWALLET); pushState({ paymentMethod: PAYMENT_METHODS.EWALLET, showQR: false }); }}
+                                style={{ padding: '15px', border: '1px solid #444', borderRadius: '5px', marginBottom: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px', backgroundColor: paymentMethod === PAYMENT_METHODS.EWALLET ? 'rgba(255,77,79,0.1)' : 'transparent', borderColor: paymentMethod === PAYMENT_METHODS.EWALLET ? '#ff4d4f' : '#444' }}
                             >
                                 <span style={{ backgroundColor: '#17a2b8', color: '#fff', padding: '5px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>Wallet</span>
                                 <strong>Ví thanh toán (MoMo / ZaloPay)</strong>
                             </div>
                         </div>
                         
-                        {(paymentMethod === 'EWALLET' || paymentMethod === 'CARD') && (
+                        {(paymentMethod === PAYMENT_METHODS.EWALLET || paymentMethod === PAYMENT_METHODS.CARD) && (
                             <div style={{ marginTop: '15px' }}>
                                 <button className="btn w-100" style={{ visibility: 'hidden', backgroundColor: '#28a745', color: 'white', padding: '15px', fontWeight: 'bold' }}>
                                     ĐẨY MÃ QR SANG MÀN HÌNH KHÁCH
@@ -416,7 +423,7 @@ export default function PosPayment() {
             <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
                 <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '15px', textAlign: 'center', color: 'black' }}>
                     <h2 style={{ marginBottom: '20px', color: '#333' }}>Quét mã để thanh toán</h2>
-                    {(syncState.paymentMethod === 'CARD' || syncState.paymentMethod === 'EWALLET' || syncState.paymentMethod === 'TRANSFER') ? (
+                    {(syncState.paymentMethod === PAYMENT_METHODS.CARD || syncState.paymentMethod === PAYMENT_METHODS.EWALLET || syncState.paymentMethod === PAYMENT_METHODS.TRANSFER) ? (
                         <img 
                             src={`https://img.vietqr.io/image/${paymentConfig.bankId}-${paymentConfig.accountNo}-compact.png?amount=${syncState.paymentAmount || 0}&addInfo=MTBA${booking?.id}&accountName=${encodeURIComponent(paymentConfig.accountName)}`} 
                             alt="VietQR Code" 

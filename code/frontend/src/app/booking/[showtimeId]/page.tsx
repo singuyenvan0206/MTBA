@@ -6,6 +6,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { SeatType, MovieType } from '@/types/enums';
 import { AppMessage } from '@/types/messages';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
+import { APP_ROUTES } from '@/constants/routes';
 export default function Booking() {
   const router = useRouter();
   const params = useParams();
@@ -42,7 +45,7 @@ export default function Booking() {
 
   useEffect(() => {
     // Check login
-    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+    const storedUser = localStorage.getItem(ROLES.USER) || sessionStorage.getItem(ROLES.USER);
     if (!storedUser) {
       setShowLoginModal(true);
       return;
@@ -51,20 +54,20 @@ export default function Booking() {
     setUser(parsedUser);
 
     // Lấy bảng giá
-    fetch('/api/prices')
+    fetch(API_ENDPOINTS.PRICES)
       .then(res => res.json())
       .then(data => setPrices(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
 
     if (params?.showtimeId) {
       // Lấy thông tin showtime
-      fetch(`/api/showtimes/${params.showtimeId}`)
+      fetch(`${API_ENDPOINTS.SHOWTIMES_}${params.showtimeId}`)
         .then(res => res.json())
         .then(data => {
           setShowtime(data);
           if (data.screen_id) {
             // Lấy danh sách ghế của phòng chiếu này
-            fetch(`/api/seats?screen_id=${data.screen_id}`)
+            fetch(`${API_ENDPOINTS.SEATS}?screen_id=${data.screen_id}`)
               .then(res => res.json())
               .then(seats => setDbSeats(seats))
               .catch(err => console.error('Lỗi khi tải ghế của phòng chiếu:', err));
@@ -74,7 +77,7 @@ export default function Booking() {
 
       // Lấy danh sách ghế đã đặt
       const userId = parsedUser?.id || '';
-      fetch(`/api/bookings/booked-seats?showtimeId=${params.showtimeId}${userId ? `&userId=${userId}` : ''}`)
+      fetch(`${API_ENDPOINTS.BOOKINGS_BOOKEDSEATS}?showtimeId=${params.showtimeId}${userId ? `&userId=${userId}` : ''}`)
         .then(res => res.json())
         .then(data => {
           if (data && typeof data === 'object' && 'bookedSeats' in data) {
@@ -146,7 +149,7 @@ export default function Booking() {
 
     try {
       const totalPrice = calculateTotalPrice();
-      const res = await fetch('/api/bookings', {
+      const res = await fetch(API_ENDPOINTS.BOOKINGS, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -163,7 +166,7 @@ export default function Booking() {
 
       if (res.ok) {
         const data = await res.json();
-        router.push(`/payment/${data.id}`);
+        router.push(`${APP_ROUTES.PAYMENT}/${data.id}`);
       } else {
         const errData = await res.json();
         alert(errData.message || AppMessage.BOOKING_CONNECTION_ERROR);
@@ -287,7 +290,7 @@ export default function Booking() {
                     <h2 style={{ fontSize: '24px', marginBottom: '10px', color: 'var(--text-color)' }}>Chưa đăng nhập</h2>
                     <p style={{ color: '#888', marginBottom: '20px' }}>Vui lòng đăng nhập để tiếp tục đặt vé.</p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <button onClick={() => router.push('/login')} className="btn btn-primary">Đăng nhập ngay</button>
+                        <button onClick={() => router.push(APP_ROUTES.LOGIN)} className="btn btn-primary">Đăng nhập ngay</button>
                         <button onClick={() => router.push('/')} className="btn btn-outline">Trở về Trang chủ</button>
                     </div>
                 </div>

@@ -1,4 +1,6 @@
-'use client';
+"use client";
+import { STORAGE_KEYS } from '@/constants/storage';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { TheaterProvider } from './TheaterContext';
@@ -8,6 +10,7 @@ import { usePosSync } from '../../hooks/usePosSync';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { APP_ROUTES } from '@/constants/routes';
 export default function Pos2Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -15,9 +18,9 @@ export default function Pos2Layout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     // POS is for staff_user now
-    const staffUser = localStorage.getItem('staff_user');
+    const staffUser = localStorage.getItem(STORAGE_KEYS.STAFF_USER);
     if (!staffUser) {
-      router.push('/pos2/login');
+      router.push(`${APP_ROUTES.POS2}/login`);
     }
   }, [router]);
 
@@ -26,15 +29,15 @@ export default function Pos2Layout({ children }: { children: React.ReactNode }) 
       <header className="navbar">
           <div className="container nav-container">
               <div className="logo">
-                  <Link href="/pos"><img src="https://placehold.co/100x40/ff4d4f/FFF?text=LOGO" alt="Logo" /></Link>
+                  <Link href={APP_ROUTES.POS}><img src="https://placehold.co/100x40/ff4d4f/FFF?text=LOGO" alt="Logo" /></Link>
               </div>
               <nav className="nav-links">
-                  <Link href="/pos" className={pathname === '/pos' ? 'active' : ''} style={pathname === '/pos' ? { color: 'var(--primary-color)' } : {}}>Trang chủ</Link>
-                  <Link href="/pos/calendar" className={pathname === '/pos/calendar' ? 'active' : ''} style={pathname === '/pos/calendar' ? { color: 'var(--primary-color)' } : {}}>Lịch chiếu</Link>
-                  <Link href="/pos/news" className={pathname === '/pos/news' ? 'active' : ''} style={pathname === '/pos/news' ? { color: 'var(--primary-color)' } : {}}>Tin tức</Link>
-                  <Link href="/pos/promotions" className={pathname === '/pos/promotions' ? 'active' : ''} style={pathname === '/pos/promotions' ? { color: 'var(--primary-color)' } : {}}>Khuyến mãi</Link>
-                  <Link href="/pos/prices" className={pathname === '/pos/prices' ? 'active' : ''} style={pathname === '/pos/prices' ? { color: 'var(--primary-color)' } : {}}>Giá vé</Link>
-                  <Link href="/pos/festivals" className={pathname === '/pos/festivals' ? 'active' : ''} style={pathname === '/pos/festivals' ? { color: 'var(--primary-color)' } : {}}>Liên hoan phim</Link>
+                  <Link href={APP_ROUTES.POS} className={pathname === APP_ROUTES.POS ? 'active' : ''} style={pathname === APP_ROUTES.POS ? { color: 'var(--primary-color)' } : {}}>Trang chủ</Link>
+                  <Link href={`${APP_ROUTES.POS}/calendar`} className={pathname === '/pos/calendar' ? 'active' : ''} style={pathname === '/pos/calendar' ? { color: 'var(--primary-color)' } : {}}>Lịch chiếu</Link>
+                  <Link href={`${APP_ROUTES.POS}/news`} className={pathname === '/pos/news' ? 'active' : ''} style={pathname === '/pos/news' ? { color: 'var(--primary-color)' } : {}}>Tin tức</Link>
+                  <Link href={`${APP_ROUTES.POS}/promotions`} className={pathname === '/pos/promotions' ? 'active' : ''} style={pathname === '/pos/promotions' ? { color: 'var(--primary-color)' } : {}}>Khuyến mãi</Link>
+                  <Link href={`${APP_ROUTES.POS}/prices`} className={pathname === '/pos/prices' ? 'active' : ''} style={pathname === '/pos/prices' ? { color: 'var(--primary-color)' } : {}}>Giá vé</Link>
+                  <Link href={`${APP_ROUTES.POS}/festivals`} className={pathname === '/pos/festivals' ? 'active' : ''} style={pathname === '/pos/festivals' ? { color: 'var(--primary-color)' } : {}}>Liên hoan phim</Link>
               </nav>
               <div className="nav-auth" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                   <TheaterSelector />

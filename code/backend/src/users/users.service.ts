@@ -1,6 +1,8 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
+import { ERROR_MESSAGES } from '../common/constants/error-messages.constant';
+import { CONFIG_DEFAULTS } from '../common/constants/config.constant';
 
 @Injectable()
 export class UsersService {
@@ -25,7 +27,7 @@ export class UsersService {
     try {
       const { role, ...createData } = data;
       if (createData.password) {
-        const pepper = process.env.PASSWORD_PEPPER || '';
+        const pepper = process.env.PASSWORD_PEPPER || CONFIG_DEFAULTS.PASSWORD_PEPPER;
         createData.password = await bcrypt.hash(createData.password + pepper, 10);
       }
       const user = await (this.prisma as any).user.create({ data: createData });
@@ -39,9 +41,9 @@ export class UsersService {
     } catch(e: any) { 
       console.error(e); 
       if (e.code === 'P2002') {
-        throw new BadRequestException('Email hoặc số điện thoại đã tồn tại trong hệ thống!');
+        throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_OR_PHONE_EXISTS);
       }
-      throw new BadRequestException('Không thể tạo người dùng. Vui lòng kiểm tra lại thông tin.');
+      throw new BadRequestException(ERROR_MESSAGES.USER.CREATE_FAILED);
     }
   }
 
@@ -49,7 +51,7 @@ export class UsersService {
     try {
       const { role, ...updateData } = data;
       if (updateData.password) {
-        const pepper = process.env.PASSWORD_PEPPER || '';
+        const pepper = process.env.PASSWORD_PEPPER || CONFIG_DEFAULTS.PASSWORD_PEPPER;
         updateData.password = await bcrypt.hash(updateData.password + pepper, 10);
       } else {
         delete updateData.password;
@@ -66,9 +68,9 @@ export class UsersService {
     } catch(e: any) { 
       console.error(e); 
       if (e.code === 'P2002') {
-        throw new BadRequestException('Email hoặc số điện thoại đã tồn tại trong hệ thống!');
+        throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_OR_PHONE_EXISTS);
       }
-      throw new BadRequestException('Không thể cập nhật thông tin. Vui lòng thử lại sau.');
+      throw new BadRequestException(ERROR_MESSAGES.USER.UPDATE_FAILED);
     }
   }
 

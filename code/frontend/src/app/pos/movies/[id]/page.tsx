@@ -1,4 +1,7 @@
-'use client';
+"use client";
+import { DISCOUNT_CODES, AGE_LIMITS, MOVIE_STATUS, USER_STATUS } from '@/constants/enums';
+import { STORAGE_KEYS } from '@/constants/storage';
+
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -6,6 +9,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { useTheater } from '../../TheaterContext';
 import { usePosSync } from '../../../../hooks/usePosSync';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
+import { APP_ROUTES } from '@/constants/routes';
 type Movie = {
   id: number;
   title: string;
@@ -53,27 +60,27 @@ export default function MovieDetail() {
 
   useEffect(() => {
     // POS không cần bắt buộc đăng nhập (hoặc dùng admin user)
-    const storedUser = localStorage.getItem('staff_user');
+    const storedUser = localStorage.getItem(STORAGE_KEYS.STAFF_USER);
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
-      alert('Vui lòng đăng nhập để sử dụng hệ thống POS.');
-      router.push('/pos2/login');
+      alert(UI_MESSAGES.VUI_L_NG___NG_NH_P____S__D_NG);
+      router.push(`${APP_ROUTES.POS2}/login`);
     }
 
     if (!params?.id) return;
     
     // Lấy bảng giá
-    fetch('/api/prices')
+    fetch(API_ENDPOINTS.PRICES)
       .then(res => res.json())
       .then(data => setPrices(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
 
-    fetch(`/api/movies/${params.id}`)
+    fetch(`${API_ENDPOINTS.MOVIES_}${params.id}`)
       .then(res => res.json())
       .then(data => {
         setMovie(data);
-        return fetch(`/api/showtimes?movieId=${params.id}`);
+        return fetch(`${API_ENDPOINTS.SHOWTIMES}?movieId=${params.id}`);
       })
       .then(res => res.json())
       .then(data => {
@@ -104,13 +111,13 @@ export default function MovieDetail() {
     setDbSeats([]);
     
     if (showtime.screen_id) {
-        fetch(`/api/seats?screen_id=${showtime.screen_id}`)
+        fetch(`${API_ENDPOINTS.SEATS}?screen_id=${showtime.screen_id}`)
           .then(res => res.json())
           .then(seats => setDbSeats(Array.isArray(seats) ? seats : []))
           .catch(err => console.error('Lỗi khi tải ghế của phòng chiếu:', err));
     }
 
-    fetch(`/api/bookings/booked-seats?showtimeId=${showtime.id}`)
+    fetch(`${API_ENDPOINTS.BOOKINGS_BOOKEDSEATS}?showtimeId=${showtime.id}`)
       .then(res => res.json())
       .then(data => setBookedSeats(Array.isArray(data.bookedSeats) ? data.bookedSeats : []))
       .catch(err => console.error('Lỗi khi tải ghế:', err));
@@ -133,7 +140,7 @@ export default function MovieDetail() {
     let total = 0;
     selectedSeats.forEach(seatId => {
       const seat = dbSeats.find(s => s.seat_number === seatId);
-      const seatType = seat?.type || 'STANDARD';
+      const seatType = seat?.type || SEAT_TYPES.STANDARD;
       const priceConfig = prices.find(p => 
         (p.type_movie === movieType || p.type_movie?.replace(/^TYPE_/, '') === movieType?.replace(/^TYPE_/, '')) && 
         p.type_seat === seatType && 
@@ -144,9 +151,9 @@ export default function MovieDetail() {
       if (priceConfig) {
         price = priceConfig.price;
       } else {
-        if (seatType === 'STANDARD') price = 80000;
-        else if (seatType === 'VIP') price = 100000;
-        else if (seatType === 'SWEETBOX') price = 150000;
+        if (seatType === SEAT_TYPES.STANDARD) price = 80000;
+        else if (seatType === SEAT_TYPES.VIP) price = 100000;
+        else if (seatType === SEAT_TYPES.SWEETBOX) price = 150000;
       }
       total += price;
     });
@@ -227,7 +234,7 @@ export default function MovieDetail() {
                     </p>
                     
                     <p className="movie-warning">
-                        Kiểm duyệt: {movie.ageLimit || 'P'} - {movie.ageLimitDescription || (movie.ageLimit === 'P' ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.ageLimit === 'K' ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.ageLimit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)}
+                        Kiểm duyệt: {movie.ageLimit || AGE_LIMITS.P} - {movie.ageLimitDescription || (movie.ageLimit === AGE_LIMITS.P ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.ageLimit === AGE_LIMITS.K ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.ageLimit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)}
                     </p>
                     
                     <div className="movie-actions">
@@ -328,8 +335,8 @@ export default function MovieDetail() {
                                     const isBooked = bookedSeats.includes(seatId);
                                     
                                     let seatClass = 'standard';
-                                    if (seat.type === 'VIP') seatClass = 'vip';
-                                    if (seat.type === 'SWEETBOX') seatClass = 'couple';
+                                    if (seat.type === SEAT_TYPES.VIP) seatClass = 'vip';
+                                    if (seat.type === SEAT_TYPES.SWEETBOX) seatClass = 'couple';
 
                                     return (
                                         <div

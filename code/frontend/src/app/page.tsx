@@ -1,8 +1,12 @@
-'use client';
+"use client";
+import { DISCOUNT_CODES, AGE_LIMITS, MOVIE_STATUS, USER_STATUS } from '@/constants/enums';
+
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { APP_ROUTES } from '@/constants/routes';
 export default function Home() {
   const [movies, setMovies] = useState<any[]>([]);
   const [showingMovies, setShowingMovies] = useState<any[]>([]);
@@ -22,7 +26,7 @@ export default function Home() {
   }, [showingMovies.length]);
 
   useEffect(() => {
-    fetch('/api/movies')
+    fetch(API_ENDPOINTS.MOVIES)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -150,7 +154,7 @@ export default function Home() {
                   </span>
                 {heroMovie.ageLimit && (
                   <span style={{
-                    background: heroMovie.ageLimit === 'P' ? '#28a745' : heroMovie.ageLimit === 'C13' ? '#ffc107' : '#ff4d4f',
+                    background: heroMovie.ageLimit === AGE_LIMITS.P ? '#28a745' : heroMovie.ageLimit === AGE_LIMITS.C13 ? '#ffc107' : '#ff4d4f',
                     color: '#fff',
                     fontSize: '12px',
                     fontWeight: '700',
@@ -343,7 +347,7 @@ export default function Home() {
           <section className="movie-section">
             <div className="section-header">
               <h2><span className="dot"></span> Phim đang chiếu</h2>
-              <Link href="/calendar" className="view-all">Xem tất cả</Link>
+              <Link href={APP_ROUTES.CALENDAR} className="view-all">Xem tất cả</Link>
             </div>
             <div className="movie-grid">
               {loading ? (
@@ -353,7 +357,7 @@ export default function Home() {
                   <div className="movie-card" key={movie.id} onClick={() => window.location.href = `/movies/${movie.id}`}>
                     <div className="movie-poster">
                       <img src={movie.posterUrl || 'https://placehold.co/300x450'} alt={movie.title} />
-                      <div className="age-rating">{movie.ageLimit || 'P'}</div>
+                      <div className="age-rating">{movie.ageLimit || AGE_LIMITS.P}</div>
                       <div className="movie-overlay">
                         <Link href={`/movies/${movie.id}`} className="btn btn-primary" style={{ marginBottom: '10px', width: '80%', textAlign: 'center' }} onClick={e => e.stopPropagation()}>Mua vé</Link>
                         <Link href={`/movies/${movie.id}`} className="btn btn-outline" style={{ width: '80%', textAlign: 'center' }} onClick={e => e.stopPropagation()}>Chi tiết</Link>
@@ -413,7 +417,7 @@ export default function Home() {
           <section className="movie-section mt-40">
             <div className="section-header">
               <h2><span className="dot"></span> Phim sắp chiếu</h2>
-              <Link href="/calendar" className="view-all">Xem tất cả</Link>
+              <Link href={APP_ROUTES.CALENDAR} className="view-all">Xem tất cả</Link>
             </div>
             <div className="movie-grid">
               {loading ? (
@@ -423,7 +427,7 @@ export default function Home() {
                   <div className="movie-card" key={movie.id} onClick={() => window.location.href = `/movies/${movie.id}`}>
                     <div className="movie-poster">
                       <img src={movie.posterUrl || 'https://placehold.co/300x450'} alt={movie.title} />
-                      <div className="age-rating">{movie.ageLimit || 'P'}</div>
+                      <div className="age-rating">{movie.ageLimit || AGE_LIMITS.P}</div>
                       <div className="movie-overlay">
                         <Link href={`/movies/${movie.id}`} className="btn btn-primary" style={{ marginBottom: '10px', width: '80%', textAlign: 'center' }} onClick={e => e.stopPropagation()}>Mua vé</Link>
                         <Link href={`/movies/${movie.id}`} className="btn btn-outline" style={{ width: '80%', textAlign: 'center' }} onClick={e => e.stopPropagation()}>Chi tiết</Link>
@@ -485,7 +489,7 @@ export default function Home() {
           <section className="promo-section">
             <div className="section-header">
               <h2>Khuyến mãi</h2>
-              <Link href="/promotions" className="view-all">Xem tất cả</Link>
+              <Link href={APP_ROUTES.PROMOTIONS} className="view-all">Xem tất cả</Link>
             </div>
             <div className="promo-list">
               <div className="promo-item" onClick={() => window.location.href = '/promotions'}>
@@ -498,7 +502,7 @@ export default function Home() {
           <section className="event-section mt-40">
             <div className="section-header">
               <h2>Sự kiện</h2>
-              <Link href="/news" className="view-all">Xem tất cả</Link>
+              <Link href={APP_ROUTES.NEWS} className="view-all">Xem tất cả</Link>
             </div>
             <div className="promo-list">
               <div className="promo-item" onClick={() => window.location.href = '/news'}>
@@ -509,11 +513,11 @@ export default function Home() {
           </section>
 
           <section className="ads-section mt-40">
-            <div className="lhp-card" onClick={() => window.location.href='/festivals'} style={{ cursor: 'pointer' }}>
+            <div className="lhp-card" onClick={() => window.location.href=APP_ROUTES.FESTIVALS} style={{ cursor: 'pointer' }}>
               <div className="lhp-content">
                 <h3>Liên Hoan Phim<br/>Quốc Tế 2026</h3>
                 <p>Sự kiện quy tụ những kiệt tác điện ảnh xuất sắc nhất cùng dàn sao đình đám. Đừng bỏ lỡ!</p>
-                <Link href="/festivals" className="btn btn-outline" style={{ borderColor: 'white', color: 'var(--text-color)' }}>Khám phá ngay</Link>
+                <Link href={APP_ROUTES.FESTIVALS} className="btn btn-outline" style={{ borderColor: 'white', color: 'var(--text-color)' }}>Khám phá ngay</Link>
               </div>
             </div>
           </section>

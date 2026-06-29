@@ -1,10 +1,13 @@
-'use client';
+"use client";
+import { DISCOUNT_CODES, AGE_LIMITS, MOVIE_STATUS, USER_STATUS } from '@/constants/enums';
+
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 import { useParams } from 'next/navigation';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
 type Movie = {
   id: number;
   title: string;
@@ -30,11 +33,11 @@ export default function MovieDetail() {
   useEffect(() => {
     if (!params?.id) return;
     
-    fetch(`/api/movies/${params.id}`)
+    fetch(`${API_ENDPOINTS.MOVIES_}${params.id}`)
       .then(res => res.json())
       .then(data => {
         setMovie(data);
-        return fetch(`/api/showtimes?movieId=${params.id}`);
+        return fetch(`${API_ENDPOINTS.SHOWTIMES}?movieId=${params.id}`);
       })
       .then(res => res.json())
       .then(data => {
@@ -112,7 +115,7 @@ export default function MovieDetail() {
                     </p>
                     
                     <p className="movie-warning">
-                        Kiểm duyệt: {movie.ageLimit || 'P'} - {movie.ageLimitDescription || (movie.ageLimit === 'P' ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.ageLimit === 'K' ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.ageLimit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)}
+                        Kiểm duyệt: {movie.ageLimit || AGE_LIMITS.P} - {movie.ageLimitDescription || (movie.ageLimit === AGE_LIMITS.P ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.ageLimit === AGE_LIMITS.K ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.ageLimit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)}
                     </p>
                     
                     <div className="movie-actions">

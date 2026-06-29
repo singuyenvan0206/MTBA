@@ -1,10 +1,17 @@
-'use client';
+"use client";
+import { DISCOUNT_CODES, AGE_LIMITS, MOVIE_STATUS, USER_STATUS } from '@/constants/enums';
+import { STORAGE_KEYS } from '@/constants/storage';
+
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePosSync } from '../../../../hooks/usePosSync';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
+import { APP_ROUTES } from '@/constants/routes';
 export default function Booking() {
   const router = useRouter();
   const params = useParams();
@@ -20,23 +27,23 @@ export default function Booking() {
 
   useEffect(() => {
     // POS không cần bắt buộc đăng nhập (hoặc dùng admin user)
-    const storedUser = localStorage.getItem('staff_user');
+    const storedUser = localStorage.getItem(STORAGE_KEYS.STAFF_USER);
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
       // Giả lập user admin cho POS nếu chưa đăng nhập
-      setUser({ id: 1, role: 'admin', fullName: 'Nhân viên POS' });
+      setUser({ id: 1, role: ROLES.ADMIN, fullName: 'Nhân viên POS' });
     }
 
     if (params?.showtimeId) {
       // Lấy thông tin showtime
-      fetch(`/api/showtimes/${params.showtimeId}`)
+      fetch(`${API_ENDPOINTS.SHOWTIMES_}${params.showtimeId}`)
         .then(res => res.json())
         .then(data => setShowtime(data))
         .catch(err => console.error('Lỗi khi tải showtime:', err));
 
       // Lấy danh sách ghế đã đặt
-      fetch(`/api/bookings/booked-seats?showtimeId=${params.showtimeId}`)
+      fetch(`${API_ENDPOINTS.BOOKINGS_BOOKEDSEATS}?showtimeId=${params.showtimeId}`)
         .then(res => res.json())
         .then(data => setBookedSeats(data))
         .catch(err => console.error('Lỗi khi tải ghế:', err));
@@ -59,11 +66,11 @@ export default function Booking() {
 
   const handleCheckout = async () => {
     if (selectedSeats.length === 0) {
-      return alert('Vui lòng chọn ít nhất 1 ghế!');
+      return alert(UI_MESSAGES.VUI_L_NG_CH_N__T_NH_T_1_GH);
     }
 
     try {
-      const res = await fetch('/api/bookings', {
+      const res = await fetch(API_ENDPOINTS.BOOKINGS, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -76,19 +83,19 @@ export default function Booking() {
 
       if (res.ok) {
         const data = await res.json();
-        router.push(`/pos/payment/${data.id}`);
+        router.push(`${APP_ROUTES.POS}/payment/${data.id}`);
       } else {
-        alert('Có lỗi xảy ra khi đặt vé.');
+        alert(UI_MESSAGES.C__L_I_X_Y_RA_KHI___T_V);
       }
     } catch (err) {
-      alert('Lỗi kết nối server');
+      alert(UI_MESSAGES.L_I_K_T_N_I_SERVER_43);
     }
   };
 
   return (
     <main className="main-content">
         <div className="container breadcrumb" style={{ margin: '20px auto', color: '#888', fontSize: '14px' }}>
-            <Link href="/pos" style={{ color: '#ff4d4f', textDecoration: 'none' }}>Trang chủ</Link> {'>'} <span>Chọn Ghế</span>
+            <Link href={APP_ROUTES.POS} style={{ color: '#ff4d4f', textDecoration: 'none' }}>Trang chủ</Link> {'>'} <span>Chọn Ghế</span>
         </div>
 
         <section className="seat-selection-section container" style={{ padding: '30px', backgroundColor: 'var(--card-bg)', borderRadius: '10px', marginTop: '20px' }}>
@@ -121,7 +128,7 @@ export default function Booking() {
                                 
                                 let seatClass = 'standard';
                                 if (row === 'H' || row === 'J') seatClass = 'vip';
-                                if (row === 'K') seatClass = 'couple';
+                                if (row === AGE_LIMITS.K) seatClass = 'couple';
 
                                 return (
                                     <div

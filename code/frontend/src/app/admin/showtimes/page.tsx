@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
 type Showtime = {
   id: number;
   movie_id: number;
@@ -31,7 +33,7 @@ export default function AdminShowtimes() {
   });
 
   const fetchData = () => {
-    fetch('/api/showtimes')
+    fetch(API_ENDPOINTS.SHOWTIMES)
       .then(res => res.json())
       .then(d => {
         if (Array.isArray(d)) setData(d);
@@ -46,9 +48,9 @@ export default function AdminShowtimes() {
 
   useEffect(() => {
     fetchData();
-    fetch('/api/movies').then(res => res.json()).then(setMovies);
-    fetch('/api/screens').then(res => res.json()).then(setScreens);
-    fetch('/api/theaters').then(res => res.json()).then(setTheaters);
+    fetch(API_ENDPOINTS.MOVIES).then(res => res.json()).then(setMovies);
+    fetch(API_ENDPOINTS.SCREENS).then(res => res.json()).then(setScreens);
+    fetch(API_ENDPOINTS.THEATERS).then(res => res.json()).then(setTheaters);
   }, []);
 
   const [weeklySchedules, setWeeklySchedules] = useState<any>({
@@ -92,27 +94,27 @@ export default function AdminShowtimes() {
 
   const handleDelete = (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa lịch chiếu này?')) return;
-    fetch(`/api/showtimes/${id}`, { method: 'DELETE' })
+    fetch(`${API_ENDPOINTS.SHOWTIMES_}${id}`, { method: 'DELETE' })
       .then(() => {
-        alert('Xóa lịch chiếu thành công!');
+        alert(UI_MESSAGES.X_A_L_CH_CHI_U_TH_NH_C_NG);
         fetchData();
       })
-      .catch(err => alert('Lỗi khi xóa lịch chiếu'));
+      .catch(err => alert(UI_MESSAGES.L_I_KHI_X_A_L_CH_CHI_U));
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.movie_id || !formData.screen_id) {
-      alert('Vui lòng chọn phim và phòng chiếu');
+      alert(UI_MESSAGES.VUI_L_NG_CH_N_PHIM_V__PH_NG_CH);
       return;
     }
 
     if (editingId || !isBulkMode) {
       // Single create/update
       const url = editingId 
-        ? `/api/showtimes/${editingId}`
-        : '/api/showtimes';
+        ? `${API_ENDPOINTS.SHOWTIMES_}${editingId}`
+        : API_ENDPOINTS.SHOWTIMES;
       const method = editingId ? 'PUT' : 'POST';
 
       const payload = {
@@ -132,12 +134,12 @@ export default function AdminShowtimes() {
         setShowModal(false);
         fetchData();
       } catch (err) {
-        alert('Lỗi khi lưu lịch chiếu');
+        alert(UI_MESSAGES.L_I_KHI_L_U_L_CH_CHI_U);
       }
     } else {
       // Bulk create using weekly schedule
       if (!baseDate) {
-        alert('Vui lòng chọn Ngày bắt đầu áp dụng');
+        alert(UI_MESSAGES.VUI_L_NG_CH_N_NG_Y_B_T___U__P);
         return;
       }
 
@@ -162,7 +164,7 @@ export default function AdminShowtimes() {
               const stDate = new Date(d);
               stDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
               
-              await fetch('/api/showtimes', {
+              await fetch(API_ENDPOINTS.SHOWTIMES, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -179,7 +181,7 @@ export default function AdminShowtimes() {
         }
       }
 
-      alert(`Thêm thành công ${createdCount} lịch chiếu!`);
+      alert(UI_MESSAGES.CREATE_SUCCESS_SHOWTIMES);
       setShowModal(false);
       fetchData();
     }
@@ -227,20 +229,20 @@ export default function AdminShowtimes() {
     if (selectedIds.length === 0) return;
     if (confirm(`Bạn có chắc chắn muốn xóa ${selectedIds.length} lịch chiếu đã chọn?`)) {
       try {
-        const res = await fetch('/api/showtimes/bulk-delete', {
+        const res = await fetch(API_ENDPOINTS.SHOWTIMES_BULKDELETE, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ids: selectedIds })
         });
         if (res.ok) {
-          alert('Xóa thành công!');
+          alert(UI_MESSAGES.X_A_TH_NH_C_NG);
           setSelectedIds([]);
           fetchData();
         } else {
-          alert('Lỗi khi xóa lịch chiếu');
+          alert(UI_MESSAGES.L_I_KHI_X_A_L_CH_CHI_U);
         }
       } catch (err) {
-        alert('Lỗi kết nối khi xóa lịch chiếu');
+        alert(UI_MESSAGES.L_I_K_T_N_I_KHI_X_A_L_CH_CHI_U);
       }
     }
   };

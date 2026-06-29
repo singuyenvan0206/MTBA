@@ -1,6 +1,9 @@
+"use client";
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { APP_ROUTES } from '@/constants/routes';
 export interface PosSyncState {
   currentPath: string; // e.g. /pos/movies/123 or /pos2/movies/123
   selectedSeats: string[];
@@ -56,7 +59,7 @@ export function usePosSync(isStaff: boolean) {
       }
       
       // 2. API (Cross-Machine — qua backend để đồng bộ 2 máy khác nhau)
-      fetch(`/api/pos/sync?session=${sessionId}`, {
+      fetch(`${API_ENDPOINTS.POS_SYNC}?session=${sessionId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated)
@@ -79,9 +82,9 @@ export function usePosSync(isStaff: boolean) {
     if (data.currentPath) {
       let targetPath = data.currentPath;
       if (!isStaff && targetPath.startsWith('/pos2')) {
-        targetPath = targetPath.replace('/pos2', '/pos');
+        targetPath = targetPath.replace(APP_ROUTES.POS2, '/pos');
       } else if (isStaff && targetPath.startsWith('/pos') && !targetPath.startsWith('/pos2')) {
-        targetPath = targetPath.replace('/pos', '/pos2');
+        targetPath = targetPath.replace(APP_ROUTES.POS, '/pos2');
       }
 
       if (typeof window !== 'undefined' && window.location.pathname !== targetPath) {
@@ -139,7 +142,7 @@ export function usePosSync(isStaff: boolean) {
 
     const poll = async () => {
       try {
-        const res = await fetch(`/api/pos/sync?session=${sessionId}`);
+        const res = await fetch(`${API_ENDPOINTS.POS_SYNC}?session=${sessionId}`);
         if (!res.ok) throw new Error('not ok');
         const data = await res.json();
         if (data && data.currentPath) handleStateUpdate(data);

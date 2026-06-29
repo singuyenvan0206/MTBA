@@ -1,7 +1,10 @@
-'use client';
+"use client";
+import { STORAGE_KEYS } from '@/constants/storage';
+
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
 type Theme = 'dark' | 'light';
 
 interface ThemeContextType {
@@ -23,7 +26,7 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
   useEffect(() => {
     setMounted(true);
     try {
-      localStorage.removeItem('theme');
+      localStorage.removeItem(STORAGE_KEYS.THEME);
       document.documentElement.classList.remove('light-mode');
       document.body.classList.remove('light-mode');
     } catch (e) {
@@ -39,8 +42,8 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
       let token = '';
       try {
         const isAdminPath = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
-        const storedKey = isAdminPath ? 'admin_user' : 'user';
-        const storedUser = localStorage.getItem(storedKey) || localStorage.getItem('admin_user') || localStorage.getItem('user');
+        const storedKey = isAdminPath ? STORAGE_KEYS.ADMIN_USER : ROLES.USER;
+        const storedUser = localStorage.getItem(storedKey) || localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || localStorage.getItem(ROLES.USER);
         if (storedUser) {
           const user = JSON.parse(storedUser);
           token = user.accessToken || '';

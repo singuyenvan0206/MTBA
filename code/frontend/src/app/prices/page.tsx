@@ -2,12 +2,14 @@
 import { useEffect, useState } from 'react';
 import { SeatType, MovieType } from '@/types/enums';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
 export default function Prices() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/prices')
+    fetch(API_ENDPOINTS.PRICES)
       .then(res => res.json())
       .then(resData => {
         if (Array.isArray(resData)) {
@@ -58,7 +60,7 @@ export default function Prices() {
                         ) : weekdayPrices.length > 0 ? (
                             weekdayPrices.map((item, i) => (
                                 <tr key={i}>
-                                    <td>{item.type_seat === SeatType.STANDARD ? 'Thường' : (item.type_seat === SeatType.VIP ? 'VIP' : 'Sweetbox')}</td>
+                                    <td>{item.type_seat === SeatType.STANDARD ? 'Thường' : (item.type_seat === SeatType.VIP ? SEAT_TYPES.VIP : 'Sweetbox')}</td>
                                     <td>{item.type_movie === MovieType.TYPE_2D ? '2D' : '3D'}</td>
                                     <td style={{ color: '#ff4d4f', fontWeight: 'bold' }}>{item.price?.toLocaleString()} đ</td>
                                 </tr>
@@ -90,7 +92,7 @@ export default function Prices() {
                         ) : weekendPrices.length > 0 ? (
                             weekendPrices.map((item, i) => (
                                 <tr key={i}>
-                                    <td>{item.type_seat === SeatType.STANDARD ? 'Thường' : (item.type_seat === SeatType.VIP ? 'VIP' : 'Sweetbox')}</td>
+                                    <td>{item.type_seat === SeatType.STANDARD ? 'Thường' : (item.type_seat === SeatType.VIP ? SEAT_TYPES.VIP : 'Sweetbox')}</td>
                                     <td>{item.type_movie === MovieType.TYPE_2D ? '2D' : '3D'}</td>
                                     <td style={{ color: '#ff4d4f', fontWeight: 'bold' }}>{item.price?.toLocaleString()} đ</td>
                                 </tr>

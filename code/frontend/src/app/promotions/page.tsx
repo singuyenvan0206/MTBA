@@ -2,12 +2,13 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
 export default function Promotions() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/vouchers')
+    fetch(API_ENDPOINTS.VOUCHERS)
       .then(res => res.json())
       .then(resData => { setData(resData); setLoading(false); })
       .catch(() => setLoading(false));

@@ -1,5 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ERROR_MESSAGES } from '../common/constants/error-messages.constant';
+import { SUCCESS_MESSAGES } from '../common/constants/success-messages.constant';
+import { CONFIG_DEFAULTS } from '../common/constants/config.constant';
 
 function formatMovieType(type: string | null | undefined): string {
   if (!type) return '';
@@ -49,7 +52,7 @@ export class MoviesService {
         author: m.author,
         actors: m.actors,
         ageLimit: m.age_limit || 'P',
-        ageLimitDescription: limit ? limit.description : (m.age_limit === 'P' ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : m.age_limit === 'K' ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${m.age_limit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)
+        ageLimitDescription: limit ? limit.description : (m.age_limit === 'P' ? CONFIG_DEFAULTS.MOVIE_AGE_LIMIT.P : m.age_limit === 'K' ? CONFIG_DEFAULTS.MOVIE_AGE_LIMIT.K : CONFIG_DEFAULTS.MOVIE_AGE_LIMIT.DYNAMIC(m.age_limit?.replace('T', '') || '18'))
       };
     });
   }
@@ -63,7 +66,7 @@ export class MoviesService {
     });
 
     if (!movie) {
-      throw new NotFoundException('Movie not found');
+      throw new NotFoundException(ERROR_MESSAGES.MOVIE.NOT_FOUND);
     }
 
     let ageLimitDescription = '';
@@ -73,7 +76,7 @@ export class MoviesService {
     } catch (e) { }
 
     if (!ageLimitDescription) {
-      ageLimitDescription = movie.age_limit === 'P' ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.age_limit === 'K' ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.age_limit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`;
+      ageLimitDescription = movie.age_limit === 'P' ? CONFIG_DEFAULTS.MOVIE_AGE_LIMIT.P : movie.age_limit === 'K' ? CONFIG_DEFAULTS.MOVIE_AGE_LIMIT.K : CONFIG_DEFAULTS.MOVIE_AGE_LIMIT.DYNAMIC(movie.age_limit?.replace('T', '') || '18');
     }
 
     return {
@@ -204,12 +207,12 @@ export class MoviesService {
     });
 
     if (futureShowtimes > 0) {
-      throw new BadRequestException('Không thể xóa phim đang có lịch chiếu trong tương lai. Vui lòng xóa lịch chiếu trước.');
+      throw new BadRequestException(ERROR_MESSAGES.MOVIE.CANNOT_DELETE_HAS_SHOWTIMES);
     }
 
     await this.prisma.movie.delete({
       where: { id },
     });
-    return { message: 'Deleted successfully' };
+    return { message: SUCCESS_MESSAGES.MOVIE.DELETED };
   }
 }

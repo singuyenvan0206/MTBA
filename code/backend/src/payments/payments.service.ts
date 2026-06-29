@@ -1,7 +1,9 @@
 import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { payment_payment_status, payment_payment_method } from '@prisma/client';
-import { ErrorMessage } from '../common/error-messages.enum';
+import { ERROR_MESSAGES } from '../common/constants/error-messages.constant';
+import { SUCCESS_MESSAGES } from '../common/constants/success-messages.constant';
+import { CONFIG_DEFAULTS } from '../common/constants/config.constant';
 
 @Injectable()
 export class PaymentsService {
@@ -32,26 +34,26 @@ export class PaymentsService {
     });
 
     if (!booking) {
-      throw new BadRequestException(ErrorMessage.PAYMENT_BOOKING_NOT_FOUND);
+      throw new BadRequestException(ERROR_MESSAGES.PAYMENT.BOOKING_NOT_FOUND);
     }
 
     // 2. Chặn thanh toán trùng lặp
     const isAlreadyPaid = booking.payment.some(p => p.payment_status === payment_payment_status.COMPLETED);
     if (isAlreadyPaid) {
-      throw new BadRequestException(ErrorMessage.PAYMENT_ALREADY_PAID);
+      throw new BadRequestException(ERROR_MESSAGES.PAYMENT.ALREADY_PAID);
     }
 
-    // 3. Kiểm tra thời hạn thanh toán (tối đa 5 phút + 30 giây trễ mạng)
+    // 3. Kiểm tra thời hạn thanh toán
     const createdTime = new Date(booking.created_at).getTime();
     const elapsedMs = Date.now() - createdTime;
-    const isExpired = elapsedMs > (5 * 60 + 30) * 1000; // 5m30s
+    const isExpired = elapsedMs > (CONFIG_DEFAULTS.PAYMENT.EXPIRE_MINUTES * 60 + CONFIG_DEFAULTS.PAYMENT.EXPIRE_GRACE_SECONDS) * 1000;
     if (isExpired && payment_status === payment_payment_status.COMPLETED) {
-      throw new BadRequestException(ErrorMessage.PAYMENT_EXPIRED);
+      throw new BadRequestException(ERROR_MESSAGES.PAYMENT.EXPIRED);
     }
 
     // 4. So khớp số tiền thanh toán
     if (Math.abs(amount - booking.total_price_movie) > 0.01) {
-      throw new BadRequestException(`Số tiền thanh toán (${amount}đ) không khớp với giá trị đơn hàng (${booking.total_price_movie}đ)!`);
+      throw new BadRequestException(ERROR_MESSAGES.PAYMENT.AMOUNT_MISMATCH(amount, booking.total_price_movie));
     }
 
     // Tiến hành tạo bản ghi thanh toán
@@ -83,7 +85,7 @@ export class PaymentsService {
     }
 
     const now = Date.now();
-    const cacheDuration = 10 * 1000; // 10s cache
+    const cacheDuration = CONFIG_DEFAULTS.PAYMENT.POLLING_CACHE_DURATION_SECONDS * 1000;
     let transactions = this.cachedTransactions;
 
     if (now - this.lastFetchedTime > cacheDuration) {
@@ -213,24 +215,24 @@ export class PaymentsService {
     }
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Không tìm thấy hoặc Header Authorization không hợp lệ');
+      throw new UnauthorizedException(ERROR_MESSAGES.PAYMENT.AUTH_HEADER_INVALID);
     }
 
     const token = authHeader.split(' ')[1];
     if (token !== apiToken) {
-      throw new UnauthorizedException('Token Webhook SePay không hợp lệ');
+      throw new UnauthorizedException(ERROR_MESSAGES.PAYMENT.WEBHOOK_TOKEN_INVALID);
     }
 
     if (payload.transferType !== 'in') {
       console.log(`[SePay Webhook] Bỏ qua giao dịch không phải loại nhận tiền (transferType = ${payload.transferType})`);
-      return { success: true, message: 'Skipped: Giao dịch không phải loại nhận tiền' };
+      return { success: true, message: SUCCESS_MESSAGES.PAYMENT.WEBHOOK_SKIPPED_NOT_IN };
     }
 
     const content = payload.content || '';
     const match = content.match(/MTBA\s*(\d+)/i);
     if (!match) {
       console.log(`[SePay Webhook] Bỏ qua giao dịch do nội dung chuyển khoản "${content}" không chứa mã đặt vé hợp lệ`);
-      return { success: true, message: 'Skipped: Nội dung chuyển khoản không khớp mã đặt vé' };
+      return { success: true, message: SUCCESS_MESSAGES.PAYMENT.WEBHOOK_SKIPPED_NO_MATCH };
     }
 
     const bookingId = parseInt(match[1], 10);
@@ -243,14 +245,14 @@ export class PaymentsService {
 
     if (!booking) {
       console.warn(`[SePay Webhook] Lỗi: Giao dịch khớp mã đơn #${bookingId} nhưng không tìm thấy đơn trong DB!`);
-      return { success: false, message: `Booking #${bookingId} không tồn tại` };
+      return { success: false, message: ERROR_MESSAGES.PAYMENT.BOOKING_NOT_FOUND };
     }
 
     // Kiểm tra xem đơn đã được thanh toán thành công chưa
     const isAlreadyPaid = booking.payment.some(p => p.payment_status === payment_payment_status.COMPLETED);
     if (isAlreadyPaid) {
       console.log(`[SePay Webhook] Đơn đặt vé #${bookingId} đã được thanh toán trước đó.`);
-      return { success: true, message: `Booking #${bookingId} đã được thanh toán` };
+      return { success: true, message: SUCCESS_MESSAGES.PAYMENT.WEBHOOK_ALREADY_PAID(bookingId) };
     }
 
     const amount = Number(payload.transferAmount || payload.amount || 0);
@@ -270,13 +272,13 @@ export class PaymentsService {
           payment_time: new Date()
         }
       });
-      return { success: false, message: 'Số tiền thanh toán không khớp' };
+      return { success: false, message: ERROR_MESSAGES.PAYMENT.AMOUNT_MISMATCH(amount, booking.total_price_movie) };
     }
 
     // Kiểm tra thời hạn thanh toán
     const createdTime = new Date(booking.created_at).getTime();
     const elapsedMs = Date.now() - createdTime;
-    const isExpired = elapsedMs > (5 * 60 + 30) * 1000; // 5m30s
+    const isExpired = elapsedMs > (CONFIG_DEFAULTS.PAYMENT.EXPIRE_MINUTES * 60 + CONFIG_DEFAULTS.PAYMENT.EXPIRE_GRACE_SECONDS) * 1000;
 
     if (isExpired) {
       console.warn(`[SePay Webhook] Đơn hàng #${bookingId} đã quá hạn thanh toán. Tiến hành kiểm tra trùng ghế...`);
@@ -317,7 +319,7 @@ export class PaymentsService {
             payment_time: new Date()
           }
         });
-        return { success: false, message: 'Ghế đã bị đặt bởi đơn khác do quá hạn thanh toán' };
+        return { success: false, message: ERROR_MESSAGES.PAYMENT.SEATS_TAKEN };
       }
     }
 
@@ -334,7 +336,7 @@ export class PaymentsService {
       }
     });
 
-    return { success: true, message: `Thanh toán đơn #${bookingId} thành công` };
+    return { success: true, message: SUCCESS_MESSAGES.PAYMENT.WEBHOOK_SUCCESS(bookingId) };
   }
 
   getPaymentConfig() {

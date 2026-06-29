@@ -1,8 +1,13 @@
-'use client';
+"use client";
+import { DISCOUNT_CODES, AGE_LIMITS, MOVIE_STATUS, USER_STATUS } from '@/constants/enums';
+import { STORAGE_KEYS } from '@/constants/storage';
+
 
 import { useEffect, useState } from 'react';
 import { MovieType } from '@/types/enums';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
 type Movie = {
   id: number;
   title: string;
@@ -50,7 +55,7 @@ export default function AdminMovies() {
 
 
   const fetchMovies = () => {
-    fetch('/api/movies')
+    fetch(API_ENDPOINTS.MOVIES)
       .then(res => res.json())
       .then(data => {
         setMovies(data);
@@ -64,11 +69,11 @@ export default function AdminMovies() {
 
   useEffect(() => {
     fetchMovies();
-    fetch('/api/genres')
+    fetch(API_ENDPOINTS.GENRES)
       .then(res => res.json())
       .then(data => setGenres(data))
       .catch(err => console.error(err));
-    fetch('/api/age-limits')
+    fetch(API_ENDPOINTS.AGELIMITS)
       .then(res => res.json())
       .then(data => setAgeLimits(data))
       .catch(err => console.error(err));
@@ -107,8 +112,8 @@ export default function AdminMovies() {
 
   const handleDelete = (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa phim này?')) return;
-    const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
-    fetch(`/api/movies/${id}`, { 
+    const adminUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || '{}');
+    fetch(`${API_ENDPOINTS.MOVIES_}${id}`, { 
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${adminUser.accessToken || ''}`
@@ -122,7 +127,7 @@ export default function AdminMovies() {
         return res.json();
       })
       .then(() => {
-        alert('Xóa phim thành công!');
+        alert(UI_MESSAGES.X_A_PHIM_TH_NH_C_NG);
         fetchMovies();
       })
       .catch(err => alert(err.message));
@@ -131,8 +136,8 @@ export default function AdminMovies() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const url = editingId 
-      ? `/api/movies/${editingId}`
-      : '/api/movies';
+      ? `${API_ENDPOINTS.MOVIES_}${editingId}`
+      : API_ENDPOINTS.MOVIES;
     const method = editingId ? 'PUT' : 'POST';
 
     try {
@@ -149,7 +154,7 @@ export default function AdminMovies() {
       setShowModal(false);
       fetchMovies();
     } catch (err) {
-      alert('Lỗi khi lưu phim');
+      alert(UI_MESSAGES.L_I_KHI_L_U_PHIM);
     }
   };
 
@@ -159,8 +164,8 @@ export default function AdminMovies() {
     if (filterAgeLimit && movie.ageLimit !== filterAgeLimit) match = false;
     if (filterStatus) {
       const isComingSoon = new Date(movie.releaseDate) > new Date();
-      if (filterStatus === 'COMING_SOON' && !isComingSoon) match = false;
-      if (filterStatus === 'SHOWING' && isComingSoon) match = false;
+      if (filterStatus === MOVIE_STATUS.COMING_SOON && !isComingSoon) match = false;
+      if (filterStatus === MOVIE_STATUS.SHOWING && isComingSoon) match = false;
     }
     return match;
   });
@@ -186,8 +191,8 @@ export default function AdminMovies() {
           <label style={{ display: 'block', fontSize: '13px', marginBottom: '5px', color: 'var(--text-muted)' }}>Trạng thái</label>
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}>
             <option value="">Tất cả trạng thái</option>
-            <option value="SHOWING">Đang chiếu</option>
-            <option value="COMING_SOON">Sắp chiếu</option>
+            <option value={MOVIE_STATUS.SHOWING}>Đang chiếu</option>
+            <option value={MOVIE_STATUS.COMING_SOON}>Sắp chiếu</option>
           </select>
         </div>
         <div style={{ flex: 1 }}>

@@ -2,13 +2,14 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 
+import { API_ENDPOINTS } from '@/constants/endpoints';
 export default function NewsDetail() {
   const { id } = useParams();
   const [news, setNews] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/news/${id}`)
+    fetch(`${API_ENDPOINTS.NEWS_}${id}`)
       .then(res => res.json())
       .then(data => { setNews(data); setLoading(false); })
       .catch(() => setLoading(false));

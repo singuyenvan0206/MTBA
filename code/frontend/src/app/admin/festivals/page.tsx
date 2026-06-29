@@ -1,7 +1,12 @@
-'use client';
+"use client";
+import { STORAGE_KEYS } from '@/constants/storage';
+
 
 import { useEffect, useState } from 'react';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
 type Festival = {
   id: number;
   title: string;
@@ -23,7 +28,7 @@ export default function AdminFestivals() {
   });
 
   const fetchData = () => {
-    fetch('/api/festivals')
+    fetch(API_ENDPOINTS.FESTIVALS)
       .then(res => res.json())
       .then(d => {
         if (Array.isArray(d)) setData(d);
@@ -58,26 +63,26 @@ export default function AdminFestivals() {
 
   const handleDelete = (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa Liên Hoan Phim này?')) return;
-    const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
-    fetch(`/api/festivals/${id}`, {
+    const adminUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || '{}');
+    fetch(`${API_ENDPOINTS.FESTIVALS_}${id}`, {
       method: 'DELETE',
       headers: {
-        'x-user-role': 'admin',
+        'x-user-role': ROLES.ADMIN,
         'x-user-id': String(adminUser.id || '')
       }
     })
       .then(() => {
-        alert('Xóa LHP thành công!');
+        alert(UI_MESSAGES.X_A_LHP_TH_NH_C_NG);
         fetchData();
       })
-      .catch(err => alert('Lỗi khi xóa LHP'));
+      .catch(err => alert(UI_MESSAGES.L_I_KHI_X_A_LHP));
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     const url = editingId
-      ? `/api/festivals/${editingId}`
-      : '/api/festivals';
+      ? `${API_ENDPOINTS.FESTIVALS_}${editingId}`
+      : API_ENDPOINTS.FESTIVALS;
     const method = editingId ? 'PUT' : 'POST';
 
     const payload = {
@@ -86,12 +91,12 @@ export default function AdminFestivals() {
       image: formData.image
     };
 
-    const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+    const adminUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || '{}');
     fetch(url, {
       method,
       headers: {
         'Content-Type': 'application/json',
-        'x-user-role': 'admin',
+        'x-user-role': ROLES.ADMIN,
         'x-user-id': String(adminUser.id || '')
       },
       body: JSON.stringify(payload)
@@ -102,7 +107,7 @@ export default function AdminFestivals() {
         setShowModal(false);
         fetchData();
       })
-      .catch(err => alert('Lỗi khi lưu LHP'));
+      .catch(err => alert(UI_MESSAGES.L_I_KHI_L_U_LHP));
   };
 
   return (

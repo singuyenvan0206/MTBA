@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
 type Theater = {
   id: number;
   name: string;
@@ -24,7 +26,7 @@ export default function AdminCinemas() {
   });
 
   const fetchData = () => {
-    fetch('/api/theaters')
+    fetch(API_ENDPOINTS.THEATERS)
       .then(res => res.json())
       .then(d => {
         if (Array.isArray(d)) setData(d);
@@ -59,19 +61,19 @@ export default function AdminCinemas() {
 
   const handleDelete = (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa rạp này?')) return;
-    fetch(`/api/theaters/${id}`, { method: 'DELETE' })
+    fetch(`${API_ENDPOINTS.THEATERS_}${id}`, { method: 'DELETE' })
       .then(() => {
-        alert('Xóa rạp thành công!');
+        alert(UI_MESSAGES.X_A_R_P_TH_NH_C_NG);
         fetchData();
       })
-      .catch(err => alert('Lỗi khi xóa rạp'));
+      .catch(err => alert(UI_MESSAGES.L_I_KHI_X_A_R_P));
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     const url = editingId 
-      ? `/api/theaters/${editingId}`
-      : '/api/theaters';
+      ? `${API_ENDPOINTS.THEATERS_}${editingId}`
+      : API_ENDPOINTS.THEATERS;
     const method = editingId ? 'PUT' : 'POST';
 
     fetch(url, {
@@ -85,7 +87,7 @@ export default function AdminCinemas() {
         setShowModal(false);
         fetchData();
       })
-      .catch(err => alert('Lỗi khi lưu rạp'));
+      .catch(err => alert(UI_MESSAGES.L_I_KHI_L_U_R_P));
   };
 
   return (

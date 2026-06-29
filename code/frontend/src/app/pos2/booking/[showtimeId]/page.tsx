@@ -1,4 +1,7 @@
-'use client';
+"use client";
+import { DISCOUNT_CODES, AGE_LIMITS, MOVIE_STATUS, USER_STATUS } from '@/constants/enums';
+import { STORAGE_KEYS } from '@/constants/storage';
+
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -6,6 +9,8 @@ import Link from 'next/link';
 import { usePosSync } from '@/hooks/usePosSync';
 import { AppMessage } from '@/types/messages';
 import { UserRole } from '@/types/enums';
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { APP_ROUTES } from '@/constants/routes';
 export default function Booking() {
   const router = useRouter();
   const params = useParams();
@@ -21,7 +26,7 @@ export default function Booking() {
 
   useEffect(() => {
     // POS không cần bắt buộc đăng nhập (hoặc dùng admin user)
-    const storedUser = localStorage.getItem('staff_user');
+    const storedUser = localStorage.getItem(STORAGE_KEYS.STAFF_USER);
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
@@ -31,13 +36,13 @@ export default function Booking() {
 
     if (params?.showtimeId) {
       // Lấy thông tin showtime
-      fetch(`/api/showtimes/${params.showtimeId}`)
+      fetch(`${API_ENDPOINTS.SHOWTIMES_}${params.showtimeId}`)
         .then(res => res.json())
         .then(data => setShowtime(data))
         .catch(err => console.error('Lỗi khi tải showtime:', err));
 
       // Lấy danh sách ghế đã đặt
-      fetch(`/api/bookings/booked-seats?showtimeId=${params.showtimeId}`)
+      fetch(`${API_ENDPOINTS.BOOKINGS_BOOKEDSEATS}?showtimeId=${params.showtimeId}`)
         .then(res => res.json())
         .then(data => setBookedSeats(data))
         .catch(err => console.error('Lỗi khi tải ghế:', err));
@@ -62,7 +67,7 @@ export default function Booking() {
     }
 
     try {
-      const res = await fetch('/api/bookings', {
+      const res = await fetch(API_ENDPOINTS.BOOKINGS, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -75,7 +80,7 @@ export default function Booking() {
 
       if (res.ok) {
         const data = await res.json();
-        router.push(`/pos2/payment/${data.id}`);
+        router.push(`${APP_ROUTES.POS2}/payment/${data.id}`);
       } else {
         alert(AppMessage.POS_BOOKING_ERROR);
       }
@@ -87,7 +92,7 @@ export default function Booking() {
   return (
     <main className="main-content">
         <div className="container breadcrumb" style={{ margin: '20px auto', color: '#888', fontSize: '14px' }}>
-            <Link href="/pos2" style={{ color: '#ff4d4f', textDecoration: 'none' }}>Trang chủ</Link> {'>'} <span>Chọn Ghế</span>
+            <Link href={APP_ROUTES.POS2} style={{ color: '#ff4d4f', textDecoration: 'none' }}>Trang chủ</Link> {'>'} <span>Chọn Ghế</span>
         </div>
 
         <section className="seat-selection-section container" style={{ padding: '30px', backgroundColor: 'var(--card-bg)', borderRadius: '10px', marginTop: '20px' }}>
@@ -120,7 +125,7 @@ export default function Booking() {
                                 
                                 let seatClass = 'standard';
                                 if (row === 'H' || row === 'J') seatClass = 'vip';
-                                if (row === 'K') seatClass = 'couple';
+                                if (row === AGE_LIMITS.K) seatClass = 'couple';
 
                                 return (
                                     <div

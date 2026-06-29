@@ -1,7 +1,11 @@
-'use client';
+"use client";
+import { DISCOUNT_CODES, AGE_LIMITS, MOVIE_STATUS, USER_STATUS } from '@/constants/enums';
+
 
 import React, { useEffect, useState } from 'react';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +20,7 @@ export default function AdminUsers() {
     phone: '',
     address: '',
     avatar: '',
-    status: 'ACTIVE',
+    status: USER_STATUS.ACTIVE,
     role: 'ROLE_USER',
     password: ''
   });
@@ -27,7 +31,7 @@ export default function AdminUsers() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/users');
+      const res = await fetch(API_ENDPOINTS.USERS);
       const data = await res.json();
       setUsers(data);
     } catch (error) {
@@ -40,11 +44,11 @@ export default function AdminUsers() {
   const handleDelete = async (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa người dùng này?')) return;
     try {
-      await fetch(`/api/users/${id}`, { method: 'DELETE' });
+      await fetch(`${API_ENDPOINTS.USERS_}${id}`, { method: 'DELETE' });
       fetchUsers();
     } catch (error) {
       console.error('Failed to delete user:', error);
-      alert('Có lỗi xảy ra khi xóa người dùng!');
+      alert(UI_MESSAGES.C__L_I_X_Y_RA_KHI_X_A_NG__I_D);
     }
   };
 
@@ -53,8 +57,8 @@ export default function AdminUsers() {
     if (user) {
       let currentRole = 'ROLE_USER';
       if (user.userrole && user.userrole.length > 0) {
-        if (user.userrole.some((ur: any) => ur.role?.role_name === 'ROLE_ADMIN')) currentRole = 'ROLE_ADMIN';
-        else if (user.userrole.some((ur: any) => ur.role?.role_name === 'ROLE_STAFF')) currentRole = 'ROLE_STAFF';
+        if (user.userrole.some((ur: any) => ur.role?.role_name === "ROLE_ADMIN")) currentRole = 'ROLE_ADMIN';
+        else if (user.userrole.some((ur: any) => ur.role?.role_name === "ROLE_STAFF")) currentRole = 'ROLE_STAFF';
       }
 
       setFormData({
@@ -64,7 +68,7 @@ export default function AdminUsers() {
         phone: user.phone || '',
         address: user.address || '',
         avatar: user.avatar || '',
-        status: user.status || 'ACTIVE',
+        status: user.status || USER_STATUS.ACTIVE,
         role: currentRole,
         password: '' // Don't fill password for edit
       });
@@ -76,7 +80,7 @@ export default function AdminUsers() {
         phone: '',
         address: '',
         avatar: '',
-        status: 'ACTIVE',
+        status: USER_STATUS.ACTIVE,
         role: 'ROLE_USER',
         password: ''
       });
@@ -87,7 +91,7 @@ export default function AdminUsers() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const url = editingUser ? `/api/users/${editingUser.id}` : '/api/users';
+      const url = editingUser ? `${API_ENDPOINTS.USERS_}${editingUser.id}` : API_ENDPOINTS.USERS;
       const method = editingUser ? 'PUT' : 'POST';
       
       const payload: any = { ...formData };
@@ -106,11 +110,11 @@ export default function AdminUsers() {
         fetchUsers();
       } else {
         const errorData = await res.json();
-        alert(errorData.message || 'Lưu thất bại, vui lòng kiểm tra lại thông tin!');
+        alert(errorData.message || UI_MESSAGES.SAVE_FAILED_CHECK_INFO);
       }
     } catch (error) {
       console.error('Failed to save user:', error);
-      alert('Có lỗi xảy ra khi lưu người dùng!');
+      alert(UI_MESSAGES.C__L_I_X_Y_RA_KHI_L_U_NG__I_D);
     }
   };
 
@@ -181,10 +185,10 @@ export default function AdminUsers() {
                       <td style={{ padding: '15px' }}>
                         <span style={{ 
                           padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold',
-                          background: user.status === 'ACTIVE' ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)', 
-                          color: user.status === 'ACTIVE' ? '#28a745' : '#dc3545',
+                          background: user.status === USER_STATUS.ACTIVE ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)', 
+                          color: user.status === USER_STATUS.ACTIVE ? '#28a745' : '#dc3545',
                         }}>
-                          {user.status === 'ACTIVE' ? 'Hoạt động' : 'Đã khóa'}
+                          {user.status === USER_STATUS.ACTIVE ? 'Hoạt động' : 'Đã khóa'}
                         </span>
                       </td>
                       <td style={{ padding: '15px' }}>
@@ -250,7 +254,7 @@ export default function AdminUsers() {
               <div>
                 <label style={{ display: 'block', marginBottom: '5px', color: '#ccc' }}>Trạng thái</label>
                 <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #444', background: '#2a2a2a', color: '#fff' }}>
-                  <option value="ACTIVE">Hoạt động (ACTIVE)</option>
+                  <option value={USER_STATUS.ACTIVE}>Hoạt động (ACTIVE)</option>
                   <option value="BLOCKED">Đã khóa (BLOCKED)</option>
                 </select>
               </div>

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
 export default function AgeLimitsPage() {
   const [ageLimits, setAgeLimits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +19,7 @@ export default function AgeLimitsPage() {
   }, []);
 
   const fetchAgeLimits = () => {
-    fetch('/api/age-limits')
+    fetch(API_ENDPOINTS.AGELIMITS)
       .then(res => res.json())
       .then(data => {
         setAgeLimits(data);
@@ -44,10 +46,10 @@ export default function AgeLimitsPage() {
   const handleDelete = async (id: number) => {
     if (confirm('Bạn có chắc chắn muốn xóa độ tuổi này?')) {
       try {
-        await fetch(`/api/age-limits/${id}`, { method: 'DELETE' });
+        await fetch(`${API_ENDPOINTS.AGELIMITS_}${id}`, { method: 'DELETE' });
         fetchAgeLimits();
       } catch (err) {
-        alert('Lỗi khi xóa độ tuổi');
+        alert(UI_MESSAGES.L_I_KHI_X_A____TU_I);
       }
     }
   };
@@ -55,8 +57,8 @@ export default function AgeLimitsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const url = editingId 
-      ? `/api/age-limits/${editingId}` 
-      : '/api/age-limits';
+      ? `${API_ENDPOINTS.AGELIMITS_}${editingId}` 
+      : API_ENDPOINTS.AGELIMITS;
     const method = editingId ? 'PUT' : 'POST';
 
     try {
@@ -69,10 +71,10 @@ export default function AgeLimitsPage() {
         setShowModal(false);
         fetchAgeLimits();
       } else {
-        alert('Có lỗi xảy ra khi lưu.');
+        alert(UI_MESSAGES.C__L_I_X_Y_RA_KHI_L_U);
       }
     } catch (err) {
-      alert('Lỗi kết nối server.');
+      alert(UI_MESSAGES.L_I_K_T_N_I_SERVER);
     }
   };
 

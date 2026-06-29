@@ -1,7 +1,9 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { payment_payment_status, user_status, seat_type, movie_type } from '@prisma/client';
-import { ErrorMessage } from '../common/error-messages.enum';
+import { ERROR_MESSAGES } from '../common/constants/error-messages.constant';
+import { CONFIG_DEFAULTS } from '../common/constants/config.constant';
+import { Role } from '../common/enums/role.enum';
 
 @Injectable()
 export class BookingsService {
@@ -11,11 +13,11 @@ export class BookingsService {
     const { userId, showtimeId, seats } = data;
 
     if (!seats || seats.length === 0) {
-      throw new BadRequestException(ErrorMessage.SEAT_REQUIRED);
+      throw new BadRequestException(ERROR_MESSAGES.BOOKING.SEAT_REQUIRED);
     }
 
-    if (seats.length > 8) {
-      throw new BadRequestException(ErrorMessage.SEAT_LIMIT_EXCEEDED);
+    if (seats.length > CONFIG_DEFAULTS.BOOKING.MAX_SEATS_PER_ORDER) {
+      throw new BadRequestException(ERROR_MESSAGES.BOOKING.SEAT_LIMIT_EXCEEDED);
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -26,12 +28,12 @@ export class BookingsService {
         where: { id: showtimeId },
         include: { movie: true, screen: true }
       });
-      if (!showtime) throw new BadRequestException(ErrorMessage.SHOWTIME_NOT_FOUND);
+      if (!showtime) throw new BadRequestException(ERROR_MESSAGES.BOOKING.SHOWTIME_NOT_FOUND);
 
-      // 1.1. Kiểm tra thời gian chiếu (phải trước giờ chiếu ít nhất 10 phút)
-      const minBookingTime = new Date(Date.now() + 10 * 60 * 1000);
+      // 1.1. Kiểm tra thời gian chiếu (phải trước giờ chiếu ít nhất X phút)
+      const minBookingTime = new Date(Date.now() + CONFIG_DEFAULTS.BOOKING.CLOSE_MINUTES_BEFORE_SHOW * 60 * 1000);
       if (new Date(showtime.start_time) < minBookingTime) {
-        throw new BadRequestException(ErrorMessage.SHOWTIME_CLOSED);
+        throw new BadRequestException(ERROR_MESSAGES.BOOKING.SHOWTIME_CLOSED);
       }
 
       // 1.2. Kiểm tra trạng thái tài khoản người dùng
@@ -39,7 +41,7 @@ export class BookingsService {
         where: { id: userId }
       });
       if (!userRecord || userRecord.status === user_status.BLOCKED) {
-        throw new BadRequestException(ErrorMessage.USER_BLOCKED);
+        throw new BadRequestException(ERROR_MESSAGES.USER.BLOCKED);
       }
 
       // 2. Kiểm tra xem người dùng đã có đơn chờ thanh toán chưa
@@ -73,7 +75,7 @@ export class BookingsService {
       // Kiểm tra trùng ghế trong bộ nhớ trước để tránh truy vấn thừa
       for (const seatNum of seats) {
         if (bookedSeats.includes(seatNum)) {
-          throw new BadRequestException(`Ghế ${seatNum} đã được đặt hoặc đang được giữ bởi người khác. Vui lòng chọn ghế khác!`);
+          throw new BadRequestException(ERROR_MESSAGES.BOOKING.SEAT_ALREADY_BOOKED(seatNum));
         }
       }
 
@@ -88,7 +90,7 @@ export class BookingsService {
       if (seatRecords.length !== seats.length) {
         const foundSeatNums = seatRecords.map(s => s.seat_number);
         const missingSeat = seats.find(s => !foundSeatNums.includes(s));
-        throw new BadRequestException(`Ghế ${missingSeat} không tồn tại trong phòng chiếu!`);
+        throw new BadRequestException(ERROR_MESSAGES.BOOKING.SEAT_NOT_FOUND(missingSeat));
       }
 
       // Tính tổng tiền cho tất cả ghế
@@ -350,13 +352,13 @@ export class BookingsService {
       });
 
       if (!booking) {
-        throw new BadRequestException(ErrorMessage.BOOKING_NOT_FOUND);
+        throw new BadRequestException(ERROR_MESSAGES.BOOKING.NOT_FOUND);
       }
 
       // Chặn Admin xóa đơn hàng đã thanh toán thành công trực tiếp (tránh mất dữ liệu kế toán)
       const isAlreadyPaid = booking.payment.some((p: any) => p.payment_status === payment_payment_status.COMPLETED);
       if (isAlreadyPaid) {
-        throw new BadRequestException(ErrorMessage.BOOKING_PAID_CANNOT_DELETE);
+        throw new BadRequestException(ERROR_MESSAGES.BOOKING.PAID_CANNOT_DELETE);
       }
 
       const bookingSeats = await tx.bookingseat.findMany({
@@ -389,18 +391,18 @@ export class BookingsService {
       });
 
       if (!booking) {
-        throw new BadRequestException(ErrorMessage.BOOKING_NOT_FOUND);
+        throw new BadRequestException(ERROR_MESSAGES.BOOKING.NOT_FOUND);
       }
 
       // Kiểm tra quyền sở hữu
-      if (role !== 'admin' && booking.user_id !== userId) {
-        throw new BadRequestException(ErrorMessage.NO_CANCEL_PERMISSION);
+      if (role !== Role.ADMIN && booking.user_id !== userId) {
+        throw new BadRequestException(ERROR_MESSAGES.BOOKING.NO_CANCEL_PERMISSION);
       }
 
       // Kiểm tra xem đã thanh toán chưa
       const isAlreadyPaid = booking.payment.some((p: any) => p.payment_status === payment_payment_status.COMPLETED);
       if (isAlreadyPaid) {
-        throw new BadRequestException(ErrorMessage.BOOKING_PAID_CANNOT_CANCEL);
+        throw new BadRequestException(ERROR_MESSAGES.BOOKING.PAID_CANNOT_CANCEL);
       }
 
       // Giải phóng ghế

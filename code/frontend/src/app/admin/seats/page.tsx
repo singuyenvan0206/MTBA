@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { SeatType } from '@/types/enums';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
 type Seat = {
   id: number;
   screen_id: number;
@@ -36,7 +38,7 @@ export default function AdminSeats() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const fetchData = () => {
-    fetch('/api/seats')
+    fetch(API_ENDPOINTS.SEATS)
       .then(res => res.json())
       .then(d => {
         if (Array.isArray(d)) setData(d);
@@ -51,8 +53,8 @@ export default function AdminSeats() {
 
   useEffect(() => {
     fetchData();
-    fetch('/api/screens').then(res => res.json()).then(setScreens);
-    fetch('/api/theaters').then(res => res.json()).then(setTheaters);
+    fetch(API_ENDPOINTS.SCREENS).then(res => res.json()).then(setScreens);
+    fetch(API_ENDPOINTS.THEATERS).then(res => res.json()).then(setTheaters);
   }, []);
 
   const openAddModal = () => {
@@ -74,19 +76,19 @@ export default function AdminSeats() {
 
   const handleDelete = (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa ghế này?')) return;
-    fetch(`/api/seats/${id}`, { method: 'DELETE' })
+    fetch(`${API_ENDPOINTS.SEATS_}${id}`, { method: 'DELETE' })
       .then(() => {
-        alert('Xóa ghế thành công!');
+        alert(UI_MESSAGES.X_A_GH__TH_NH_C_NG);
         fetchData();
       })
-      .catch(err => alert('Lỗi khi xóa ghế'));
+      .catch(err => alert(UI_MESSAGES.L_I_KHI_X_A_GH));
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     const url = editingId 
-      ? `/api/seats/${editingId}`
-      : '/api/seats';
+      ? `${API_ENDPOINTS.SEATS_}${editingId}`
+      : API_ENDPOINTS.SEATS;
     const method = editingId ? 'PUT' : 'POST';
 
     const payload = {
@@ -107,7 +109,7 @@ export default function AdminSeats() {
         setShowModal(false);
         fetchData();
       })
-      .catch(err => alert('Lỗi khi lưu ghế'));
+      .catch(err => alert(UI_MESSAGES.L_I_KHI_L_U_GH));
   };
 
   const filteredData = data.filter((item: any) => {
@@ -137,20 +139,20 @@ export default function AdminSeats() {
     if (selectedIds.length === 0) return;
     if (confirm(`Bạn có chắc chắn muốn xóa ${selectedIds.length} ghế đã chọn?`)) {
       try {
-        const res = await fetch('/api/seats/bulk-delete', {
+        const res = await fetch(API_ENDPOINTS.SEATS_BULKDELETE, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ids: selectedIds })
         });
         if (res.ok) {
-          alert('Xóa thành công!');
+          alert(UI_MESSAGES.X_A_TH_NH_C_NG);
           setSelectedIds([]);
           fetchData();
         } else {
-          alert('Lỗi khi xóa ghế');
+          alert(UI_MESSAGES.L_I_KHI_X_A_GH);
         }
       } catch (err) {
-        alert('Lỗi kết nối khi xóa ghế');
+        alert(UI_MESSAGES.L_I_K_T_N_I_KHI_X_A_GH);
       }
     }
   };
@@ -158,21 +160,21 @@ export default function AdminSeats() {
   const handleBulkUpdateType = async () => {
     if (selectedIds.length === 0) return;
     try {
-      const res = await fetch('/api/seats/bulk-update-type', {
+      const res = await fetch(API_ENDPOINTS.SEATS_BULKUPDATETYPE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: selectedIds, type: bulkType })
       });
       if (res.ok) {
-        alert('Cập nhật loại ghế thành công!');
+        alert(UI_MESSAGES.C_P_NH_T_LO_I_GH__TH_NH_C_NG);
         setShowBulkTypeModal(false);
         setSelectedIds([]);
         fetchData();
       } else {
-        alert('Lỗi khi cập nhật ghế');
+        alert(UI_MESSAGES.L_I_KHI_C_P_NH_T_GH);
       }
     } catch (err) {
-      alert('Lỗi kết nối khi cập nhật ghế');
+      alert(UI_MESSAGES.L_I_K_T_N_I_KHI_C_P_NH_T_GH);
     }
   };
 

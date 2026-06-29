@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
+import { UI_MESSAGES } from '@/constants/messages';
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { APP_ROUTES } from '@/constants/routes';
 export default function Register() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -123,7 +126,7 @@ export default function Register() {
     setError('');
     setIsLoading(true);
     try {
-      const res = await fetch('/api/auth/send-email-otp', {
+      const res = await fetch(API_ENDPOINTS.AUTH_SENDEMAILOTP, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -148,7 +151,7 @@ export default function Register() {
     setError('');
     setIsLoading(true);
     try {
-      const res = await fetch('/api/auth/verify-email-otp', {
+      const res = await fetch(API_ENDPOINTS.AUTH_VERIFYEMAILOTP, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, otp: otpCode })
@@ -161,7 +164,7 @@ export default function Register() {
         return;
       }
 
-      alert('Đăng ký tài khoản thành công! Xin mời đăng nhập.');
+      alert(UI_MESSAGES.__NG_K__T_I_KHO_N_TH_NH_C_NG);
       window.location.href = '/login';
     } catch (err: any) {
       setError('Lỗi kết nối Server: ' + err.message);
@@ -300,7 +303,7 @@ export default function Register() {
               </button>
 
               <div style={{ textAlign: 'center', marginTop: '20px', color: 'var(--text-muted)' }}>
-                Đã có tài khoản? <Link href="/login" style={{ color: '#ff4d4f', textDecoration: 'none' }}>Đăng nhập</Link>
+                Đã có tài khoản? <Link href={APP_ROUTES.LOGIN} style={{ color: '#ff4d4f', textDecoration: 'none' }}>Đăng nhập</Link>
               </div>
             </form>
           </>
