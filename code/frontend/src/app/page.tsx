@@ -35,8 +35,18 @@ export default function Home() {
           const showing = data.filter((m: any) => m.releaseDate && new Date(m.releaseDate) <= now);
           const coming = data.filter((m: any) => m.releaseDate && new Date(m.releaseDate) > now);
           
-          setShowingMovies(showing.length > 0 ? showing : data.slice(0, Math.ceil(data.length / 2)));
-          setComingMovies(coming.length > 0 ? coming : data.slice(Math.ceil(data.length / 2)));
+          // Sắp xếp phim đang chiếu theo ngày chiếu từ mới nhất đến cũ nhất
+          const showingSorted = showing.sort((a: any, b: any) => 
+            new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
+          );
+          
+          // Sắp xếp phim sắp chiếu theo ngày chiếu từ sớm nhất đến muộn nhất
+          const comingSorted = coming.sort((a: any, b: any) => 
+            new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
+          );
+          
+          setShowingMovies(showingSorted.length > 0 ? showingSorted : data.slice(0, Math.ceil(data.length / 2)));
+          setComingMovies(comingSorted.length > 0 ? comingSorted : data.slice(Math.ceil(data.length / 2)));
         } else {
           setMovies([]);
           setShowingMovies([]);
@@ -221,6 +231,7 @@ export default function Home() {
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
                   Mua vé ngay
                 </Link>
+
 
                 <Link
                   href={`/movies/${heroMovie.id}`}

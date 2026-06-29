@@ -120,7 +120,7 @@ export default function MovieDetail() {
                     
                     <div className="movie-actions">
                         {movie.trailer && (
-                            <a href={movie.trailer} target="_blank" rel="noreferrer" className="btn btn-outline" style={{ borderColor: '#ff4d4f', color: '#ff4d4f', padding: '10px 20px', borderRadius: '5px', textDecoration: 'none', display: 'inline-block' }}>Xem trailer</a>
+                            <Link href={`/trailer/${movie.id}`} target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ borderColor: '#ff4d4f', color: '#ff4d4f', padding: '10px 20px', borderRadius: '5px', textDecoration: 'none', display: 'inline-block' }}>Xem trailer</Link>
                         )}
                     </div>
                 </div>

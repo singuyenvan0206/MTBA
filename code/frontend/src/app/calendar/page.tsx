@@ -19,6 +19,7 @@ type Movie = {
   language: string;
   posterUrl: string;
   trailerUrl: string;
+  trailer?: string;
   ageLimit?: string;
 };
 
@@ -46,6 +47,15 @@ export default function Calendar() {
     const isMatchingType = type === MOVIE_TABS.SHOWING ? new Date(movie.releaseDate) <= new Date() : new Date(movie.releaseDate) > new Date();
     const isMatchingSearch = movie.title.toLowerCase().includes(search.toLowerCase());
     return isMatchingType && isMatchingSearch;
+  }).sort((a, b) => {
+    // Sắp xếp theo ngày chiếu
+    if (type === MOVIE_TABS.SHOWING) {
+      // Phim đang chiếu: từ mới nhất đến cũ nhất
+      return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
+    } else {
+      // Phim sắp chiếu: từ sớm nhất đến muộn nhất
+      return new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime();
+    }
   });
 
   return (
