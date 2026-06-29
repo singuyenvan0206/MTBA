@@ -61,6 +61,16 @@ export default function MovieDetail() {
 
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTheater, setSelectedTheater] = useState<string>('All');
+  const [selectedScreen, setSelectedScreen] = useState<string>('All');
+
+  const availableScreens = Array.from(new Set(showtimes.filter(st => {
+    if (selectedTheater !== 'All' && (st.screen?.theater?.name || 'Rạp khác') !== selectedTheater) return false;
+    return true;
+  }).map(st => st.screen?.name || 'Phòng khác'))).sort();
+
+  useEffect(() => {
+    setSelectedScreen('All');
+  }, [selectedTheater]);
 
   useEffect(() => {
     if (availableDates.length > 0 && !selectedDate) {
@@ -82,6 +92,7 @@ export default function MovieDetail() {
     
     if (selectedDate && dateStr !== selectedDate) return false;
     if (selectedTheater !== 'All' && (st.screen?.theater?.name || 'Rạp khác') !== selectedTheater) return false;
+    if (selectedScreen !== 'All' && (st.screen?.name || 'Phòng khác') !== selectedScreen) return false;
     return true;
   });
 
@@ -137,27 +148,54 @@ export default function MovieDetail() {
                 <>
                   {/* Bộ lọc Ngày và Rạp */}
                   <div style={{ marginBottom: '30px' }}>
-                    <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '15px' }}>
-                      {availableDates.map(date => (
-                        <button key={date} onClick={() => setSelectedDate(date)} style={{ padding: '10px 20px', borderRadius: '8px', minWidth: '100px', border: selectedDate === date ? '2px solid #ff4d4f' : '1px solid var(--card-border)', backgroundColor: selectedDate === date ? 'rgba(255, 77, 79, 0.1)' : 'var(--card-bg)', color: selectedDate === date ? '#ff4d4f' : 'var(--text-color)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
-                          <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '5px' }}>{new Date(date).toLocaleDateString('vi-VN', { month: '2-digit', day: '2-digit' })}</div>
-                          <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{getDayName(date)}</div>
-                        </button>
-                      ))}
+                    <div className="date-selector" style={{ overflowX: 'auto', paddingBottom: '15px' }}>
+                      {availableDates.map(date => {
+                        const d = new Date(date);
+                        const dayName = getDayName(date);
+                        const isSelected = date === selectedDate;
+                        return (
+                          <button 
+                            key={date} 
+                            className={`date-btn ${isSelected ? 'active' : ''}`} 
+                            onClick={() => setSelectedDate(date)}
+                            style={{ border: isSelected ? '1px solid #ff4d4f' : '1px solid #333' }}
+                          >
+                            <span className="day">{dayName}</span>
+                            <span className="date">{d.getDate()}</span>
+                            <span className="month">Tháng {d.getMonth() + 1}</span>
+                          </button>
+                        );
+                      })}
                     </div>
 
-                    <div style={{ marginTop: '15px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                      <span style={{ fontWeight: 'bold', color: '#888' }}>Chọn Cụm Rạp:</span>
-                      <select 
-                        value={selectedTheater} 
-                        onChange={(e) => setSelectedTheater(e.target.value)}
-                        style={{ padding: '10px 15px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', outline: 'none' }}
-                      >
-                        <option value="All">Tất cả rạp</option>
-                        {availableTheaters.map(t => (
-                          <option key={t} value={t}>{t}</option>
-                        ))}
-                      </select>
+                    <div style={{ marginTop: '15px', display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontWeight: 'bold', color: '#888' }}>Chọn Cụm Rạp:</span>
+                        <select 
+                          value={selectedTheater} 
+                          onChange={(e) => setSelectedTheater(e.target.value)}
+                          style={{ padding: '10px 15px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', outline: 'none' }}
+                        >
+                          <option value="All">Tất cả rạp</option>
+                          {availableTheaters.map(t => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontWeight: 'bold', color: '#888' }}>Chọn Phòng Chiếu:</span>
+                        <select 
+                          value={selectedScreen} 
+                          onChange={(e) => setSelectedScreen(e.target.value)}
+                          style={{ padding: '10px 15px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', outline: 'none' }}
+                        >
+                          <option value="All">Tất cả phòng</option>
+                          {availableScreens.map(s => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
 
@@ -179,9 +217,8 @@ export default function MovieDetail() {
                                     {(theaterShowtimes as any[]).map(showtime => {
                                         const time = new Date(showtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                                         return (
-                                            <Link href={`/booking/${showtime.id}`} key={showtime.id} style={{ display: 'block', padding: '10px 20px', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid #444', borderRadius: '5px', textDecoration: 'none', color: 'var(--text-color)', textAlign: 'center', transition: 'all 0.2s' }} className="hover-scale">
+                                            <Link href={`/booking/${showtime.id}`} key={showtime.id} style={{ display: 'block', padding: '10px 20px', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid #444', borderRadius: '30px', textDecoration: 'none', color: 'var(--text-color)', textAlign: 'center', transition: 'all 0.2s' }} className="hover-scale">
                                                 <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{time}</div>
-                                                <div style={{ fontSize: '12px', color: '#888', marginTop: '5px' }}>Phòng {showtime.screen?.name}</div>
                                             </Link>
                                         );
                                     })}

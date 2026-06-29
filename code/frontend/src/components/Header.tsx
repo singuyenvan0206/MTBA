@@ -24,7 +24,7 @@ export default function Header() {
         <div className="container nav-container">
             <div className="logo">
                 <Link href="/">
-                    <img src="https://placehold.co/100x40/ff4d4f/FFF?text=LOGO" alt="Logo" />
+                    <img src="/chatgpt_logo.png" alt="Logo" style={{ height: '40px', objectFit: 'contain' }} />
                 </Link>
             </div>
             <nav className="nav-links">

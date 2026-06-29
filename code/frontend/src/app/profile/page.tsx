@@ -236,7 +236,7 @@ export default function Profile() {
                     <img 
                       src={formData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName)}&background=ff4d4f&color=fff`} 
                       alt="Avatar" 
-                      style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--primary-color)', marginBottom: '15px', boxShadow: '0 0 15px rgba(255, 77, 79, 0.3)' }} 
+                      style={{ display: 'block', margin: '0 auto 15px auto', width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--primary-color)', boxShadow: '0 0 15px rgba(255, 77, 79, 0.3)' }} 
                     />
                     <h2>{formData.fullName}</h2>
                     <p style={{ color: '#aaa' }}>{user.email}</p>

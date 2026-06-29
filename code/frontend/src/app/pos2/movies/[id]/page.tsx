@@ -299,18 +299,27 @@ export default function MovieDetail() {
             
             <p className="age-warning">Lưu ý: Khán giả dưới 13 tuổi chỉ chọn suất chiếu kết thúc trước 22h và khán giả dưới 16 tuổi chỉ chọn suất chiếu kết thúc trước 23h.</p>
             
-            <div className="time-slots" id="dynamic-time-slots">
+            <div className="time-slots" id="dynamic-time-slots" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                 {showtimesForDate.map(showtime => {
                     const time = new Date(showtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                     const isSelected = selectedShowtime?.id === showtime.id;
                     return (
                         <button 
                             key={showtime.id} 
-                            className="time-btn" 
-                            style={isSelected ? { borderColor: '#ff4d4f', color: '#ff4d4f' } : {}}
+                            className={`time-btn ${isSelected ? 'active' : ''}`} 
+                            style={{ 
+                                padding: '10px 20px', 
+                                backgroundColor: isSelected ? 'rgba(255,77,79,0.1)' : 'rgba(255,255,255,0.05)', 
+                                border: `1px solid ${isSelected ? '#ff4d4f' : '#444'}`, 
+                                borderRadius: '30px', 
+                                color: isSelected ? '#ff4d4f' : 'var(--text-color)', 
+                                textAlign: 'center', 
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
                             onClick={() => handleSelectShowtime(showtime)}
                         >
-                            {time}
+                            <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{time}</div>
                         </button>
                     );
                 })}

@@ -29,7 +29,7 @@ export default function Pos2Layout({ children }: { children: React.ReactNode }) 
       <header className="navbar">
           <div className="container nav-container">
               <div className="logo">
-                  <Link href={APP_ROUTES.POS}><img src="https://placehold.co/100x40/ff4d4f/FFF?text=LOGO" alt="Logo" /></Link>
+                  <Link href={APP_ROUTES.POS}><img src="/chatgpt_logo.png" alt="Logo" style={{ height: '40px', objectFit: 'contain' }} /></Link>
               </div>
               <nav className="nav-links">
                   <Link href={APP_ROUTES.POS} className={pathname === APP_ROUTES.POS ? 'active' : ''} style={pathname === APP_ROUTES.POS ? { color: 'var(--primary-color)' } : {}}>Trang chủ</Link>
