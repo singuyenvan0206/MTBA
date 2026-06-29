@@ -61,7 +61,7 @@ export default function TrailerPage() {
     <main className="main-content">
       <div className="container mt-40" style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
         <Link 
-          href={`/movies/${movieId}`}
+          href="/"
           style={{ 
             display: 'inline-block', 
             marginBottom: '20px', 
@@ -71,7 +71,7 @@ export default function TrailerPage() {
             fontWeight: '500'
           }}
         >
-          ← Quay lại chi tiết phim
+          ← Quay về trang chủ
         </Link>
 
         <h1 style={{ 
