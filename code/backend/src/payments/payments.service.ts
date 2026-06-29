@@ -71,8 +71,7 @@ export class PaymentsService {
       return { isPaid: true };
     }
 
-    // 2. Phương án dự phòng (Active Polling): Gọi trực tiếp API SePay để đối soát giao dịch mới nhất.
-    // Điều này giúp hệ thống hoạt động tốt trên môi trường localhost mà không bắt buộc có ngrok.
+    // 2. Gọi trực tiếp API SePay để đối soát giao dịch mới nhất.
     let apiToken = process.env.SEPAY_API_TOKEN;
     if (!apiToken || apiToken === 'your-sepay-api-access-token') {
       apiToken = process.env.SEPAY_API_KEY;
