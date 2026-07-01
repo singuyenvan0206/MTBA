@@ -1,4 +1,5 @@
 'use client';
+import { APP_ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -10,15 +11,17 @@ export default function Footer() {
     <footer className="footer">
         <div className="container footer-content">
             <div className="footer-col">
-                <img src="https://placehold.co/100x40/ffffff/111111?text=LOGO" alt="Logo" />
+                <Link href="/">
+                    <img src="/chatgpt_logo.png" alt="Logo" style={{ height: '40px', objectFit: 'contain' }} />
+                </Link>
                 <p>Cơ quan chủ quản: BỘ VĂN HÓA, THỂ THAO VÀ DU LỊCH</p>
                 <p>Bản quyền thuộc Trung tâm Chiếu phim Quốc gia.</p>
             </div>
             <div className="footer-col">
                 <h4>Chính sách</h4>
-                <a href="#">Điều khoản sử dụng</a>
-                <a href="#">Chính sách bảo mật</a>
-                <a href="#">Quy định vé</a>
+                <Link href={APP_ROUTES.TERMS}>Điều khoản sử dụng</Link>
+                <Link href={APP_ROUTES.PRIVACY}>Chính sách bảo mật</Link>
+                <Link href={APP_ROUTES.TICKET_POLICY}>Quy định vé</Link>
             </div>
             <div className="footer-col">
                 <h4>Kết nối</h4>

@@ -32,5 +32,9 @@ export const APP_ROUTES = {
   POS_FESTIVALS: '/pos/festivals',
   FORGOT_PASSWORD: '/forgot-password',
   PAYMENT: '/payment',
-  BOOKING: '/booking'
+  BOOKING: '/booking',
+  TERMS: '/terms',
+  PRIVACY: '/privacy',
+  TICKET_POLICY: '/ticket-policy'
 };
+
