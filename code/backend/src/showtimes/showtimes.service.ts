@@ -11,7 +11,7 @@ export class ShowtimesService {
       return await this.prisma.showtime.findMany({ 
         where: whereClause,
         orderBy: { id: 'desc' },
-        include: { screen: { include: { theater: true } }, movie: true }
+        include: { screen: { include: { theater: true, roomtype: true } }, movie: true }
       });
     } catch(e) { return []; }
   }
@@ -20,7 +20,7 @@ export class ShowtimesService {
     try {
       return await this.prisma.showtime.findUnique({ 
         where: { id },
-        include: { screen: { include: { seat: true, theater: true } }, movie: true }
+        include: { screen: { include: { seat: true, theater: true, roomtype: true } }, movie: true }
       });
     } catch(e) { return null; }
   }

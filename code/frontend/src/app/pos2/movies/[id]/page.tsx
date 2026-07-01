@@ -181,10 +181,6 @@ export default function MovieDetail() {
       let price = 0;
       if (priceConfig) {
         price = priceConfig.price;
-      } else {
-        if (seatType === SeatType.STANDARD) price = 80000;
-        else if (seatType === SeatType.VIP) price = 100000;
-        else if (seatType === SeatType.SWEETBOX) price = 150000;
       }
       total += price;
     });
@@ -228,8 +224,7 @@ export default function MovieDetail() {
     }
   };
 
-  if (loading) return <div className="text-center py-20 text-[color:var(--text-secondary)]">Đang tải thông tin phim...</div>;
-  if (!movie) return <div className="text-center py-20 text-[color:var(--text-secondary)]">Không tìm thấy phim.</div>;
+  if (loading || !movie) return <div className="text-center py-20 text-[color:var(--text-secondary)]">{loading ? 'Đang tải thông tin phim...' : 'Không tìm thấy phim.'}</div>;
 
   const showtimesForDate = showtimes.filter(st => {
     const d = new Date(st.start_time);
@@ -269,11 +264,11 @@ export default function MovieDetail() {
             </div>
 
             <p className="movie-synopsis">
-              {movie.description || 'Chưa có thông tin mô tả cho bộ phim này.'}
+              {movie.description}
             </p>
 
             <p className="movie-warning">
-              Kiểm duyệt: {movie.ageLimit || AGE_LIMITS.P} - {movie.ageLimitDescription || (movie.ageLimit === AGE_LIMITS.P ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.ageLimit === AGE_LIMITS.K ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.ageLimit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)}
+              Kiểm duyệt: {movie.ageLimit} - {movie.ageLimitDescription}
             </p>
 
             <div className="movie-actions">
@@ -321,7 +316,7 @@ export default function MovieDetail() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
           {Object.entries(
             showtimesForDate.reduce((acc, st) => {
-              const rName = `${st.screen?.name || 'Phòng chiếu'} (${st.screen?.roomtype?.name || '2D'})`;
+              const rName = `${st.screen?.name} (${st.screen?.roomtype?.name})`;
               if (!acc[rName]) acc[rName] = [];
               acc[rName].push(st);
               return acc;
