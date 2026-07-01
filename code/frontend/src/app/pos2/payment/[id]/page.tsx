@@ -467,7 +467,7 @@ export default function PosPayment() {
                                 onChange={(e) => setSearchPhone(e.target.value)}
                                 style={{ flex: 1, padding: '10px', borderRadius: '5px', border: '1px solid #444', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)' }} 
                             />
-                            <button onClick={handleSearchCustomer} className="btn btn-outline" style={{ whiteSpace: 'nowrap', borderColor: '#ff4d4f', color: '#ff4d4f' }}>Tìm khách</button>
+                            <button onClick={handleSearchCustomer} className="btn btn-outline" style={{ whiteSpace: 'nowrap', borderColor: '#ff4d4f', color: '#ff4d4f' }}>{UI_MESSAGES.SEARCH_CUSTOMER}</button>
                         </div>
                         {customer && (
                             <p id="pos-user-result" style={{ color: '#28a745', fontSize: '14px', marginTop: '10px' }}>
@@ -477,29 +477,29 @@ export default function PosPayment() {
 
                         <div className="input-group" style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
                             <input type="text" id="pos-voucher" placeholder="Nhập mã Voucher..." className="form-control" style={{ flex: 1, padding: '10px', borderRadius: '5px', border: '1px solid #444', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)' }} />
-                            <button className="btn btn-outline" style={{ whiteSpace: 'nowrap', borderColor: '#ff4d4f', color: '#ff4d4f' }}>Áp dụng</button>
+                            <button className="btn btn-outline" style={{ whiteSpace: 'nowrap', borderColor: '#ff4d4f', color: '#ff4d4f' }}>{UI_MESSAGES.APPLY_VOUCHER}</button>
                         </div>
                         <p id="pos-voucher-result" style={{ color: '#28a745', fontSize: '14px', marginTop: '10px' }}></p>
 
                     </div>
 
                     <div className="payment-card mt-40" style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '8px', marginTop: '30px' }}>
-                        <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '20px' }}>Phương thức thanh toán</h3>
+                        <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '20px' }}>{UI_MESSAGES.PAYMENT_METHODS}</h3>
                         <div className="payment-methods" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <label className={`method-option ${paymentMethod === PAYMENT_METHODS.CASH ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === PAYMENT_METHODS.CASH ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
                                 <input type="radio" name="payment_method" value={PAYMENT_METHODS.CASH} checked={paymentMethod === PAYMENT_METHODS.CASH} onChange={(e) => { setPaymentMethod(e.target.value as PaymentMethod); pushState({ paymentMethod: e.target.value }); }} style={{ display: 'none' }} />
                                 <img src="https://placehold.co/40x20/28a745/FFF?text=Cash" alt="Cash" />
-                                <span>Tiền mặt</span>
+                                <span>{UI_MESSAGES.CASH}</span>
                             </label>
                             <label className={`method-option ${paymentMethod === PAYMENT_METHODS.CARD ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === PAYMENT_METHODS.CARD ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
                                 <input type="radio" name="payment_method" value={PAYMENT_METHODS.CARD} checked={paymentMethod === PAYMENT_METHODS.CARD} onChange={(e) => { setPaymentMethod(e.target.value as PaymentMethod); pushState({ paymentMethod: e.target.value }); }} style={{ display: 'none' }} />
                                 <img src="https://placehold.co/40x20/ffc107/000?text=Card" alt="Card" />
-                                <span>Quẹt thẻ POS / Chuyển khoản</span>
+                                <span>{UI_MESSAGES.CARD_TRANSFER}</span>
                             </label>
                             <label className={`method-option ${paymentMethod === PAYMENT_METHODS.EWALLET ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: '1px solid', borderColor: paymentMethod === PAYMENT_METHODS.EWALLET ? '#ff4d4f' : '#333', borderRadius: '5px', cursor: 'pointer' }}>
                                 <input type="radio" name="payment_method" value={PAYMENT_METHODS.EWALLET} checked={paymentMethod === PAYMENT_METHODS.EWALLET} onChange={(e) => { setPaymentMethod(e.target.value as PaymentMethod); pushState({ paymentMethod: e.target.value }); }} style={{ display: 'none' }} />
                                 <img src="https://placehold.co/40x20/17a2b8/FFF?text=Wallet" alt="EWallet" />
-                                <span>Ví thanh toán (MoMo / ZaloPay)</span>
+                                <span>{UI_MESSAGES.E_WALLET}</span>
                             </label>
                         </div>
                     </div>
@@ -508,15 +508,15 @@ export default function PosPayment() {
                         <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '20px' }}>Chi phí</h3>
                         <div className="cost-summary">
                             <div className="cost-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                                <span>Thành tiền</span>
+                                <span>{UI_MESSAGES.TOTAL_COST}</span>
                                 <span id="summary-total">{booking.total_price_movie?.toLocaleString('vi-VN')}đ</span>
                             </div>
                             <div className="cost-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                                <span>Ưu đãi đối tượng</span>
+                                <span>{UI_MESSAGES.DISCOUNT}</span>
                                 <span style={{ color: '#28a745' }}>-{discountAmount.toLocaleString('vi-VN')}đ</span>
                             </div>
                             <div className="cost-row total" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '15px', borderTop: '1px dashed #444', fontWeight: 'bold', fontSize: '18px', color: '#ff4d4f' }}>
-                                <span>Tổng cộng</span>
+                                <span>{UI_MESSAGES.FINAL_TOTAL}</span>
                                 <span id="final-total">{finalTotal.toLocaleString('vi-VN')}đ</span>
                             </div>
                         </div>
@@ -528,20 +528,20 @@ export default function PosPayment() {
                                     onClick={handlePushQR} 
                                     style={{ width: '100%', padding: '15px', fontSize: '16px', fontWeight: 'bold', marginBottom: '15px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '5px' }}
                                 >
-                                    ĐẨY MÃ QR SANG MÀN HÌNH KHÁCH
+                                    {UI_MESSAGES.PUSH_QR}
                                 </button>
                             )}
-                            <button className="btn btn-primary w-100" id="btn-pay" onClick={handlePayment} style={{ width: '100%', padding: '15px', fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>Thanh toán ngay</button>
+                            <button className="btn btn-primary w-100" id="btn-pay" onClick={handlePayment} style={{ width: '100%', padding: '15px', fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>{UI_MESSAGES.PAY_NOW}</button>
                             <button 
                                 onClick={handleCancelBooking} 
                                 className="back-link" 
                                 style={{ display: 'block', width: '100%', textAlign: 'center', color: '#888', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', marginTop: '10px' }}
                             >
-                                Hủy đặt vé & Quay lại
+                                {UI_MESSAGES.CANCEL_AND_BACK}
                             </button>
                         </div>
                         
-                        <p className="age-warning mt-40" style={{ fontSize: '12px', marginBottom: 0, marginTop: '20px', color: '#f0a500' }}>Lưu ý: Khán giả dưới 13 tuổi chỉ chọn suất chiếu kết thúc trước 22h và khán giả dưới 16 tuổi chỉ chọn suất chiếu kết thúc trước 23h.</p>
+                        <p className="age-warning mt-40" style={{ fontSize: '12px', marginBottom: 0, marginTop: '20px', color: '#f0a500' }}>{UI_MESSAGES.AGE_WARNING}</p>
                     </div>
             </div>
         </div>

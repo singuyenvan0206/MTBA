@@ -1,5 +1,6 @@
 "use client";
 import { DISCOUNT_CODES, AGE_LIMITS, MOVIE_STATUS, USER_STATUS } from '@/constants/enums';
+import { UI_MESSAGES } from '@/constants/messages';
 
 
 import { useEffect, useState } from 'react';
@@ -199,7 +200,7 @@ export default function Home() {
                   maxWidth: '520px',
                 }}
               >
-                {heroMovie.description || 'Xem ngay bộ phim đang được yêu thích nhất tại rạp!'}
+                {heroMovie.description || UI_MESSAGES.WATCH_HOT_MOVIE}
               </p>
 
               <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -224,7 +225,7 @@ export default function Home() {
                   onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-                  Mua vé ngay
+                  {UI_MESSAGES.BUY_TICKET_NOW}
                 </Link>
 
                 <Link
@@ -249,7 +250,7 @@ export default function Home() {
                   onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                  Chi tiết
+                  {UI_MESSAGES.DETAIL}
                 </Link>
               </div>
 
@@ -334,7 +335,7 @@ export default function Home() {
                     {m.title}
                   </p>
                   <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '11px', margin: '3px 0 0' }}>
-                    {m.genre || 'Đang chiếu'}
+                    {m.genre || UI_MESSAGES.NOW_SHOWING}
                   </p>
                 </div>
               </div>
@@ -347,7 +348,7 @@ export default function Home() {
             <input 
                 type="text" 
                 className="search-input"
-                placeholder="Tìm kiếm nhanh tên phim..." 
+                placeholder={UI_MESSAGES.SEARCH_MOVIE} 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -364,7 +365,7 @@ export default function Home() {
                             </Link>
                         ))
                     ) : (
-                        <div style={{ padding: '15px', textAlign: 'center', color: 'var(--text-secondary)' }}>Không tìm thấy phim phù hợp</div>
+                        <div style={{ padding: '15px', textAlign: 'center', color: 'var(--text-secondary)' }}>{UI_MESSAGES.MOVIE_NOT_MATCH}</div>
                     )}
                 </div>
             )}
@@ -374,12 +375,12 @@ export default function Home() {
             <div className="left-column">
                 <section className="movie-section">
                     <div className="section-header">
-                        <h2><span className="dot"></span> Phim đang chiếu</h2>
-                        <Link href={`${APP_ROUTES.POS}/calendar`} className="view-all">Xem tất cả</Link>
+                        <h2><span className="dot"></span> {UI_MESSAGES.NOW_SHOWING_MOVIES}</h2>
+                        <Link href={`${APP_ROUTES.POS}/calendar`} className="view-all">{UI_MESSAGES.VIEW_ALL}</Link>
                     </div>
                     <div className="movie-grid">
                         {loading ? (
-                            <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>Đang tải danh sách phim...</p>
+                            <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>{UI_MESSAGES.LOADING_MOVIE_LIST}</p>
                         ) : showingMovies.length > 0 ? (
                             showingMovies.slice(showingPage * PAGE_SIZE, (showingPage + 1) * PAGE_SIZE).map((movie) => (
                                 <div className="movie-card" key={movie.id} onClick={() => window.location.href = `/pos/movies/${movie.id}`}>
@@ -387,8 +388,8 @@ export default function Home() {
                                         <img src={movie.posterUrl || 'https://placehold.co/300x450'} alt={movie.title} />
                                         <div className="age-rating">{movie.ageLimit || AGE_LIMITS.P}</div>
                                         <div className="movie-overlay">
-                                            <Link href={`/pos/movies/${movie.id}`} className="btn btn-primary" style={{ marginBottom: '10px', width: '80%', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>Mua vé</Link>
-                                            <Link href={`/pos/movies/${movie.id}`} className="btn btn-outline" style={{ width: '80%', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>Chi tiết</Link>
+                                            <Link href={`/pos/movies/${movie.id}`} className="btn btn-primary" style={{ marginBottom: '10px', width: '80%', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>{UI_MESSAGES.BUY_TICKET}</Link>
+                                            <Link href={`/pos/movies/${movie.id}`} className="btn btn-outline" style={{ width: '80%', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>{UI_MESSAGES.DETAIL}</Link>
                                         </div>
                                     </div>
                                     <div className="movie-info">
@@ -398,7 +399,7 @@ export default function Home() {
                                 </div>
                             ))
                         ) : (
-                            <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>Không có phim đang chiếu.</p>
+                            <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>{UI_MESSAGES.NO_NOW_SHOWING_MOVIES}</p>
                         )}
                     </div>
                     {/* Pagination - Phim đang chiếu */}
@@ -413,7 +414,7 @@ export default function Home() {
                             color: showingPage === 0 ? '#555' : '#fff', cursor: showingPage === 0 ? 'not-allowed' : 'pointer',
                             fontWeight: 600, fontSize: '14px', transition: 'all 0.2s',
                           }}
-                        >&#8592; Trước</button>
+                        >&#8592; {UI_MESSAGES.PREV}</button>
                         {Array.from({ length: Math.ceil(showingMovies.length / PAGE_SIZE) }, (_, i) => (
                           <button
                             key={i}
@@ -437,19 +438,19 @@ export default function Home() {
                             cursor: showingPage >= Math.ceil(showingMovies.length / PAGE_SIZE) - 1 ? 'not-allowed' : 'pointer',
                             fontWeight: 600, fontSize: '14px', transition: 'all 0.2s',
                           }}
-                        >Tiếp &#8594;</button>
+                        >{UI_MESSAGES.NEXT} &#8594;</button>
                       </div>
                     )}
                 </section>
 
                 <section className="movie-section mt-40">
                     <div className="section-header">
-                        <h2><span className="dot"></span> Phim sắp chiếu</h2>
-                        <Link href={`${APP_ROUTES.POS}/calendar`} className="view-all">Xem tất cả</Link>
+                        <h2><span className="dot"></span> {UI_MESSAGES.COMING_SOON_MOVIES}</h2>
+                        <Link href={`${APP_ROUTES.POS}/calendar`} className="view-all">{UI_MESSAGES.VIEW_ALL}</Link>
                     </div>
                     <div className="movie-grid">
                         {loading ? (
-                            <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>Đang tải danh sách phim...</p>
+                            <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>{UI_MESSAGES.LOADING_MOVIE_LIST}</p>
                         ) : comingMovies.length > 0 ? (
                             comingMovies.slice(comingPage * PAGE_SIZE, (comingPage + 1) * PAGE_SIZE).map((movie) => (
                                 <div className="movie-card" key={movie.id} onClick={() => window.location.href = `/pos/movies/${movie.id}`}>
@@ -457,8 +458,8 @@ export default function Home() {
                                         <img src={movie.posterUrl || 'https://placehold.co/300x450'} alt={movie.title} />
                                         <div className="age-rating">{movie.ageLimit || AGE_LIMITS.P}</div>
                                         <div className="movie-overlay">
-                                            <Link href={`/pos/movies/${movie.id}`} className="btn btn-primary" style={{ marginBottom: '10px', width: '80%', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>Mua vé</Link>
-                                            <Link href={`/pos/movies/${movie.id}`} className="btn btn-outline" style={{ width: '80%', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>Chi tiết</Link>
+                                            <Link href={`/pos/movies/${movie.id}`} className="btn btn-primary" style={{ marginBottom: '10px', width: '80%', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>{UI_MESSAGES.BUY_TICKET}</Link>
+                                            <Link href={`/pos/movies/${movie.id}`} className="btn btn-outline" style={{ width: '80%', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>{UI_MESSAGES.DETAIL}</Link>
                                         </div>
                                     </div>
                                     <div className="movie-info">
@@ -468,7 +469,7 @@ export default function Home() {
                                 </div>
                             ))
                         ) : (
-                            <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>Không có phim sắp chiếu.</p>
+                            <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888' }}>{UI_MESSAGES.NO_COMING_SOON_MOVIES}</p>
                         )}
                     </div>
                     {/* Pagination - Phim sắp chiếu */}
@@ -483,7 +484,7 @@ export default function Home() {
                             color: comingPage === 0 ? '#555' : '#fff', cursor: comingPage === 0 ? 'not-allowed' : 'pointer',
                             fontWeight: 600, fontSize: '14px', transition: 'all 0.2s',
                           }}
-                        >&#8592; Trước</button>
+                        >&#8592; {UI_MESSAGES.PREV}</button>
                         {Array.from({ length: Math.ceil(comingMovies.length / PAGE_SIZE) }, (_, i) => (
                           <button
                             key={i}
@@ -507,7 +508,7 @@ export default function Home() {
                             cursor: comingPage >= Math.ceil(comingMovies.length / PAGE_SIZE) - 1 ? 'not-allowed' : 'pointer',
                             fontWeight: 600, fontSize: '14px', transition: 'all 0.2s',
                           }}
-                        >Tiếp &#8594;</button>
+                        >{UI_MESSAGES.NEXT} &#8594;</button>
                       </div>
                     )}
                 </section>
@@ -516,8 +517,8 @@ export default function Home() {
             <div className="right-column">
                 <section className="promo-section">
                     <div className="section-header">
-                        <h2>Khuyến mãi</h2>
-                        <Link href={`${APP_ROUTES.POS}/promotions`} className="view-all">Xem tất cả</Link>
+                        <h2>{UI_MESSAGES.PROMOTIONS}</h2>
+                        <Link href={`${APP_ROUTES.POS}/promotions`} className="view-all">{UI_MESSAGES.VIEW_ALL}</Link>
                     </div>
                     <div className="promo-list">
                         <div className="promo-item" onClick={() => window.location.href = '/pos/promotions'}>
@@ -529,8 +530,8 @@ export default function Home() {
 
                 <section className="event-section mt-40">
                     <div className="section-header">
-                        <h2>Sự kiện</h2>
-                        <Link href={`${APP_ROUTES.POS}/news`} className="view-all">Xem tất cả</Link>
+                        <h2>{UI_MESSAGES.EVENTS}</h2>
+                        <Link href={`${APP_ROUTES.POS}/news`} className="view-all">{UI_MESSAGES.VIEW_ALL}</Link>
                     </div>
                     <div className="promo-list">
                         <div className="promo-item" onClick={() => window.location.href = '/pos/news'}>
@@ -543,9 +544,9 @@ export default function Home() {
                 <section className="ads-section mt-40">
                     <div className="lhp-card" onClick={() => window.location.href = `${APP_ROUTES.POS}/festivals`} style={{ cursor: 'pointer' }}>
                         <div className="lhp-content">
-                            <h3>Liên Hoan Phim<br/>Quốc Tế 2026</h3>
-                            <p>Sự kiện quy tụ những kiệt tác điện ảnh xuất sắc nhất cùng dàn sao đình đám. Đừng bỏ lỡ!</p>
-                            <Link href={`${APP_ROUTES.POS}/festivals`} className="btn btn-outline" style={{ borderColor: 'white', color: 'var(--text-color)' }}>Khám phá ngay</Link>
+                            <h3>{UI_MESSAGES.FESTIVAL_TITLE}</h3>
+                            <p>{UI_MESSAGES.FESTIVAL_DESC}</p>
+                            <Link href={`${APP_ROUTES.POS}/festivals`} className="btn btn-outline" style={{ borderColor: 'white', color: 'var(--text-color)' }}>{UI_MESSAGES.EXPLORE_NOW}</Link>
                         </div>
                     </div>
                 </section>

@@ -3,7 +3,7 @@
     --bg-secondary: #1a1c22;
     --bg-card: #141414;
     --bg-input: #111111;
-    --border-color: rgba(255,255,255,0.08);
+    --border-color: rgba(255, 255, 255, 0.08);
     --border-strong: #333333;
     --text-color: #ffffff;
     --text-secondary: #aaaaaa;
@@ -12,7 +12,7 @@
     --hover-color: #d9363e;
     --nav-bg: #1a1c22;
     --section-header-border: #2a2a2a;
-    --overlay-bg: rgba(0,0,0,0.75);
+    --overlay-bg: rgba(0, 0, 0, 0.75);
 }
 
 
@@ -236,7 +236,7 @@ a {
     border-radius: 12px;
     overflow: hidden;
     background: #141414;
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     min-width: 0;
     display: flex;
@@ -245,8 +245,8 @@ a {
 
 .movie-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,77,79,0.35);
-    border-color: rgba(255,77,79,0.4);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 77, 79, 0.35);
+    border-color: rgba(255, 77, 79, 0.4);
 }
 
 /* Poster wrapper */
@@ -285,7 +285,7 @@ a {
     border-radius: 4px;
     z-index: 3;
     letter-spacing: 0.03em;
-    box-shadow: 0 2px 6px rgba(255,77,79,0.5);
+    box-shadow: 0 2px 6px rgba(255, 77, 79, 0.5);
 }
 
 /* Gradient overlay luôn hiện nhẹ ở đáy — tăng khi hover */
@@ -296,7 +296,7 @@ a {
     width: 100%;
     /* chỉ chiếm phần dưới */
     height: 55%;
-    background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 50%, transparent 100%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.55) 50%, transparent 100%);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -328,7 +328,7 @@ a {
 .movie-overlay .btn-primary {
     background: var(--primary-color);
     border-color: var(--primary-color);
-    box-shadow: 0 4px 12px rgba(255,77,79,0.4);
+    box-shadow: 0 4px 12px rgba(255, 77, 79, 0.4);
 }
 
 .movie-overlay .btn-primary:hover {
@@ -337,15 +337,15 @@ a {
 }
 
 .movie-overlay .btn-outline {
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.35);
     color: #fff;
     backdrop-filter: blur(4px);
 }
 
 .movie-overlay .btn-outline:hover {
-    background: rgba(255,255,255,0.22);
-    border-color: rgba(255,255,255,0.6);
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.6);
 }
 
 /* Info section bên dưới poster */
@@ -1532,22 +1532,27 @@ a {
     font-size: 24px;
     font-weight: bold;
     padding: 0;
-}/* TABLET */
+}
+
+/* TABLET */
 @media screen and (max-width: 992px) {
     .movie-banner-content {
         gap: 20px;
     }
+
     .movie-banner-content .movie-poster {
         flex: 0 0 250px;
     }
+
     .movie-info h1 {
         font-size: 28px;
     }
 
     .nav-links {
-        display: none; /* Ẩn menu trên tablet/mobile */
+        display: none;
+        /* Ẩn menu trên tablet/mobile */
     }
-    
+
     .nav-auth {
         display: none;
     }
@@ -1567,21 +1572,26 @@ a {
         flex-direction: column;
         align-items: center;
     }
+
     .movie-banner-content .movie-poster {
         flex: 0 0 auto;
         width: 250px;
         margin-bottom: 20px;
     }
+
     .movie-info {
         text-align: center;
     }
+
     .movie-info h1 {
         justify-content: center;
         flex-wrap: wrap;
     }
+
     .movie-actions {
         justify-content: center;
     }
+
     .date-selector {
         flex-wrap: wrap;
         justify-content: center;
@@ -1593,15 +1603,18 @@ a {
         gap: 15px;
         align-items: flex-start;
     }
+
     .booking-summary {
         flex-direction: column;
         gap: 20px;
         align-items: flex-start;
     }
+
     .summary-actions {
         width: 100%;
         justify-content: space-between;
     }
+
     .summary-actions .btn {
         flex: 1;
         text-align: center;
@@ -1615,7 +1628,7 @@ a {
         flex-direction: column;
         align-items: center !important;
     }
-    
+
     .auth-card {
         max-width: 100% !important;
         width: 100%;
@@ -1632,6 +1645,7 @@ a {
     .payment-layout {
         gap: 30px;
     }
+
     .payment-card {
         padding: 20px;
     }
@@ -1650,6 +1664,7 @@ a {
     .movie-banner-content .movie-poster {
         width: 200px;
     }
+
     .time-btn {
         padding: 10px 20px;
         font-size: 14px;
@@ -1669,35 +1684,43 @@ a {
     .showtime-card {
         flex-direction: row;
     }
+
     .showtime-poster {
         width: 130px;
     }
+
     .showtime-info {
         padding: 15px;
     }
+
     .movie-title {
         font-size: 16px;
     }
+
     .movie-desc {
-        display: none; /* Giấu bớt dòng cảnh báo dài trên mobile cho gọn */
+        display: none;
+        /* Giấu bớt dòng cảnh báo dài trên mobile cho gọn */
     }
-    
+
     /* News Detail Adjustments */
     .article-title {
         font-size: 24px;
     }
+
     .article-content {
         font-size: 15px;
     }
-    
+
     /* Festival Responsive */
     .festival-thumb {
         width: 100px;
         height: 150px;
     }
+
     .festival-title {
         font-size: 16px;
     }
+
     .festival-desc {
         font-size: 14px;
     }
@@ -1706,6 +1729,7 @@ a {
     .seat-legend {
         gap: 15px;
     }
+
     .legend-item {
         width: 45%;
     }
@@ -1760,6 +1784,7 @@ a {
         height: 60px;
         padding: 0 16px;
     }
+
     .logo img {
         height: 32px;
     }
@@ -1767,24 +1792,25 @@ a {
 
 /* --- Hero Banner mobile --- */
 @media screen and (max-width: 768px) {
+
     /* Hero section tổng thể */
     #hero-banner {
         min-height: 320px !important;
     }
 
     /* Nội dung hero: bỏ flex 2 cột, xếp dọc */
-    #hero-banner .container > div {
+    #hero-banner .container>div {
         flex-direction: column !important;
         gap: 16px !important;
     }
 
     /* Phần text bên trái */
-    #hero-banner .container > div > div:first-child {
+    #hero-banner .container>div>div:first-child {
         max-width: 100% !important;
     }
 
     /* Thumbnail list bên phải: ẩn đi trên mobile nhỏ */
-    #hero-banner .container > div > div:last-child {
+    #hero-banner .container>div>div:last-child {
         display: none !important;
     }
 
@@ -1819,6 +1845,7 @@ a {
         font-size: 14px;
         padding: 10px 16px;
     }
+
     .search-results {
         width: 90%;
     }
@@ -1831,11 +1858,13 @@ a {
         gap: 0;
         margin-bottom: 32px;
     }
+
     .left-column,
     .right-column {
         width: 100%;
         flex: none;
     }
+
     /* Right column (khuyến mãi, sự kiện) hiển thị gọn hơn */
     .right-column {
         margin-top: 24px;
@@ -1848,16 +1877,20 @@ a {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
     }
+
     .movie-card h3 {
         font-size: 13px;
     }
+
     .movie-card p {
         font-size: 11px;
     }
+
     /* Overlay chỉ hiện icon nhỏ hơn */
     .movie-overlay {
         padding: 10px;
     }
+
     .movie-overlay .btn {
         font-size: 11px;
         padding: 6px 10px;
@@ -1870,9 +1903,11 @@ a {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
     }
+
     .movie-poster {
         border-radius: 6px;
     }
+
     .age-rating {
         font-size: 11px;
         padding: 2px 5px;
@@ -1884,9 +1919,11 @@ a {
     .section-header h2 {
         font-size: 16px;
     }
+
     .view-all {
         font-size: 12px;
     }
+
     .mt-40 {
         margin-top: 28px;
     }
@@ -1894,6 +1931,7 @@ a {
 
 /* --- Pagination buttons trên mobile --- */
 @media screen and (max-width: 600px) {
+
     /* Pagination wrapper được viết inline style trong TSX,
        dùng selector chung cho button trong container pagination */
     .movie-section button {
@@ -1903,17 +1941,21 @@ a {
 
 /* --- Promo / Event cards --- */
 @media screen and (max-width: 768px) {
+
     .promo-item img,
     .promo-img {
         border-radius: 8px;
         width: 100%;
     }
+
     .lhp-card {
         padding: 20px 16px;
     }
+
     .lhp-card h3 {
         font-size: 18px;
     }
+
     .promo-list {
         display: grid;
         grid-template-columns: 1fr;
@@ -1926,17 +1968,21 @@ a {
     .footer {
         padding: 32px 0;
     }
+
     .footer-content {
         flex-direction: column;
         gap: 24px;
     }
+
     .footer-col {
         width: 100%;
     }
+
     .footer-col h4 {
         font-size: 15px;
         margin-bottom: 10px;
     }
+
     .footer-col a,
     .footer-col p {
         font-size: 13px;
@@ -1955,33 +2001,40 @@ a {
     .movie-banner {
         padding: 32px 0;
     }
+
     .movie-banner-content {
         flex-direction: column;
         align-items: center;
         gap: 20px;
     }
+
     .movie-banner-content .movie-poster {
         width: 180px !important;
         flex: none;
         margin-bottom: 0;
     }
+
     .movie-info h1 {
         font-size: 22px;
         text-align: center;
         justify-content: center;
     }
+
     .movie-meta {
         font-size: 14px;
         text-align: center;
     }
+
     .movie-synopsis {
         font-size: 14px;
     }
+
     .movie-actions {
         flex-direction: column;
         gap: 10px;
         align-items: center;
     }
+
     .movie-actions .btn {
         width: 100%;
         text-align: center;
@@ -1995,15 +2048,18 @@ a {
         gap: 16px;
         padding: 16px;
     }
+
     .summary-actions {
         width: 100%;
         justify-content: space-between;
     }
+
     .summary-actions .btn {
         flex: 1;
         text-align: center;
         font-size: 13px;
     }
+
     .summary-info .total-price {
         font-size: 18px;
     }
@@ -2021,13 +2077,39 @@ a {
         justify-content: center;
         border-bottom: 1px solid #333;
     }
+
     .nav-links.active {
         gap: 8px;
         padding: 16px 20px;
     }
+
     .nav-links.active a {
         font-size: 15px;
         padding: 6px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
+}
+
+/* POS TIME BUTTONS */
+.time-btn {
+    padding: 10px 20px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid #444;
+    border-radius: 30px;
+    color: var(--text-color);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.time-btn:hover {
+    border-color: #ff4d4f;
+    color: #ff4d4f;
+    background-color: rgba(255, 77, 79, 0.1);
+}
+
+.time-btn.active {
+    background-color: rgba(255, 77, 79, 0.1);
+    border-color: #ff4d4f;
+    color: #ff4d4f;
 }

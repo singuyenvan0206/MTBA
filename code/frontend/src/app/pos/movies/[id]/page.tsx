@@ -114,7 +114,7 @@ export default function MovieDetail() {
       fetch(`${API_ENDPOINTS.SEATS}?screen_id=${showtime.screen_id}`)
         .then(res => res.json())
         .then(seats => setDbSeats(Array.isArray(seats) ? seats : []))
-        .catch(err => console.error('Lỗi khi tải ghế của phòng chiếu:', err));
+        .catch(err => console.error(UI_MESSAGES.ERROR_LOADING_SEATS, err));
     }
 
     fetch(`${API_ENDPOINTS.BOOKINGS_BOOKEDSEATS}?showtimeId=${showtime.id}`)
@@ -189,8 +189,8 @@ export default function MovieDetail() {
     // Khách hàng không được bấm
   };
 
-  if (loading) return <div className="text-center py-20 text-[color:var(--text-secondary)]">Đang tải thông tin phim...</div>;
-  if (!movie) return <div className="text-center py-20 text-[color:var(--text-secondary)]">Không tìm thấy phim.</div>;
+  if (loading) return <div className="text-center py-20 text-[color:var(--text-secondary)]">{UI_MESSAGES.LOADING_MOVIE}</div>;
+  if (!movie) return <div className="text-center py-20 text-[color:var(--text-secondary)]">{UI_MESSAGES.MOVIE_NOT_FOUND}</div>;
 
   const showtimesForDate = showtimes.filter(st => {
     const d = new Date(st.start_time);
@@ -231,9 +231,9 @@ export default function MovieDetail() {
             </div>
 
             <div className="movie-details">
-              <p><strong>Đạo diễn:</strong> {movie.author || 'Đang cập nhật'}</p>
-              <p><strong>Diễn viên:</strong> {movie.actors || 'Đang cập nhật'}</p>
-              <p><strong>Khởi chiếu:</strong> {new Date(movie.releaseDate).toLocaleDateString('vi-VN')}</p>
+              <p><strong>{UI_MESSAGES.DIRECTOR}</strong> {movie.author || UI_MESSAGES.UPDATING}</p>
+              <p><strong>{UI_MESSAGES.ACTORS}</strong> {movie.actors || UI_MESSAGES.UPDATING}</p>
+              <p><strong>{UI_MESSAGES.RELEASE_DATE}</strong> {new Date(movie.releaseDate).toLocaleDateString('vi-VN')}</p>
             </div>
 
             <p className="movie-synopsis">
@@ -241,12 +241,12 @@ export default function MovieDetail() {
             </p>
 
             <p className="movie-warning">
-              Kiểm duyệt: {movie.ageLimit || AGE_LIMITS.P} - {movie.ageLimitDescription || (movie.ageLimit === AGE_LIMITS.P ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.ageLimit === AGE_LIMITS.K ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.ageLimit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)}
+              {UI_MESSAGES.AGE_RATING} {movie.ageLimit || AGE_LIMITS.P} - {movie.ageLimitDescription || (movie.ageLimit === AGE_LIMITS.P ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.ageLimit === AGE_LIMITS.K ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.ageLimit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)}
             </p>
 
             <div className="movie-actions">
               {movie.trailer && (
-                <a href={movie.trailer} target="_blank" rel="noreferrer" className="btn btn-outline text-primary border-primary">Xem trailer</a>
+                <a href={movie.trailer} target="_blank" rel="noreferrer" className="btn btn-outline text-primary border-primary">{UI_MESSAGES.WATCH_TRAILER}</a>
               )}
             </div>
           </div>
@@ -258,7 +258,7 @@ export default function MovieDetail() {
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
           <div className="date-selector" id="dynamic-date-selector" style={{ margin: 0, pointerEvents: 'none', opacity: 0.8 }}>
             {availableDates.length === 0 ? (
-              <p style={{ color: 'var(--text-color)' }}>Phim chưa có lịch chiếu.</p>
+              <p style={{ color: 'var(--text-color)' }}>{UI_MESSAGES.NO_SHOWTIMES}</p>
             ) : (
               availableDates.map(dateStr => {
                 const d = new Date(dateStr);
@@ -283,7 +283,7 @@ export default function MovieDetail() {
           </div>
         </div>
 
-        <p className="age-warning">Lưu ý: Khán giả dưới 13 tuổi chỉ chọn suất chiếu kết thúc trước 22h và khán giả dưới 16 tuổi chỉ chọn suất chiếu kết thúc trước 23h.</p>
+        <p className="age-warning">{UI_MESSAGES.AGE_WARNING}</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', pointerEvents: 'none', opacity: 0.9 }}>
           {Object.entries(
@@ -304,16 +304,6 @@ export default function MovieDetail() {
                     <button
                       key={showtime.id}
                       className={`time-btn ${isSelected ? 'active' : ''}`}
-                      style={{
-                        padding: '10px 20px',
-                        backgroundColor: isSelected ? 'rgba(255,77,79,0.1)' : 'rgba(255,255,255,0.05)',
-                        border: `1px solid ${isSelected ? '#ff4d4f' : '#444'}`,
-                        borderRadius: '30px',
-                        color: isSelected ? '#ff4d4f' : 'var(--text-color)',
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}
                       onClick={() => handleSelectShowtime(showtime)}
                     >
                       <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{time}</div>
@@ -330,13 +320,13 @@ export default function MovieDetail() {
       {selectedShowtime && (
         <section className="seat-selection-section container">
           <div className="seat-header">
-            <p><strong>Giờ chiếu: {new Date(selectedShowtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - {new Date(selectedShowtime.start_time).toLocaleDateString('vi-VN')}</strong></p>
-            <p className="timer">Thời gian hiện tại: <span id="real-time-clock">{currentTime}</span></p>
+            <p><strong>{UI_MESSAGES.SHOWTIME} {new Date(selectedShowtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - {new Date(selectedShowtime.start_time).toLocaleDateString('vi-VN')}</strong></p>
+            <p className="timer">{UI_MESSAGES.CURRENT_TIME} <span id="real-time-clock">{currentTime}</span></p>
           </div>
 
           <div className="screen-area" style={{ textAlign: 'center' }}>
             <div className="screen-curve"></div>
-            <p style={{ color: '#888', fontSize: '18px', fontWeight: 'bold', letterSpacing: '8px', marginTop: '15px', textShadow: '0 0 10px rgba(255, 152, 0, 0.5)' }}>MÀN HÌNH</p>
+            <p style={{ color: '#888', fontSize: '18px', fontWeight: 'bold', letterSpacing: '8px', marginTop: '15px', textShadow: '0 0 10px rgba(255, 152, 0, 0.5)' }}>{UI_MESSAGES.SCREEN}</p>
 
             <select id="screen-selector" style={{ maxWidth: '250px', margin: '0 auto 0', display: 'block', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', border: '1px solid #444', padding: '8px 15px', borderRadius: '5px', fontSize: '16px', outline: 'none', cursor: 'pointer' }} disabled>
               <option value={selectedShowtime.screen?.id}>{selectedShowtime.screen?.name} ({selectedShowtime.screen?.seat_capacity || 140} ghế)</option>
@@ -400,12 +390,12 @@ export default function MovieDetail() {
 
           <div className="booking-summary">
             <div className="summary-info">
-              <p>Ghế đã chọn: <strong className="selected-seats-text" style={{ color: '#ff4d4f' }}>{selectedSeats.length > 0 ? selectedSeats.join(', ') : 'Chưa chọn'}</strong></p>
-              <p>Tổng tiền: <strong className="total-price">{calculateTotalPrice().toLocaleString('vi-VN')}đ</strong></p>
+              <p>{UI_MESSAGES.SELECTED_SEATS} <strong className="selected-seats-text" style={{ color: '#ff4d4f' }}>{selectedSeats.length > 0 ? selectedSeats.join(', ') : UI_MESSAGES.NOT_SELECTED}</strong></p>
+              <p>{UI_MESSAGES.TOTAL_PRICE} <strong className="total-price">{calculateTotalPrice().toLocaleString('vi-VN')}đ</strong></p>
             </div>
             <div className="summary-actions" style={{ display: 'none' }}>
-              <button className="btn btn-outline" onClick={() => window.scrollTo(0, 0)}>Quay lại</button>
-              <button className="btn btn-primary" onClick={handleCheckout}>Thanh toán</button>
+              <button className="btn btn-outline" onClick={() => window.scrollTo(0, 0)}>{UI_MESSAGES.BACK}</button>
+              <button className="btn btn-primary" onClick={handleCheckout}>{UI_MESSAGES.CHECKOUT}</button>
             </div>
           </div>
         </section>

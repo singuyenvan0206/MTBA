@@ -1,7 +1,7 @@
 "use client";
 import { DISCOUNT_CODES, AGE_LIMITS, MOVIE_STATUS, USER_STATUS } from '@/constants/enums';
 
-
+import { UI_MESSAGES } from '@/constants/messages';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
@@ -55,7 +55,7 @@ export default function Calendar() {
                 <input 
                   type="text" 
                   className="search-input"
-                  placeholder="Tìm kiếm nhanh..." 
+                  placeholder={UI_MESSAGES.SEARCH_MOVIE} 
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                 />
@@ -66,17 +66,17 @@ export default function Calendar() {
                     <button 
                       className={`date-btn ${type === MOVIE_TABS.SHOWING ? 'active' : ''}`} 
                       onClick={() => setType(MOVIE_TABS.SHOWING)}
-                    >Phim đang chiếu</button>
+                    >{UI_MESSAGES.NOW_SHOWING_MOVIES}</button>
                     <button 
                       className={`date-btn ${type === MOVIE_TABS.COMING ? 'active' : ''}`} 
                       onClick={() => setType(MOVIE_TABS.COMING)}
-                    >Phim sắp chiếu</button>
+                    >{UI_MESSAGES.COMING_SOON_MOVIES}</button>
                 </div>
             </div>
 
             <div className="movie-grid mt-40">
                 {loading ? (
-                    <p style={{ textAlign: 'center', color: '#888', gridColumn: '1/-1' }}>Đang tải danh sách phim...</p>
+                    <p style={{ textAlign: 'center', color: '#888', gridColumn: '1/-1' }}>{UI_MESSAGES.LOADING_MOVIE_LIST}</p>
                 ) : filteredMovies.length > 0 ? (
                     filteredMovies.map(movie => (
                         <div className="movie-card" key={movie.id}>
@@ -84,8 +84,8 @@ export default function Calendar() {
                                 <img src={movie.posterUrl || 'https://placehold.co/300x450'} alt={movie.title} />
                                 <div className="age-rating">{movie.ageLimit || AGE_LIMITS.P}</div>
                                 <div className="movie-overlay">
-                                    <Link href={`/pos/movies/${movie.id}`} className="btn btn-primary" style={{ marginBottom: '10px', width: '80%', textAlign: 'center' }}>Mua vé</Link>
-                                    <Link href={`/pos/movies/${movie.id}`} className="btn btn-outline" style={{ width: '80%', textAlign: 'center' }}>Chi tiết</Link>
+                                    <Link href={`/pos/movies/${movie.id}`} className="btn btn-primary" style={{ marginBottom: '10px', width: '80%', textAlign: 'center' }}>{UI_MESSAGES.BUY_TICKET}</Link>
+                                    <Link href={`/pos/movies/${movie.id}`} className="btn btn-outline" style={{ width: '80%', textAlign: 'center' }}>{UI_MESSAGES.DETAIL}</Link>
                                 </div>
                             </div>
                             <div className="movie-info">
@@ -95,7 +95,7 @@ export default function Calendar() {
                         </div>
                     ))
                 ) : (
-                    <p style={{ textAlign: 'center', color: '#888', gridColumn: '1/-1' }}>Không tìm thấy phim phù hợp.</p>
+                    <p style={{ textAlign: 'center', color: '#888', gridColumn: '1/-1' }}>{UI_MESSAGES.MOVIE_NOT_MATCH}</p>
                 )}
             </div>
         </div>

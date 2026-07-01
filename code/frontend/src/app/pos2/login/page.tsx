@@ -1,12 +1,12 @@
 "use client";
 import { STORAGE_KEYS } from '@/constants/storage';
-
-
+import { UI_MESSAGES } from '@/constants/messages';
 import { useState } from 'react';
 
 import { API_ENDPOINTS } from '@/constants/endpoints';
-import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
+import { ROLES } from '@/constants/enums';
 import { APP_ROUTES } from '@/constants/routes';
+
 export default function PosLogin() {
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -27,7 +27,7 @@ export default function PosLogin() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.message || 'Đăng nhập thất bại');
+        setError(data.message || UI_MESSAGES.LOGIN_FAILED);
         return;
       }
 
@@ -35,9 +35,9 @@ export default function PosLogin() {
       
       if (user.role !== ROLES.STAFF) {
         if (user.role === ROLES.ADMIN) {
-          setError('Tài khoản Quản trị vui lòng đăng nhập tại trang Admin.');
+          setError(UI_MESSAGES.ADMIN_LOGIN_NOTICE);
         } else {
-          setError('Tài khoản này không có quyền Nhân viên POS.');
+          setError(UI_MESSAGES.NO_POS_PERMISSION);
         }
         return;
       }
@@ -51,7 +51,7 @@ export default function PosLogin() {
       
       window.location.href = '/pos2';
     } catch (err) {
-      setError('Lỗi kết nối server');
+      setError(UI_MESSAGES.SERVER_ERROR);
     }
   };
 
@@ -63,7 +63,7 @@ export default function PosLogin() {
             POS Login
           </h2>
           <p style={{ margin: '10px 0 0', fontSize: '14px', color: 'var(--foreground)', opacity: 0.8 }}>
-            Dành cho nhân viên bán vé
+            {UI_MESSAGES.LOGIN_SUBTITLE}
           </p>
         </div>
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -73,7 +73,7 @@ export default function PosLogin() {
               type="text"
               required
               style={{ width: '100%', padding: '12px 15px', border: '1px solid #444', borderRadius: '5px', fontSize: '15px', outline: 'none', transition: 'border-color 0.3s', backgroundColor: 'transparent', color: 'var(--foreground)' }}
-              placeholder="Email / Số điện thoại"
+              placeholder={UI_MESSAGES.EMAIL_OR_PHONE}
               value={emailOrPhone}
               onChange={(e) => setEmailOrPhone(e.target.value)}
               onFocus={(e) => e.target.style.borderColor = '#ff4d4f'}
@@ -84,7 +84,7 @@ export default function PosLogin() {
                 type={showPassword ? "text" : "password"}
                 required
                 style={{ width: '100%', padding: '12px 40px 12px 15px', border: '1px solid #444', borderRadius: '5px', fontSize: '15px', outline: 'none', transition: 'border-color 0.3s', backgroundColor: 'transparent', color: 'var(--foreground)' }}
-                placeholder="Mật khẩu"
+                placeholder={UI_MESSAGES.PASSWORD}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onFocus={(e) => e.target.style.borderColor = '#ff4d4f'}
@@ -112,7 +112,7 @@ export default function PosLogin() {
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
               />
-              Ghi nhớ tôi
+              {UI_MESSAGES.REMEMBER_ME}
             </label>
           </div>
 
@@ -122,12 +122,12 @@ export default function PosLogin() {
             onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d9363e'}
             onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ff4d4f'}
           >
-            Đăng nhập Admin
+            {UI_MESSAGES.LOGIN_BTN}
           </button>
           
           <div style={{ textAlign: 'center', marginTop: '15px' }}>
             <a href={APP_ROUTES.POS2} style={{ fontSize: '14px', color: '#007bff', textDecoration: 'none' }}>
-              &larr; Hệ thống POS tại quầy
+              &larr; {UI_MESSAGES.BACK_TO_POS}
             </a>
           </div>
         </form>
