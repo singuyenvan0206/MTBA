@@ -7,7 +7,7 @@ export class GenresService {
 
   async findAll() {
     try {
-      return await (this.prisma as any).genre.findMany({ orderBy: { id: 'desc' } });
+      return await (this.prisma as any).genre.findMany({ orderBy: { genre_name: 'asc' } });
     } catch(e) { return []; }
   }
 

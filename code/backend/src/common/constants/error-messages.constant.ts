@@ -59,4 +59,7 @@ export const ERROR_MESSAGES = {
     NOT_FOUND: 'Movie not found',
     CANNOT_DELETE_HAS_SHOWTIMES: 'Không thể xóa phim đang có lịch chiếu trong tương lai. Vui lòng xóa lịch chiếu trước.',
   },
+  SHOWTIME: {
+    OVERLAP: 'Lịch chiếu bị trùng lặp thời gian hoặc đã tồn tại trong phòng chiếu này!',
+  },
 };

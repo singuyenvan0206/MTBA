@@ -125,16 +125,21 @@ export default function AdminShowtimes() {
       };
 
       try {
-        await fetch(url, {
+        const res = await fetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          const errMsg = Array.isArray(err.message) ? err.message[0] : (err.message || err.error || 'Lỗi khi lưu lịch chiếu');
+          throw new Error(errMsg);
+        }
         alert(editingId ? 'Cập nhật thành công!' : 'Thêm lịch chiếu thành công!');
         setShowModal(false);
         fetchData();
-      } catch (err) {
-        alert(UI_MESSAGES.L_I_KHI_L_U_L_CH_CHI_U);
+      } catch (err: any) {
+        alert(err.message || UI_MESSAGES.L_I_KHI_L_U_L_CH_CHI_U);
       }
     } else {
       // Bulk create using weekly schedule
@@ -143,47 +148,66 @@ export default function AdminShowtimes() {
         return;
       }
 
-      const startDate = new Date(baseDate);
-      const dayMap: Record<number, string> = { 0: 'CN', 1: 'T2', 2: 'T3', 3: 'T4', 4: 'T5', 5: 'T6', 6: 'T7' };
-      const movie = movies.find(m => m.id === parseInt(formData.movie_id));
-      const duration = movie?.duration || 120;
-      
-      let createdCount = 0;
-
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(startDate);
-        d.setDate(d.getDate() + i);
-        const dayStr = dayMap[d.getDay()];
-        const schedule = weeklySchedules[dayStr as keyof typeof weeklySchedules];
+      try {
+        const startDate = new Date(baseDate);
+        const dayMap: Record<number, string> = { 0: 'CN', 1: 'T2', 2: 'T3', 3: 'T4', 4: 'T5', 5: 'T6', 6: 'T7' };
+        const movie = movies.find(m => m.id === parseInt(formData.movie_id));
+        const duration = movie?.duration || 120;
         
-        if (schedule && schedule.checked) {
-          const times = schedule.times.split(',').map((t: string) => t.trim()).filter(Boolean);
-          for (const timeStr of times) {
-            const [hours, minutes] = timeStr.split(':');
-            if (hours && minutes) {
-              const stDate = new Date(d);
-              stDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-              
-              await fetch(API_ENDPOINTS.SHOWTIMES, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  movie_id: parseInt(formData.movie_id),
-                  screen_id: parseInt(formData.screen_id),
-                  start_time: stDate.toISOString(),
-                  end_time: new Date(stDate.getTime() + duration * 60000).toISOString()
-                })
-              }).catch(e => console.error(e));
-              
-              createdCount++;
+        let createdCount = 0;
+        let hasError = false;
+        let errorMsg = '';
+
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(startDate);
+          d.setDate(d.getDate() + i);
+          const dayStr = dayMap[d.getDay()];
+          const schedule = weeklySchedules[dayStr as keyof typeof weeklySchedules];
+          
+          if (schedule && schedule.checked) {
+            const times = schedule.times.split(',').map((t: string) => t.trim()).filter(Boolean);
+            for (const timeStr of times) {
+              const [hours, minutes] = timeStr.split(':');
+              if (hours && minutes) {
+                const stDate = new Date(d);
+                stDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                
+                const res = await fetch(API_ENDPOINTS.SHOWTIMES, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    movie_id: parseInt(formData.movie_id),
+                    screen_id: parseInt(formData.screen_id),
+                    start_time: stDate.toISOString(),
+                    end_time: new Date(stDate.getTime() + duration * 60000).toISOString()
+                  })
+                });
+                
+                if (!res.ok) {
+                  hasError = true;
+                  const err = await res.json().catch(() => ({}));
+                  errorMsg = Array.isArray(err.message) ? err.message[0] : (err.message || err.error || 'Lỗi khi lưu lịch chiếu');
+                  break;
+                }
+                
+                createdCount++;
+              }
             }
+            if (hasError) break;
           }
         }
-      }
 
-      alert(UI_MESSAGES.CREATE_SUCCESS_SHOWTIMES);
-      setShowModal(false);
-      fetchData();
+        if (hasError) {
+          throw new Error(errorMsg);
+        }
+
+        alert(UI_MESSAGES.CREATE_SUCCESS_SHOWTIMES);
+        setShowModal(false);
+        fetchData();
+      } catch (err: any) {
+        alert(err.message || UI_MESSAGES.L_I_KHI_L_U_L_CH_CHI_U);
+        fetchData();
+      }
     }
   };
 

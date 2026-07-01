@@ -105,10 +105,6 @@ export class BookingsService {
         let price = 0;
         if (priceConfig) {
           price = priceConfig.price;
-        } else {
-          if (seatType === seat_type.STANDARD) price = 80000;
-          else if (seatType === seat_type.VIP) price = 100000;
-          else if (seatType === seat_type.SWEETBOX) price = 150000;
         }
         calculatedTotalPrice += price;
       }
