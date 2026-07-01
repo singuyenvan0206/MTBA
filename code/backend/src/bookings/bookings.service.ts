@@ -64,7 +64,7 @@ export class BookingsService {
       // 3. Tính toán lại tổng tiền ở backend dựa trên bảng giá (ticketprice) để bảo mật
       const prices = await tx.ticketprice.findMany();
       let calculatedTotalPrice = 0;
-      const movieType = showtime.movie.roomtype_id || 1;
+      const movieType = showtime.screen?.roomtype_id || 1;
       const showtimeDate = new Date(showtime.start_time);
       const isWeekend = showtimeDate.getDay() === 0 || showtimeDate.getDay() === 6;
 

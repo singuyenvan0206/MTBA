@@ -157,10 +157,10 @@ export default function PosPayment() {
           return day === 0 || day === 6;
       };
       const dayType = showtime?.start_time ? isWeekend(showtime.start_time) : false;
-      const movieType = movie?.type || 'TYPE_2D';
+      const showtimeRoomtypeId = screen?.roomtype_id;
       
       const priceConfig = prices.find(p => 
-        (p.type_movie === movieType || p.type_movie?.replace(/^TYPE_/, '') === movieType?.replace(/^TYPE_/, '')) && 
+        p.roomtype_id === showtimeRoomtypeId && 
         p.type_seat === seatType && 
         p.day_type === dayType
       );

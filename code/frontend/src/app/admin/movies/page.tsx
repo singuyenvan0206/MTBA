@@ -11,13 +11,15 @@ import { API_ENDPOINTS } from '@/constants/endpoints';
 type Movie = {
   id: number;
   title: string;
-  genre: string;
+  genre?: string;
+  genres?: string[];
   duration: number;
   posterUrl?: string;
   bannerUrl?: string;
   releaseDate?: string;
   type?: string;
   roomtype_id?: number;
+  roomtype_ids?: number[];
   description?: string;
   author?: string;
   actors?: string;
@@ -42,12 +44,12 @@ export default function AdminMovies() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     title: '',
-    genre: '',
+    genres: [] as string[],
     duration: '',
     releaseDate: '',
     posterUrl: '',
     bannerUrl: '',
-    roomtype_id: '',
+    roomtype_ids: [] as string[],
     description: '',
     author: '',
     actors: '',
@@ -88,8 +90,8 @@ export default function AdminMovies() {
   const openAddModal = () => {
     setEditingId(null);
     setFormData({
-      title: '', genre: '', duration: '', releaseDate: '',
-      posterUrl: '', bannerUrl: '', roomtype_id: roomtypes.length > 0 ? String(roomtypes[0].id) : '', description: '',
+      title: '', genres: [], duration: '', releaseDate: '',
+      posterUrl: '', bannerUrl: '', roomtype_ids: roomtypes.length > 0 ? [String(roomtypes[0].id)] : [], description: '',
       author: '', actors: '', ageLimit: '', trailer: ''
     });
 
@@ -100,12 +102,12 @@ export default function AdminMovies() {
     setEditingId(movie.id);
     setFormData({
       title: movie.title || '',
-      genre: movie.genre || '',
+      genres: movie.genres || (movie.genre ? movie.genre.split(', ') : []),
       duration: movie.duration ? String(movie.duration) : '',
       releaseDate: movie.releaseDate ? new Date(movie.releaseDate).toISOString().split('T')[0] : '',
       posterUrl: movie.posterUrl || '',
       bannerUrl: movie.bannerUrl || '',
-      roomtype_id: movie.roomtype_id ? String(movie.roomtype_id) : (roomtypes.length > 0 ? String(roomtypes[0].id) : ''),
+      roomtype_ids: movie.roomtype_ids ? movie.roomtype_ids.map(id => String(id)) : (movie.roomtype_id ? [String(movie.roomtype_id)] : []),
       description: movie.description || '',
       author: movie.author || '',
       actors: movie.actors || '',
@@ -119,7 +121,7 @@ export default function AdminMovies() {
   const handleDelete = (id: number) => {
     if (!confirm(UI_MESSAGES.X_C_NH_N_X_A_PHIM)) return;
     const adminUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || '{}');
-    fetch(`${API_ENDPOINTS.MOVIES_}${id}`, { 
+    fetch(`${API_ENDPOINTS.MOVIES_}${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${adminUser.accessToken || ''}`
@@ -127,8 +129,8 @@ export default function AdminMovies() {
     })
       .then(async (res) => {
         if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.message || err.error || 'Lỗi khi xóa phim');
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || err.error || 'Lỗi khi xóa phim');
         }
         return res.json();
       })
@@ -141,7 +143,7 @@ export default function AdminMovies() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingId 
+    const url = editingId
       ? `${API_ENDPOINTS.MOVIES_}${editingId}`
       : API_ENDPOINTS.MOVIES;
     const method = editingId ? 'PUT' : 'POST';
@@ -150,22 +152,22 @@ export default function AdminMovies() {
       const payload = {
         ...formData,
         duration: parseInt(String(formData.duration)) || 0,
-        roomtype_id: parseInt(String(formData.roomtype_id)) || null,
+        roomtype_ids: formData.roomtype_ids.map(id => parseInt(id)).filter(id => !isNaN(id)),
       };
-      
+
       const adminUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || '{}');
       const res = await fetch(url, {
         method,
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${adminUser.accessToken || ''}`
         },
         body: JSON.stringify(payload)
       });
       if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          const errMsg = Array.isArray(err.message) ? err.message[0] : (err.message || err.error || 'Lỗi lưu dữ liệu');
-          throw new Error(errMsg);
+        const err = await res.json().catch(() => ({}));
+        const errMsg = Array.isArray(err.message) ? err.message[0] : (err.message || err.error || 'Lỗi lưu dữ liệu');
+        throw new Error(errMsg);
       }
       const savedMovie = await res.json();
       const movieId = editingId || savedMovie.id;
@@ -195,7 +197,7 @@ export default function AdminMovies() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0, color: 'var(--foreground)' }}>Danh sách Phim</h1>
-        <button 
+        <button
           onClick={openAddModal}
           style={{ padding: '10px 20px', backgroundColor: 'var(--primary)', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
         >
@@ -303,35 +305,44 @@ export default function AdminMovies() {
             <form onSubmit={handleSave}>
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Tên phim</label>
-                <input 
-                  type="text" required 
+                <input
+                  type="text" required
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
                   placeholder="Nhập tên phim"
-                  value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
+                  value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })}
                 />
               </div>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Thể loại</label>
-                  <select 
-                    required 
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                    value={formData.genre} onChange={e => setFormData({...formData, genre: e.target.value})}
-                  >
-                    <option value="">-- Chọn Thể loại --</option>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Thể loại (Có thể chọn nhiều)</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', maxHeight: '150px', overflowY: 'auto' }}>
                     {genres.map(g => (
-                      <option key={g.id} value={g.genre_name}>{g.genre_name}</option>
+                      <label key={g.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer', color: 'var(--foreground)' }}>
+                        <input
+                          type="checkbox"
+                          value={g.genre_name}
+                          checked={formData.genres.includes(g.genre_name)}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              setFormData({ ...formData, genres: [...formData.genres, e.target.value] });
+                            } else {
+                              setFormData({ ...formData, genres: formData.genres.filter(val => val !== e.target.value) });
+                            }
+                          }}
+                        />
+                        {g.genre_name}
+                      </label>
                     ))}
-                  </select>
+                  </div>
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Thời lượng (phút)</label>
-                  <input 
-                    type="number" required 
+                  <input
+                    type="number" required
                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
                     placeholder="Ví dụ: 120"
-                    value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})}
+                    value={formData.duration} onChange={e => setFormData({ ...formData, duration: e.target.value })}
                   />
                 </div>
               </div>
@@ -339,50 +350,60 @@ export default function AdminMovies() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Ngày khởi chiếu</label>
-                  <input 
-                    type="date" required 
+                  <input
+                    type="date" required
                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
-                    value={formData.releaseDate} onChange={e => setFormData({...formData, releaseDate: e.target.value})}
+                    value={formData.releaseDate} onChange={e => setFormData({ ...formData, releaseDate: e.target.value })}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Định dạng (2D/3D)</label>
-                  <select 
-                    required 
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                    value={formData.roomtype_id} onChange={e => setFormData({...formData, roomtype_id: e.target.value})}
-                  >
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Định dạng (Có thể chọn nhiều)</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', maxHeight: '150px', overflowY: 'auto' }}>
                     {roomtypes.map(rt => (
-                      <option key={rt.id} value={rt.id}>{rt.name}</option>
+                      <label key={rt.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer', color: 'var(--foreground)' }}>
+                        <input
+                          type="checkbox"
+                          value={rt.id}
+                          checked={formData.roomtype_ids.includes(String(rt.id))}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              setFormData({ ...formData, roomtype_ids: [...formData.roomtype_ids, e.target.value] });
+                            } else {
+                              setFormData({ ...formData, roomtype_ids: formData.roomtype_ids.filter(val => val !== e.target.value) });
+                            }
+                          }}
+                        />
+                        {rt.name}
+                      </label>
                     ))}
-                  </select>
+                  </div>
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', marginBottom: '15px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Tác giả (Đạo diễn)</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
                     placeholder="Ví dụ: Victor Vũ"
-                    value={formData.author} onChange={e => setFormData({...formData, author: e.target.value})}
+                    value={formData.author} onChange={e => setFormData({ ...formData, author: e.target.value })}
                   />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Diễn viên</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
                     placeholder="Ví dụ: Trấn Thành, Hari Won"
-                    value={formData.actors} onChange={e => setFormData({...formData, actors: e.target.value})}
+                    value={formData.actors} onChange={e => setFormData({ ...formData, actors: e.target.value })}
                   />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Độ tuổi</label>
-                  <select 
+                  <select
                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                    value={formData.ageLimit} onChange={e => setFormData({...formData, ageLimit: e.target.value})}
+                    value={formData.ageLimit} onChange={e => setFormData({ ...formData, ageLimit: e.target.value })}
                   >
                     <option value="">-- Chọn Độ tuổi --</option>
                     {ageLimits.map(al => (
@@ -394,41 +415,41 @@ export default function AdminMovies() {
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>URL Ảnh Banner <span style={{ color: '#888', fontWeight: '400', fontSize: '12px' }}>(landscape 16:9, dùng cho hero section trang chủ)</span></label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
                   placeholder="https://... (tỷ lệ 16:9)"
-                  value={formData.bannerUrl} onChange={e => setFormData({...formData, bannerUrl: e.target.value})}
+                  value={formData.bannerUrl} onChange={e => setFormData({ ...formData, bannerUrl: e.target.value })}
                 />
               </div>
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>URL Ảnh Poster <span style={{ color: '#888', fontWeight: '400', fontSize: '12px' }}>(portrait 2:3, dùng cho danh sách phim)</span></label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
                   placeholder="https://..."
-                  value={formData.posterUrl} onChange={e => setFormData({...formData, posterUrl: e.target.value})}
+                  value={formData.posterUrl} onChange={e => setFormData({ ...formData, posterUrl: e.target.value })}
                 />
               </div>
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>URL Trailer</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
                   placeholder="https://youtube.com/..."
-                  value={formData.trailer} onChange={e => setFormData({...formData, trailer: e.target.value})}
+                  value={formData.trailer} onChange={e => setFormData({ ...formData, trailer: e.target.value })}
                 />
               </div>
 
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Mô tả</label>
-                <textarea 
+                <textarea
                   rows={3}
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
                   placeholder="Nội dung phim..."
-                  value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}
+                  value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })}
                 />
               </div>
 

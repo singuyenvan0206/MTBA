@@ -16,14 +16,14 @@ export default function Prices() {
             const uniqueData: any[] = [];
             const seen = new Set();
             for (const item of resData) {
-                const key = `${item.day_type}-${item.type_seat}-${item.type_movie}`;
+                const key = `${item.day_type}-${item.type_seat}-${item.roomtype_id}`;
                 if (!seen.has(key)) {
                     seen.add(key);
                     uniqueData.push(item);
                 }
             }
             uniqueData.sort((a, b) => {
-                if (a.type_movie !== b.type_movie) return a.type_movie.localeCompare(b.type_movie);
+                if (a.roomtype_id !== b.roomtype_id) return (a.roomtype_id || 0) - (b.roomtype_id || 0);
                 return a.type_seat.localeCompare(b.type_seat);
             });
             setData(uniqueData);
@@ -61,7 +61,7 @@ export default function Prices() {
                             weekdayPrices.map((item, i) => (
                                 <tr key={i}>
                                     <td>{item.type_seat === SeatType.STANDARD ? 'Thường' : (item.type_seat === SeatType.VIP ? SEAT_TYPES.VIP : 'Sweetbox')}</td>
-                                    <td>{item.type_movie === MovieType.TYPE_2D ? '2D' : '3D'}</td>
+                                    <td>{item.roomtype?.name || item.roomtype_id}</td>
                                     <td style={{ color: '#ff4d4f', fontWeight: 'bold' }}>{item.price?.toLocaleString()} đ</td>
                                 </tr>
                             ))
@@ -93,7 +93,7 @@ export default function Prices() {
                             weekendPrices.map((item, i) => (
                                 <tr key={i}>
                                     <td>{item.type_seat === SeatType.STANDARD ? 'Thường' : (item.type_seat === SeatType.VIP ? SEAT_TYPES.VIP : 'Sweetbox')}</td>
-                                    <td>{item.type_movie === MovieType.TYPE_2D ? '2D' : '3D'}</td>
+                                    <td>{item.roomtype?.name || item.roomtype_id}</td>
                                     <td style={{ color: '#ff4d4f', fontWeight: 'bold' }}>{item.price?.toLocaleString()} đ</td>
                                 </tr>
                             ))

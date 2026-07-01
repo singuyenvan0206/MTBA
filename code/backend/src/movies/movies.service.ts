@@ -13,7 +13,7 @@ export class MoviesService {
   async findAll() {
     const movies = await this.prisma.movie.findMany({
       orderBy: { id: 'desc' },
-      include: { moviegenre: { include: { genre: true } }, roomtype: true },
+      include: { moviegenre: { include: { genre: true } }, movieroomtype: { include: { roomtype: true } } },
     });
 
     let ageLimits: any[] = [];
@@ -29,11 +29,12 @@ export class MoviesService {
         description: m.descriptions,
         duration: m.duration,
         genre: m.moviegenre.map((mg) => mg.genre.genre_name).join(', '),
+        genres: m.moviegenre.map((mg) => mg.genre.genre_name),
         releaseDate: m.release_date,
         posterUrl: m.image,
         bannerUrl: m.banner || null,
-        type: m.roomtype ? m.roomtype.name : '',
-        roomtype_id: m.roomtype_id,
+        type: m.movieroomtype.map((mr) => mr.roomtype.name).join(', '),
+        roomtype_ids: m.movieroomtype.map((mr) => mr.roomtype_id),
         trailer: m.trailer,
         author: m.author,
         actors: m.actors,
@@ -48,7 +49,7 @@ export class MoviesService {
       where: { id },
       include: {
         moviegenre: { include: { genre: true } },
-        roomtype: true,
+        movieroomtype: { include: { roomtype: true } },
       },
     });
 
@@ -72,11 +73,12 @@ export class MoviesService {
       description: movie.descriptions,
       duration: movie.duration,
       genre: movie.moviegenre.map((mg: any) => mg.genre.genre_name).join(', '),
+      genres: movie.moviegenre.map((mg: any) => mg.genre.genre_name),
       releaseDate: movie.release_date,
       posterUrl: movie.image,
       bannerUrl: movie.banner || null,
-      type: movie.roomtype ? movie.roomtype.name : '',
-      roomtype_id: movie.roomtype_id,
+      type: movie.movieroomtype.map((mr: any) => mr.roomtype.name).join(', '),
+      roomtype_ids: movie.movieroomtype.map((mr: any) => mr.roomtype_id),
       trailer: movie.trailer,
       author: movie.author,
       actors: movie.actors,
@@ -91,10 +93,12 @@ export class MoviesService {
       description,
       duration,
       genre,
+      genres,
       releaseDate,
       posterUrl,
       bannerUrl,
       roomtype_id,
+      roomtype_ids, // array of ids
       trailer,
       author,
       actors,
@@ -110,7 +114,6 @@ export class MoviesService {
         release_date: new Date(releaseDate),
         image: posterUrl,
         banner: bannerUrl,
-        roomtype_id: roomtype_id ? parseInt(roomtype_id) : undefined,
         trailer: trailer,
         author: author,
         actors: actors,
@@ -118,16 +121,32 @@ export class MoviesService {
       },
     });
 
-    if (genre) {
+    let genresArray: any[] = [];
+    if (genres && Array.isArray(genres) && genres.length > 0) genresArray = genres;
+    else if (genre) genresArray = [genre];
+
+    for (const g of genresArray) {
       let dbGenre = await this.prisma.genre.findFirst({
-        where: { genre_name: genre },
+        where: { genre_name: g },
       });
       if (!dbGenre) {
-        dbGenre = await this.prisma.genre.create({ data: { genre_name: genre } });
+        dbGenre = await this.prisma.genre.create({ data: { genre_name: g } });
       }
       await this.prisma.moviegenre.create({
         data: { movie_id: newMovie.id, genre_id: dbGenre.id },
       });
+    }
+
+    let roomtypesArray: any[] = [];
+    if (roomtype_ids && Array.isArray(roomtype_ids) && roomtype_ids.length > 0) roomtypesArray = roomtype_ids;
+    else if (roomtype_id) roomtypesArray = [roomtype_id];
+
+    if (roomtypesArray.length > 0) {
+      for (const rtId of roomtypesArray) {
+        await this.prisma.movieroomtype.create({
+          data: { movie_id: newMovie.id, roomtype_id: parseInt(rtId) }
+        });
+      }
     }
 
     return newMovie;
@@ -143,11 +162,13 @@ export class MoviesService {
       posterUrl,
       bannerUrl,
       roomtype_id,
+      roomtype_ids,
       trailer,
       author,
       actors,
       ageLimit,
       schedules,
+      genres,
       genre,
     } = data;
 
@@ -158,7 +179,6 @@ export class MoviesService {
     if (releaseDate) dataToUpdate.release_date = new Date(releaseDate);
     if (posterUrl !== undefined) dataToUpdate.image = posterUrl;
     if (bannerUrl !== undefined) dataToUpdate.banner = bannerUrl;
-    if (roomtype_id !== undefined) dataToUpdate.roomtype_id = roomtype_id ? parseInt(roomtype_id) : null;
     if (trailer !== undefined) dataToUpdate.trailer = trailer;
     if (author !== undefined) dataToUpdate.author = author;
     if (actors !== undefined) dataToUpdate.actors = actors;
@@ -169,18 +189,36 @@ export class MoviesService {
       data: dataToUpdate,
     });
 
-    if (genre) {
-      let dbGenre = await this.prisma.genre.findFirst({
-        where: { genre_name: genre },
-      });
-      if (!dbGenre) {
-        dbGenre = await this.prisma.genre.create({ data: { genre_name: genre } });
-      }
+    let genresArray: any[] = [];
+    if (genres && Array.isArray(genres) && genres.length > 0) genresArray = genres;
+    else if (genre) genresArray = [genre];
 
+    if (genresArray.length > 0) {
       await this.prisma.moviegenre.deleteMany({ where: { movie_id: id } });
-      await this.prisma.moviegenre.create({
-        data: { movie_id: id, genre_id: dbGenre.id },
-      });
+      for (const g of genresArray) {
+        let dbGenre = await this.prisma.genre.findFirst({
+          where: { genre_name: g },
+        });
+        if (!dbGenre) {
+          dbGenre = await this.prisma.genre.create({ data: { genre_name: g } });
+        }
+        await this.prisma.moviegenre.create({
+          data: { movie_id: id, genre_id: dbGenre.id },
+        });
+      }
+    }
+
+    let roomtypesArray: any[] = [];
+    if (roomtype_ids && Array.isArray(roomtype_ids) && roomtype_ids.length > 0) roomtypesArray = roomtype_ids;
+    else if (roomtype_id) roomtypesArray = [roomtype_id];
+
+    if (roomtypesArray.length > 0) {
+      await this.prisma.movieroomtype.deleteMany({ where: { movie_id: id } });
+      for (const rtId of roomtypesArray) {
+        await this.prisma.movieroomtype.create({
+          data: { movie_id: id, roomtype_id: parseInt(rtId) }
+        });
+      }
     }
 
     return updatedMovie;

@@ -60,18 +60,17 @@ model movie {
   descriptions String?      @db.Text
   author       String?      @db.VarChar(100)
   image        String?      @db.Text
-  trailer      String?      @db.VarChar(255)
-  roomtype_id  Int?
-  duration     Int
+  trailer       String?         @db.VarChar(255)
+  duration      Int
   release_date DateTime
   created_at   DateTime     @default(now())
   updated_at   DateTime     @updatedAt
   actors       String?      @db.VarChar(255)
   age_limit    String?      @db.VarChar(10)
-  banner       String?      @db.Text
-  moviegenre   moviegenre[]
-  showtime     showtime[]
-  roomtype     roomtype?    @relation(fields: [roomtype_id], references: [id], map: "Movie_roomtype_id_fkey")
+  banner        String?         @db.Text
+  moviegenre    moviegenre[]
+  movieroomtype movieroomtype[]
+  showtime      showtime[]
 }
 
 model moviegenre {
@@ -82,6 +81,16 @@ model moviegenre {
 
   @@id([movie_id, genre_id])
   @@index([genre_id], map: "MovieGenre_genre_id_fkey")
+}
+
+model movieroomtype {
+  movie_id    Int
+  roomtype_id Int
+  movie       movie    @relation(fields: [movie_id], references: [id], onDelete: Cascade, map: "MovieRoomtype_movie_id_fkey")
+  roomtype    roomtype @relation(fields: [roomtype_id], references: [id], onDelete: Cascade, map: "MovieRoomtype_roomtype_id_fkey")
+
+  @@id([movie_id, roomtype_id])
+  @@index([roomtype_id], map: "MovieRoomtype_roomtype_id_fkey")
 }
 
 model news {
@@ -118,11 +127,11 @@ model role {
 
 model roomtype {
   id          Int           @id @default(autoincrement())
-  name        String        @unique @db.VarChar(50)
-  description String?       @db.VarChar(255)
-  screen      screen[]
-  movie       movie[]
-  ticketprice ticketprice[]
+  name          String          @unique @db.VarChar(50)
+  description   String?         @db.VarChar(255)
+  screen        screen[]
+  ticketprice   ticketprice[]
+  movieroomtype movieroomtype[]
 }
 
 model screen {

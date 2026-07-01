@@ -129,7 +129,7 @@ export default function MovieDetail() {
 
   const calculateTotalPrice = () => {
     if (!movie) return 0;
-    const movieType = movie.type || 'TYPE_2D';
+    const showtimeRoomtypeId = selectedShowtime?.screen?.roomtype_id;
     
     const isWeekend = (dateString: string) => {
         const day = new Date(dateString).getDay();
@@ -142,7 +142,7 @@ export default function MovieDetail() {
       const seat = dbSeats.find(s => s.seat_number === seatId);
       const seatType = seat?.type || SEAT_TYPES.STANDARD;
       const priceConfig = prices.find(p => 
-        (p.type_movie === movieType || p.type_movie?.replace(/^TYPE_/, '') === movieType?.replace(/^TYPE_/, '')) && 
+        p.roomtype_id === showtimeRoomtypeId && 
         p.type_seat === seatType && 
         p.day_type === showtimeDayType
       );

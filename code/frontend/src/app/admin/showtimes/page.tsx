@@ -362,7 +362,7 @@ export default function AdminShowtimes() {
                 <select 
                   required 
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                  value={formData.movie_id} onChange={e => setFormData({...formData, movie_id: e.target.value})}
+                  value={formData.movie_id} onChange={e => setFormData({...formData, movie_id: e.target.value, screen_id: ''})}
                 >
                   <option value="">-- Chọn Phim --</option>
                   {movies.map(m => (
@@ -393,8 +393,13 @@ export default function AdminShowtimes() {
                   disabled={!selectedTheater && theaters.length > 0}
                 >
                   <option value="">-- Chọn Phòng chiếu --</option>
-                  {screens.filter(s => !selectedTheater || String(s.theater_id) === selectedTheater).map(s => (
-                    <option key={s.id} value={s.id}>{s.name || s.screen_name}</option>
+                  {screens.filter(s => {
+                    const matchesTheater = !selectedTheater || String(s.theater_id) === selectedTheater;
+                    const selectedMovie = formData.movie_id ? movies.find(m => m.id === parseInt(formData.movie_id)) : null;
+                    const matchesRoomtype = (!formData.movie_id || !selectedMovie || !selectedMovie.roomtype_ids || selectedMovie.roomtype_ids.length === 0) ? true : selectedMovie.roomtype_ids.includes(s.roomtype_id);
+                    return matchesTheater && matchesRoomtype;
+                  }).map(s => (
+                    <option key={s.id} value={s.id}>{s.name || s.screen_name} {s.roomtype?.name ? `(${s.roomtype.name})` : ''}</option>
                   ))}
                 </select>
                 {(!selectedTheater && theaters.length > 0) && <small style={{ color: '#ff4d4f' }}>Vui lòng chọn cụm rạp trước</small>}
