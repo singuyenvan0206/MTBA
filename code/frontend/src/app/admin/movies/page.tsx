@@ -269,7 +269,7 @@ export default function AdminMovies() {
                     <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
                       <strong style={{ color: 'var(--foreground)' }}>{movie.title}</strong>
                       <br />
-                      <small style={{ color: 'var(--text-muted)' }}>{movie.roomtype?.name || movie.roomtype_id}</small>
+                      <small style={{ color: 'var(--text-muted)' }}>{movie.type}</small>
                     </td>
                     <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{movie.genre}</td>
                     <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{movie.duration} phút</td>
