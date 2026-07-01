@@ -108,7 +108,11 @@ export default function PosPayment() {
     fetch(`${API_ENDPOINTS.BOOKINGS_}${params.id}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
-      .then(res => res.json())
+      .then(async res => {
+        const text = await res.text();
+        if (!res.ok) throw new Error(text || `HTTP error ${res.status}`);
+        return text ? JSON.parse(text) : {};
+      })
       .then(data => {
         if (data.statusCode === 401) {
             showAlert(UI_MESSAGES.PHI_N___NG_NH_P____H_T_H_N__VU, 'error', () => {
@@ -124,7 +128,11 @@ export default function PosPayment() {
         fetch(API_ENDPOINTS.PAYMENTS_CONFIG, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
-          .then(res => res.json())
+          .then(async res => {
+            const text = await res.text();
+            if (!res.ok) throw new Error(text || `HTTP error ${res.status}`);
+            return text ? JSON.parse(text) : {};
+          })
           .then(configData => {
             if (configData && configData.bankId) {
               setPaymentConfig(configData);
@@ -138,7 +146,11 @@ export default function PosPayment() {
       });
       
     fetch(API_ENDPOINTS.PRICES)
-      .then(res => res.json())
+      .then(async res => {
+        const text = await res.text();
+        if (!res.ok) throw new Error(text || `HTTP error ${res.status}`);
+        return text ? JSON.parse(text) : {};
+      })
       .then(data => setPrices(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -159,7 +171,8 @@ export default function PosPayment() {
           }
         });
         if (res.ok) {
-          const data = await res.json();
+          const text = await res.text();
+          const data = text ? JSON.parse(text) : {};
           if (data.isPaid) {
             setIsWaitingPayment(false);
             pushState({ showQR: false }); // Hide QR on customer screen
@@ -210,7 +223,11 @@ export default function PosPayment() {
       const statusRes = await fetch(`${API_ENDPOINTS.PAYMENTS_STATUS_}${booking.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const statusData = statusRes.ok ? await statusRes.json() : null;
+      let statusData = null;
+      if (statusRes.ok) {
+        const statusText = await statusRes.text();
+        statusData = statusText ? JSON.parse(statusText) : null;
+      }
       const alreadyPaidBySepay = statusData?.isPaid === true;
 
       if (!alreadyPaidBySepay) {
@@ -267,9 +284,10 @@ export default function PosPayment() {
         });
 
         if (res.ok) {
-          pushState({ showQR: false, showtimeId: null, selectedSeats: [] });
           const movieId = booking?.showtime?.movie?.id || booking?.showtime?.movie_id;
-          router.push(`${APP_ROUTES.POS2}/movies/${movieId}`);
+          const targetPath = `${APP_ROUTES.POS2}/movies/${movieId}`;
+          pushState({ currentPath: targetPath, showQR: false, showtimeId: null, selectedSeats: [] });
+          router.push(targetPath);
         } else {
           const errData = await res.json().catch(() => ({}));
           showAlert(errData.message || AppMessage.CANCEL_FAILED);
@@ -345,7 +363,8 @@ export default function PosPayment() {
           const res = await fetch(`${API_ENDPOINTS.USERS_SEARCH_PHONE}?q=${searchPhone}`, {
             headers: { 'Authorization': `Bearer ${user?.accessToken || ''}` }
           });
-          const data = await res.json();
+          const text = await res.text();
+          const data = text ? JSON.parse(text) : null;
           if (data && data.id) {
               setCustomer(data);
           } else {
