@@ -7,7 +7,10 @@ export class ScreensService {
 
   async findAll() {
     try {
-      return await (this.prisma as any).screen.findMany({ orderBy: { id: 'desc' } });
+      return await (this.prisma as any).screen.findMany({ 
+        orderBy: { id: 'desc' },
+        include: { roomtype: true }
+      });
     } catch(e) { return []; }
   }
 

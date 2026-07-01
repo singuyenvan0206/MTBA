@@ -11,6 +11,8 @@ type Screen = {
   theater_id: number;
   capacity?: number;
   seat_capacity?: number;
+  roomtype_id?: number;
+  roomtype?: { name: string };
 };
 
 export default function AdminScreens() {
@@ -19,12 +21,14 @@ export default function AdminScreens() {
 
   const [showModal, setShowModal] = useState(false);
   const [theaters, setTheaters] = useState<any[]>([]);
+  const [roomtypes, setRoomtypes] = useState<any[]>([]);
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     theater_id: '',
-    seat_capacity: ''
+    seat_capacity: '',
+    roomtype_id: ''
   });
 
   const [filterTheaterId, setFilterTheaterId] = useState<string>('');
@@ -51,11 +55,16 @@ export default function AdminScreens() {
       .then(res => res.json())
       .then(t => setTheaters(t))
       .catch(err => console.error(err));
+      
+    fetch(API_ENDPOINTS.ROOMTYPES)
+      .then(res => res.json())
+      .then(r => setRoomtypes(r))
+      .catch(err => console.error(err));
   }, []);
 
   const openAddModal = () => {
     setEditingId(null);
-    setFormData({ name: '', theater_id: '', seat_capacity: '' });
+    setFormData({ name: '', theater_id: '', seat_capacity: '', roomtype_id: roomtypes.length > 0 ? String(roomtypes[0].id) : '' });
     setShowModal(true);
   };
 
@@ -64,7 +73,8 @@ export default function AdminScreens() {
     setFormData({
       name: item.name || item.screen_name || '',
       theater_id: String(item.theater_id || ''),
-      seat_capacity: String(item.seat_capacity || item.capacity || '')
+      seat_capacity: String(item.seat_capacity || item.capacity || ''),
+      roomtype_id: item.roomtype_id ? String(item.roomtype_id) : (roomtypes.length > 0 ? String(roomtypes[0].id) : '')
     });
     setShowModal(true);
   };
@@ -110,7 +120,8 @@ export default function AdminScreens() {
     const payload = {
       name: formData.name,
       theater_id: parseInt(formData.theater_id),
-      seat_capacity: parseInt(formData.seat_capacity)
+      seat_capacity: parseInt(formData.seat_capacity),
+      roomtype_id: parseInt(formData.roomtype_id)
     };
 
     fetch(url, {
@@ -198,6 +209,7 @@ export default function AdminScreens() {
               </th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>ID</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Tên Phòng</th>
+              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Loại phòng</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Cụm Rạp</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Sức chứa</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Hành động</th>
@@ -205,7 +217,7 @@ export default function AdminScreens() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Đang tải dữ liệu...</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Đang tải dữ liệu...</td></tr>
             ) : filteredData.length > 0 ? (
               filteredData.map((item) => (
                 <tr key={item.id} style={{ backgroundColor: selectedIds.includes(item.id) ? 'rgba(255,255,255,0.05)' : 'transparent' }}>
@@ -218,6 +230,7 @@ export default function AdminScreens() {
                   </td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>#{item.id}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)', fontWeight: 'bold', color: 'var(--foreground)' }}>{item.name || item.screen_name}</td>
+                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.roomtype?.name || item.roomtype_id}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
                     {theaters.find(t => t.id === item.theater_id)?.name || item.theater_id}
                   </td>
@@ -241,7 +254,7 @@ export default function AdminScreens() {
                 </tr>
               ))
             ) : (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Không có phòng chiếu nào.</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Không có phòng chiếu nào.</td></tr>
             )}
           </tbody>
         </table>
@@ -274,6 +287,19 @@ export default function AdminScreens() {
                   <option value="">-- Chọn Cụm rạp --</option>
                   {theaters.map(t => (
                     <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Loại phòng</label>
+                <select 
+                  required 
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
+                  value={formData.roomtype_id} onChange={e => setFormData({...formData, roomtype_id: e.target.value})}
+                >
+                  {roomtypes.map(rt => (
+                    <option key={rt.id} value={rt.id}>{rt.name}</option>
                   ))}
                 </select>
               </div>

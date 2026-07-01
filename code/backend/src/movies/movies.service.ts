@@ -4,22 +4,7 @@ import { ERROR_MESSAGES } from '../common/constants/error-messages.constant';
 import { SUCCESS_MESSAGES } from '../common/constants/success-messages.constant';
 import { CONFIG_DEFAULTS } from '../common/constants/config.constant';
 
-function formatMovieType(type: string | null | undefined): string {
-  if (!type) return '';
-  return type.replace(/^TYPE_/, '').replace(/_/g, ' ');
-}
-
-function parseMovieType(type: string | null | undefined): any {
-  if (!type) return undefined;
-  const cleaned = type.toUpperCase().replace(/\s+/g, '');
-  if (cleaned === '2D' || cleaned === 'TYPE_2D') {
-    return 'TYPE_2D';
-  }
-  if (cleaned === '3D' || cleaned === 'TYPE_3D') {
-    return 'TYPE_3D';
-  }
-  return type;
-}
+// Removed formatMovieType and parseMovieType as we now use dynamic roomtype_id
 
 @Injectable()
 export class MoviesService {
@@ -28,7 +13,7 @@ export class MoviesService {
   async findAll() {
     const movies = await this.prisma.movie.findMany({
       orderBy: { id: 'desc' },
-      include: { moviegenre: { include: { genre: true } } },
+      include: { moviegenre: { include: { genre: true } }, roomtype: true },
     });
 
     let ageLimits: any[] = [];
@@ -47,7 +32,8 @@ export class MoviesService {
         releaseDate: m.release_date,
         posterUrl: m.image,
         bannerUrl: m.banner || null,
-        type: formatMovieType(m.type),
+        type: m.roomtype ? m.roomtype.name : '',
+        roomtype_id: m.roomtype_id,
         trailer: m.trailer,
         author: m.author,
         actors: m.actors,
@@ -62,6 +48,7 @@ export class MoviesService {
       where: { id },
       include: {
         moviegenre: { include: { genre: true } },
+        roomtype: true,
       },
     });
 
@@ -88,7 +75,8 @@ export class MoviesService {
       releaseDate: movie.release_date,
       posterUrl: movie.image,
       bannerUrl: movie.banner || null,
-      type: formatMovieType(movie.type),
+      type: movie.roomtype ? movie.roomtype.name : '',
+      roomtype_id: movie.roomtype_id,
       trailer: movie.trailer,
       author: movie.author,
       actors: movie.actors,
@@ -106,7 +94,7 @@ export class MoviesService {
       releaseDate,
       posterUrl,
       bannerUrl,
-      type,
+      roomtype_id,
       trailer,
       author,
       actors,
@@ -122,7 +110,7 @@ export class MoviesService {
         release_date: new Date(releaseDate),
         image: posterUrl,
         banner: bannerUrl,
-        type: parseMovieType(type),
+        roomtype_id: roomtype_id ? parseInt(roomtype_id) : undefined,
         trailer: trailer,
         author: author,
         actors: actors,
@@ -154,7 +142,7 @@ export class MoviesService {
       releaseDate,
       posterUrl,
       bannerUrl,
-      type,
+      roomtype_id,
       trailer,
       author,
       actors,
@@ -170,7 +158,7 @@ export class MoviesService {
     if (releaseDate) dataToUpdate.release_date = new Date(releaseDate);
     if (posterUrl !== undefined) dataToUpdate.image = posterUrl;
     if (bannerUrl !== undefined) dataToUpdate.banner = bannerUrl;
-    if (type) dataToUpdate.type = parseMovieType(type);
+    if (roomtype_id !== undefined) dataToUpdate.roomtype_id = roomtype_id ? parseInt(roomtype_id) : null;
     if (trailer !== undefined) dataToUpdate.trailer = trailer;
     if (author !== undefined) dataToUpdate.author = author;
     if (actors !== undefined) dataToUpdate.actors = actors;

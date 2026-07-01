@@ -7,7 +7,10 @@ export class PricesService {
 
   async findAll() {
     try {
-      return await this.prisma.ticketprice.findMany({ orderBy: { id: 'desc' } });
+      return await this.prisma.ticketprice.findMany({ 
+        orderBy: { id: 'desc' },
+        include: { roomtype: true }
+      });
     } catch(e) { console.error(e); return []; }
   }
 

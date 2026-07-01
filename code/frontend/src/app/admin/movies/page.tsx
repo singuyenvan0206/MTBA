@@ -17,6 +17,7 @@ type Movie = {
   bannerUrl?: string;
   releaseDate?: string;
   type?: string;
+  roomtype_id?: number;
   description?: string;
   author?: string;
   actors?: string;
@@ -35,6 +36,7 @@ export default function AdminMovies() {
   const [showModal, setShowModal] = useState(false);
   const [genres, setGenres] = useState<any[]>([]);
   const [ageLimits, setAgeLimits] = useState<any[]>([]);
+  const [roomtypes, setRoomtypes] = useState<any[]>([]);
 
   // Form states
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -45,7 +47,7 @@ export default function AdminMovies() {
     releaseDate: '',
     posterUrl: '',
     bannerUrl: '',
-    type: MovieType.TYPE_2D,
+    roomtype_id: '',
     description: '',
     author: '',
     actors: '',
@@ -77,13 +79,17 @@ export default function AdminMovies() {
       .then(res => res.json())
       .then(data => setAgeLimits(data))
       .catch(err => console.error(err));
+    fetch(API_ENDPOINTS.ROOMTYPES)
+      .then(res => res.json())
+      .then(data => setRoomtypes(data))
+      .catch(err => console.error(err));
   }, []);
 
   const openAddModal = () => {
     setEditingId(null);
     setFormData({
       title: '', genre: '', duration: '', releaseDate: '',
-      posterUrl: '', bannerUrl: '', type: MovieType.TYPE_2D, description: '',
+      posterUrl: '', bannerUrl: '', roomtype_id: roomtypes.length > 0 ? String(roomtypes[0].id) : '', description: '',
       author: '', actors: '', ageLimit: '', trailer: ''
     });
 
@@ -99,7 +105,7 @@ export default function AdminMovies() {
       releaseDate: movie.releaseDate ? new Date(movie.releaseDate).toISOString().split('T')[0] : '',
       posterUrl: movie.posterUrl || '',
       bannerUrl: movie.bannerUrl || '',
-      type: (movie.type as MovieType) || MovieType.TYPE_2D,
+      roomtype_id: movie.roomtype_id ? String(movie.roomtype_id) : (roomtypes.length > 0 ? String(roomtypes[0].id) : ''),
       description: movie.description || '',
       author: movie.author || '',
       actors: movie.actors || '',
@@ -111,7 +117,7 @@ export default function AdminMovies() {
   };
 
   const handleDelete = (id: number) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa phim này?')) return;
+    if (!confirm(UI_MESSAGES.X_C_NH_N_X_A_PHIM)) return;
     const adminUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || '{}');
     fetch(`${API_ENDPOINTS.MOVIES_}${id}`, { 
       method: 'DELETE',
@@ -121,8 +127,8 @@ export default function AdminMovies() {
     })
       .then(async (res) => {
         if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.message || 'Lỗi khi xóa phim');
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.message || err.error || 'Lỗi khi xóa phim');
         }
         return res.json();
       })
@@ -141,11 +147,26 @@ export default function AdminMovies() {
     const method = editingId ? 'PUT' : 'POST';
 
     try {
+      const payload = {
+        ...formData,
+        duration: parseInt(String(formData.duration)) || 0,
+        roomtype_id: parseInt(String(formData.roomtype_id)) || null,
+      };
+      
+      const adminUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || '{}');
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminUser.accessToken || ''}`
+        },
+        body: JSON.stringify(payload)
       });
+      if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          const errMsg = Array.isArray(err.message) ? err.message[0] : (err.message || err.error || 'Lỗi lưu dữ liệu');
+          throw new Error(errMsg);
+      }
       const savedMovie = await res.json();
       const movieId = editingId || savedMovie.id;
 
@@ -248,7 +269,7 @@ export default function AdminMovies() {
                     <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
                       <strong style={{ color: 'var(--foreground)' }}>{movie.title}</strong>
                       <br />
-                      <small style={{ color: 'var(--text-muted)' }}>{movie.type}</small>
+                      <small style={{ color: 'var(--text-muted)' }}>{movie.roomtype?.name || movie.roomtype_id}</small>
                     </td>
                     <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{movie.genre}</td>
                     <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{movie.duration} phút</td>
@@ -329,10 +350,11 @@ export default function AdminMovies() {
                   <select 
                     required 
                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                    value={formData.type} onChange={e => setFormData({...formData, type: e.target.value as MovieType})}
+                    value={formData.roomtype_id} onChange={e => setFormData({...formData, roomtype_id: e.target.value})}
                   >
-                    <option value={MovieType.TYPE_2D}>2D</option>
-                    <option value={MovieType.TYPE_3D}>3D</option>
+                    {roomtypes.map(rt => (
+                      <option key={rt.id} value={rt.id}>{rt.name}</option>
+                    ))}
                   </select>
                 </div>
               </div>

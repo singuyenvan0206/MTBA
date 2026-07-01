@@ -6,10 +6,13 @@ import { SeatType, MovieType } from '@/types/enums';
 import { UI_MESSAGES } from '@/constants/messages';
 import { API_ENDPOINTS } from '@/constants/endpoints';
 import { ROLES, PAYMENT_METHODS, SEAT_TYPES, MOVIE_TABS } from '@/constants/enums';
+import { STORAGE_KEYS } from '@/constants/storage';
 type TicketPrice = {
   id: number;
   type_seat: string;
-  type_movie: string;
+  type_movie?: string;
+  roomtype_id?: number;
+  roomtype?: { name: string };
   price: number;
   day_type: boolean;
   start_time?: string;
@@ -21,10 +24,11 @@ export default function AdminPrices() {
   const [loading, setLoading] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
+  const [roomtypes, setRoomtypes] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     type_seat: SeatType.STANDARD,
-    type_movie: MovieType.TYPE_2D,
+    roomtype_id: '',
     day_type: 'false',
     price: ''
   });
@@ -45,11 +49,15 @@ export default function AdminPrices() {
 
   useEffect(() => {
     fetchData();
+    fetch(API_ENDPOINTS.ROOMTYPES)
+      .then(res => res.json())
+      .then(d => setRoomtypes(d))
+      .catch(err => console.error(err));
   }, []);
 
   const openAddModal = () => {
     setEditingId(null);
-    setFormData({ type_seat: SeatType.STANDARD, type_movie: MovieType.TYPE_2D, day_type: 'false', price: '' });
+    setFormData({ type_seat: SeatType.STANDARD, roomtype_id: roomtypes.length > 0 ? String(roomtypes[0].id) : '', day_type: 'false', price: '' });
     setShowModal(true);
   };
 
@@ -57,7 +65,7 @@ export default function AdminPrices() {
     setEditingId(item.id);
     setFormData({
       type_seat: (item.type_seat as SeatType) || SeatType.STANDARD,
-      type_movie: (item.type_movie as MovieType) || MovieType.TYPE_2D,
+      roomtype_id: item.roomtype_id ? String(item.roomtype_id) : (roomtypes.length > 0 ? String(roomtypes[0].id) : ''),
       day_type: String(item.day_type || false),
       price: String(item.price || '')
     });
@@ -66,12 +74,20 @@ export default function AdminPrices() {
 
   const handleDelete = (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa giá vé này?')) return;
-    fetch(`${API_ENDPOINTS.PRICES_}${id}`, { method: 'DELETE' })
-      .then(() => {
+    const adminUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || '{}');
+    fetch(`${API_ENDPOINTS.PRICES_}${id}`, { 
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${adminUser.accessToken || ''}` }
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || err.error || UI_MESSAGES.L_I_KHI_X_A_GI__V);
+        }
         alert(UI_MESSAGES.X_A_GI__V__TH_NH_C_NG);
         fetchData();
       })
-      .catch(err => alert(UI_MESSAGES.L_I_KHI_X_A_GI__V));
+      .catch(err => alert(err.message));
   };
 
   const handleSave = (e: React.FormEvent) => {
@@ -83,25 +99,37 @@ export default function AdminPrices() {
 
     const payload = {
       type_seat: formData.type_seat,
-      type_movie: formData.type_movie,
+      roomtype_id: parseInt(formData.roomtype_id) || null,
       day_type: formData.day_type === 'true',
       price: parseFloat(formData.price),
       start_time: new Date('1970-01-01T00:00:00Z').toISOString(),
       end_time: new Date('1970-01-01T23:59:59Z').toISOString()
     };
 
+    const adminUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || '{}');
+
     fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminUser.accessToken || ''}`
+      },
       body: JSON.stringify(payload)
     })
-      .then(res => res.json())
+      .then(async res => {
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          const errMsg = Array.isArray(err.message) ? err.message[0] : (err.message || err.error || UI_MESSAGES.L_I_KHI_L_U_GI__V);
+          throw new Error(errMsg);
+        }
+        return res.json();
+      })
       .then(() => {
         alert(editingId ? 'Cập nhật giá vé thành công!' : 'Thêm giá vé thành công!');
         setShowModal(false);
         fetchData();
       })
-      .catch(err => alert(UI_MESSAGES.L_I_KHI_L_U_GI__V));
+      .catch(err => alert(err.message));
   };
 
   return (
@@ -136,7 +164,7 @@ export default function AdminPrices() {
                 <tr key={item.id}>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>#{item.id}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)', fontWeight: 'bold', color: 'var(--foreground)' }}>{item.type_seat === SeatType.STANDARD ? 'Thường' : (item.type_seat === SeatType.VIP ? SEAT_TYPES.VIP : 'Sweetbox')}</td>
-                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.type_movie === MovieType.TYPE_2D ? '2D' : '3D'}</td>
+                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.roomtype?.name || item.roomtype_id}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{item.day_type ? 'Cuối tuần / Lễ' : 'Ngày thường'}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
@@ -173,14 +201,15 @@ export default function AdminPrices() {
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Loại phim</label>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Loại phòng</label>
                 <select 
                   required 
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                  value={formData.type_movie} onChange={e => setFormData({...formData, type_movie: e.target.value as MovieType})}
+                  value={formData.roomtype_id} onChange={e => setFormData({...formData, roomtype_id: e.target.value})}
                 >
-                  <option value={MovieType.TYPE_2D}>2D</option>
-                  <option value={MovieType.TYPE_3D}>3D</option>
+                  {roomtypes.map(rt => (
+                    <option key={rt.id} value={rt.id}>{rt.name}</option>
+                  ))}
                 </select>
               </div>
 

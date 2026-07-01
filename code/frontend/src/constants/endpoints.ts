@@ -20,6 +20,8 @@ export const API_ENDPOINTS = {
   SCREENS: '/api/screens',
   SCREENS_: '/api/screens/',
   SCREENS_BULKDELETE: '/api/screens/bulk-delete',
+  ROOMTYPES: '/api/roomtypes',
+  ROOMTYPES_: '/api/roomtypes/',
   SEATS_GENERATE: '/api/seats/generate',
   SEATS: '/api/seats',
   SEATS_: '/api/seats/',

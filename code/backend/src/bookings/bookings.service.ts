@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { payment_payment_status, user_status, seat_type, movie_type } from '@prisma/client';
+import { payment_payment_status, user_status, seat_type } from '@prisma/client';
 import { ERROR_MESSAGES } from '../common/constants/error-messages.constant';
 import { CONFIG_DEFAULTS } from '../common/constants/config.constant';
 import { Role } from '../common/enums/role.enum';
@@ -64,7 +64,7 @@ export class BookingsService {
       // 3. Tính toán lại tổng tiền ở backend dựa trên bảng giá (ticketprice) để bảo mật
       const prices = await tx.ticketprice.findMany();
       let calculatedTotalPrice = 0;
-      const movieType = showtime.movie.type || movie_type.TYPE_2D;
+      const movieType = showtime.movie.roomtype_id || 1;
       const showtimeDate = new Date(showtime.start_time);
       const isWeekend = showtimeDate.getDay() === 0 || showtimeDate.getDay() === 6;
 
@@ -97,7 +97,7 @@ export class BookingsService {
       for (const seat of seatRecords) {
         const seatType = seat.type;
         const priceConfig = prices.find(p => 
-          p.type_movie === movieType && 
+          p.roomtype_id === movieType && 
           p.type_seat === seatType && 
           p.day_type === isWeekend
         );

@@ -45,7 +45,6 @@ model festival {
   image      String?  @db.VarChar(255)
   start_time DateTime
   end_time   DateTime
-  content    String?  @db.Text
   news       news[]
 }
 
@@ -62,7 +61,7 @@ model movie {
   author       String?      @db.VarChar(100)
   image        String?      @db.Text
   trailer      String?      @db.VarChar(255)
-  type         movie_type   @default(TYPE_2D)
+  roomtype_id  Int?
   duration     Int
   release_date DateTime
   created_at   DateTime     @default(now())
@@ -72,6 +71,7 @@ model movie {
   banner       String?      @db.Text
   moviegenre   moviegenre[]
   showtime     showtime[]
+  roomtype     roomtype?    @relation(fields: [roomtype_id], references: [id], map: "Movie_roomtype_id_fkey")
 }
 
 model moviegenre {
@@ -116,18 +116,30 @@ model role {
   userrole  userrole[]
 }
 
+model roomtype {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique @db.VarChar(50)
+  description String?       @db.VarChar(255)
+  screen      screen[]
+  movie       movie[]
+  ticketprice ticketprice[]
+}
+
 model screen {
   id            Int        @id @default(autoincrement())
   name          String     @db.VarChar(100)
   seat_capacity Int
   theater_id    Int
+  roomtype_id   Int?
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
   theater       theater    @relation(fields: [theater_id], references: [id], onDelete: Cascade, map: "Screen_theater_id_fkey")
+  roomtype      roomtype?  @relation(fields: [roomtype_id], references: [id], map: "Screen_roomtype_id_fkey")
   seat          seat[]
   showtime      showtime[]
 
   @@index([theater_id], map: "Screen_theater_id_fkey")
+  @@index([roomtype_id], map: "Screen_roomtype_id_fkey")
 }
 
 model seat {
@@ -171,13 +183,16 @@ model theater {
 }
 
 model ticketprice {
-  id         Int                    @id @default(autoincrement())
-  type_seat  ticketprice_type_seat
-  type_movie ticketprice_type_movie
-  price      Float
-  day_type   Boolean
-  start_time DateTime               @db.Time(0)
-  end_time   DateTime               @db.Time(0)
+  id          Int                   @id @default(autoincrement())
+  type_seat   ticketprice_type_seat
+  roomtype_id Int?
+  price       Float
+  day_type    Boolean
+  start_time  DateTime              @db.Time(0)
+  end_time    DateTime              @db.Time(0)
+  roomtype    roomtype?             @relation(fields: [roomtype_id], references: [id], map: "Ticketprice_roomtype_id_fkey")
+
+  @@index([roomtype_id], map: "Ticketprice_roomtype_id_fkey")
 }
 
 model user {
@@ -251,11 +266,6 @@ enum seat_type {
   STANDARD
   VIP
   SWEETBOX
-}
-
-enum movie_type {
-  TYPE_2D @map("2D")
-  TYPE_3D @map("3D")
 }
 
 enum user_status {

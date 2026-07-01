@@ -76,6 +76,9 @@ export default function AdminLayout({
           <Link href={`${APP_ROUTES.ADMIN}/screens`} style={{ display: 'block', padding: '15px 20px', textDecoration: 'none', fontWeight: 500, transition: 'all 0.3s', backgroundColor: pathname.startsWith('/admin/screens') ? 'rgba(255, 77, 79, 0.1)' : 'transparent', color: pathname.startsWith('/admin/screens') ? 'var(--primary)' : 'var(--text-muted)', borderRight: pathname.startsWith('/admin/screens') ? '3px solid var(--primary)' : 'none' }}>
             Quản lý Phòng chiếu
           </Link>
+          <Link href={`${APP_ROUTES.ADMIN}/roomtypes`} style={{ display: 'block', padding: '15px 20px', textDecoration: 'none', fontWeight: 500, transition: 'all 0.3s', backgroundColor: pathname.startsWith('/admin/roomtypes') ? 'rgba(255, 77, 79, 0.1)' : 'transparent', color: pathname.startsWith('/admin/roomtypes') ? 'var(--primary)' : 'var(--text-muted)', borderRight: pathname.startsWith('/admin/roomtypes') ? '3px solid var(--primary)' : 'none' }}>
+            Quản lý Loại phòng
+          </Link>
           <Link href={`${APP_ROUTES.ADMIN}/showtimes`} style={{ display: 'block', padding: '15px 20px', textDecoration: 'none', fontWeight: 500, transition: 'all 0.3s', backgroundColor: pathname.startsWith('/admin/showtimes') ? 'rgba(255, 77, 79, 0.1)' : 'transparent', color: pathname.startsWith('/admin/showtimes') ? 'var(--primary)' : 'var(--text-muted)', borderRight: pathname.startsWith('/admin/showtimes') ? '3px solid var(--primary)' : 'none' }}>
             Quản lý Lịch chiếu
           </Link>

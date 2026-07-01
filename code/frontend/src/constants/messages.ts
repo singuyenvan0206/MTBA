@@ -21,6 +21,7 @@ export const UI_MESSAGES = {
   L_I_KHI_X_A_TH__LO_I: `Lỗi khi xóa thể loại`,
   X_A_PHIM_TH_NH_C_NG: `Xóa phim thành công!`,
   L_I_KHI_L_U_PHIM: `Lỗi khi lưu phim`,
+  X_C_NH_N_X_A_PHIM: `Bạn có chắc chắn muốn xóa phim này?`,
   X_A_GI__V__TH_NH_C_NG: `Xóa giá vé thành công!`,
   L_I_KHI_X_A_GI__V: `Lỗi khi xóa giá vé`,
   L_I_KHI_L_U_GI__V: `Lỗi khi lưu giá vé`,
