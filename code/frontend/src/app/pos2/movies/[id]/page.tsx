@@ -87,29 +87,17 @@ export default function MovieDetail() {
 
     // Lấy bảng giá
     fetch(API_ENDPOINTS.PRICES)
-      .then(async res => {
-        const text = await res.text();
-        if (!res.ok) throw new Error(text || `HTTP error ${res.status}`);
-        return text ? JSON.parse(text) : {};
-      })
+      .then(res => res.json())
       .then(data => setPrices(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
 
     fetch(`${API_ENDPOINTS.MOVIES_}${params.id}`)
-      .then(async res => {
-        const text = await res.text();
-        if (!res.ok) throw new Error(text || `HTTP error ${res.status}`);
-        return text ? JSON.parse(text) : {};
-      })
+      .then(res => res.json())
       .then(data => {
         setMovie(data);
         return fetch(`${API_ENDPOINTS.SHOWTIMES}?movieId=${params.id}`);
       })
-      .then(async res => {
-        const text = await res.text();
-        if (!res.ok) throw new Error(text || `HTTP error ${res.status}`);
-        return text ? JSON.parse(text) : {};
-      })
+      .then(res => res.json())
       .then(data => {
         setShowtimes(data);
         setLoading(false);
@@ -142,21 +130,13 @@ export default function MovieDetail() {
 
     if (showtime.screen_id) {
       fetch(`${API_ENDPOINTS.SEATS}?screen_id=${showtime.screen_id}`)
-        .then(async res => {
-          const text = await res.text();
-          if (!res.ok) throw new Error(text || `HTTP error ${res.status}`);
-          return text ? JSON.parse(text) : {};
-        })
+        .then(res => res.json())
         .then(seats => setDbSeats(Array.isArray(seats) ? seats : []))
         .catch(err => console.error(UI_MESSAGES.ERROR_LOADING_SEATS, err));
     }
 
     fetch(`${API_ENDPOINTS.BOOKINGS_BOOKEDSEATS}?showtimeId=${showtime.id}`)
-      .then(async res => {
-        const text = await res.text();
-        if (!res.ok) throw new Error(text || `HTTP error ${res.status}`);
-        return text ? JSON.parse(text) : {};
-      })
+      .then(res => res.json())
       .then(data => setBookedSeats(Array.isArray(data.bookedSeats) ? data.bookedSeats : []))
       .catch(err => console.error('Lỗi khi tải ghế:', err));
   };
@@ -232,8 +212,7 @@ export default function MovieDetail() {
       });
 
       if (res.ok) {
-        const text = await res.text();
-        const booking = text ? JSON.parse(text) : {};
+        const booking = await res.json();
         pushState({ currentPath: `/pos2/payment/${booking.id}`, showtimeId: selectedShowtime.id, selectedSeats: selectedSeats });
         router.push(`${APP_ROUTES.POS2}/payment/${booking.id}`);
       } else {
