@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { UI_MESSAGES } from '@/constants/messages';
 import { API_ENDPOINTS } from '@/constants/endpoints';
 import { APP_ROUTES } from '@/constants/routes';
+import { AppMessage } from '@/types/messages';
 export default function ForgotPassword() {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
@@ -17,6 +18,7 @@ export default function ForgotPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,8 +75,7 @@ export default function ForgotPassword() {
         return;
       }
 
-      alert(UI_MESSAGES.KH_I_PH_C_M_T_KH_U_TH_NH_C_NG);
-      window.location.href = '/login';
+      setShowSuccessModal(true);
     } catch (err: any) {
       setError('Lỗi kết nối Server: ' + err.message);
       setIsLoading(false);
@@ -196,6 +197,29 @@ export default function ForgotPassword() {
         )}
 
       </div>
+
+      {showSuccessModal && (
+        <div className="modal animate-[fadeIn_0.2s]" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.85)', zIndex: 9999 }}>
+          <div className="modal-content" style={{ backgroundColor: 'var(--card-bg)', padding: '40px 30px', borderRadius: '15px', textAlign: 'center', maxWidth: '420px', width: '100%', margin: '20px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(52, 211, 153, 0.1)', color: '#34d399', marginBottom: '20px' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" style={{ width: '36px', height: '36px' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </div>
+            <h3 style={{ fontSize: '22px', marginBottom: '10px', color: '#fff', fontWeight: 'bold' }}>{AppMessage.TITLE_SUCCESS}</h3>
+            <p style={{ color: '#aaa', fontSize: '15px', marginBottom: '25px', lineHeight: '1.6' }}>{UI_MESSAGES.KH_I_PH_C_M_T_KH_U_TH_NH_C_NG}</p>
+            <button 
+              onClick={() => {
+                window.location.href = '/login';
+              }} 
+              className="btn btn-primary" 
+              style={{ width: '100%', padding: '12px', fontSize: '15px', fontWeight: 'bold', border: 'none', backgroundColor: '#ff4d4f', color: '#fff', borderRadius: '8px', cursor: 'pointer' }}
+            >
+              Đăng nhập ngay
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

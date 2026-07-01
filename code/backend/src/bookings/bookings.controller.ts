@@ -68,7 +68,7 @@ export class BookingsController {
 
   @Post(':id/cancel')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.USER)
+  @Roles(Role.ADMIN, Role.USER, Role.STAFF)
   cancelBooking(@Param('id') id: string, @Req() req: any) {
     return this.bookingsService.cancelBooking(+id, req.user.id, req.user.role);
   }

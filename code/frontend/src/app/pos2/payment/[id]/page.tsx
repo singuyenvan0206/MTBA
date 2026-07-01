@@ -34,6 +34,34 @@ export default function PosPayment() {
   });
   const { pushState, syncState } = usePosSync(true);
 
+  const [statusModal, setStatusModal] = useState<{
+    show: boolean;
+    type: 'success' | 'error' | 'confirm';
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+  } | null>(null);
+
+  const showAlert = (message: string, type: 'success' | 'error' = 'error', onConfirm?: () => void) => {
+    setStatusModal({
+      show: true,
+      type,
+      title: type === 'success' ? AppMessage.TITLE_SUCCESS : AppMessage.TITLE_NOTIFICATION,
+      message,
+      onConfirm
+    });
+  };
+
+  const showConfirm = (message: string, onConfirm: () => void) => {
+    setStatusModal({
+      show: true,
+      type: 'confirm',
+      title: AppMessage.TITLE_CONFIRM,
+      message,
+      onConfirm
+    });
+  };
+
   // Khôi phục trạng thái chờ thanh toán nếu trang được reload
   // trong khi QR đang hiển thị — chỉ áp dụng sau khi booking đã load
   // để tránh khôi phục QR của booking cũ chưa kịp reset
@@ -46,7 +74,7 @@ export default function PosPayment() {
 
   const handlePushQR = () => {
     if (paymentMethod === PAYMENT_METHODS.CASH) {
-      alert(UI_MESSAGES.VUI_L_NG_CH_N_TH__HO_C_V___I_N);
+      showAlert(UI_MESSAGES.VUI_L_NG_CH_N_TH__HO_C_V___I_N);
       return;
     }
     if (paymentMethod === PAYMENT_METHODS.TRANSFER || paymentMethod === PAYMENT_METHODS.EWALLET) {
@@ -70,8 +98,9 @@ export default function PosPayment() {
       setUser(u);
       token = u.accessToken || '';
     } else {
-      alert(UI_MESSAGES.VUI_L_NG___NG_NH_P____S__D_NG);
-      router.push(`${APP_ROUTES.POS2}/login`);
+      showAlert(UI_MESSAGES.VUI_L_NG___NG_NH_P____S__D_NG, 'error', () => {
+        router.push(`${APP_ROUTES.POS2}/login`);
+      });
       return;
     }
 
@@ -82,9 +111,10 @@ export default function PosPayment() {
       .then(res => res.json())
       .then(data => {
         if (data.statusCode === 401) {
-            alert(UI_MESSAGES.PHI_N___NG_NH_P____H_T_H_N__VU);
-            localStorage.removeItem(STORAGE_KEYS.STAFF_USER);
-            router.push(`${APP_ROUTES.POS2}/login`);
+            showAlert(UI_MESSAGES.PHI_N___NG_NH_P____H_T_H_N__VU, 'error', () => {
+                localStorage.removeItem(STORAGE_KEYS.STAFF_USER);
+                router.push(`${APP_ROUTES.POS2}/login`);
+            });
             return;
         }
         setBooking(data);
@@ -133,7 +163,7 @@ export default function PosPayment() {
           if (data.isPaid) {
             setIsWaitingPayment(false);
             pushState({ showQR: false }); // Hide QR on customer screen
-            alert(UI_MESSAGES.SEAPAY_SUCCESS_PRINT_TICKET);
+            showAlert(UI_MESSAGES.SEAPAY_SUCCESS_PRINT_TICKET, 'success');
           }
         }
       } catch (err) {
@@ -205,7 +235,7 @@ export default function PosPayment() {
           // Nếu backend báo đã thanh toán rồi (race condition) → coi như thành công
           const isAlreadyPaid = errData?.message?.includes('đã được thanh toán');
           if (!isAlreadyPaid) {
-            alert(AppMessage.POS_PAYMENT_FAILED);
+            showAlert(AppMessage.POS_PAYMENT_FAILED);
             return;
           }
         }
@@ -219,8 +249,35 @@ export default function PosPayment() {
       }, 500);
 
     } catch (err) {
-      alert(AppMessage.POS_PAYMENT_CONNECTION_ERROR);
+      showAlert(AppMessage.POS_PAYMENT_CONNECTION_ERROR);
     }
+  };
+
+  const handleCancelBooking = () => {
+    if (!booking) return;
+    showConfirm(AppMessage.CANCEL_CONFIRM, async () => {
+      setStatusModal(null);
+      try {
+        const token = user?.accessToken || '';
+        const res = await fetch(`${API_ENDPOINTS.BOOKINGS_}${booking.id}/cancel`, {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (res.ok) {
+          pushState({ showQR: false, showtimeId: null, selectedSeats: [] });
+          const movieId = booking?.showtime?.movie?.id || booking?.showtime?.movie_id;
+          router.push(`${APP_ROUTES.POS2}/movies/${movieId}`);
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          showAlert(errData.message || AppMessage.CANCEL_FAILED);
+        }
+      } catch (err) {
+        showAlert(AppMessage.CANCEL_CONNECTION_ERROR);
+      }
+    });
   };
 
 
@@ -293,11 +350,11 @@ export default function PosPayment() {
               setCustomer(data);
           } else {
               setCustomer(null);
-              alert(AppMessage.POS_CUSTOMER_NOT_FOUND);
+              showAlert(AppMessage.POS_CUSTOMER_NOT_FOUND);
           }
       } catch (err) {
           setCustomer(null);
-          alert(AppMessage.POS_CUSTOMER_SEARCH_ERROR);
+          showAlert(AppMessage.POS_CUSTOMER_SEARCH_ERROR);
       }
   };
 
@@ -475,7 +532,13 @@ export default function PosPayment() {
                                 </button>
                             )}
                             <button className="btn btn-primary w-100" id="btn-pay" onClick={handlePayment} style={{ width: '100%', padding: '15px', fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>Thanh toán ngay</button>
-                            <Link href={`/pos2/movies/${movie?.id}`} className="back-link" style={{ display: 'block', textAlign: 'center', color: '#888', textDecoration: 'underline' }}>Quay lại</Link>
+                            <button 
+                                onClick={handleCancelBooking} 
+                                className="back-link" 
+                                style={{ display: 'block', width: '100%', textAlign: 'center', color: '#888', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', marginTop: '10px' }}
+                            >
+                                Hủy đặt vé & Quay lại
+                            </button>
                         </div>
                         
                         <p className="age-warning mt-40" style={{ fontSize: '12px', marginBottom: 0, marginTop: '20px', color: '#f0a500' }}>Lưu ý: Khán giả dưới 13 tuổi chỉ chọn suất chiếu kết thúc trước 22h và khán giả dưới 16 tuổi chỉ chọn suất chiếu kết thúc trước 23h.</p>
@@ -528,6 +591,52 @@ export default function PosPayment() {
                 <div className="no-print" style={{ marginTop: '30px', display: 'flex', gap: '10px' }}>
                     <button onClick={() => window.print()} style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>In lại</button>
                     <button onClick={() => { setIsPrinting(false); pushState({ showQR: false, currentPath: '/pos2' }); router.push(APP_ROUTES.POS2); }} style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Hoàn tất & Về trang chủ</button>
+                </div>
+            </div>
+        )}
+
+        {/* Status Modal (Success, Error, Confirm) */}
+        {statusModal && statusModal.show && (
+            <div className="modal" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.85)', zIndex: 9999 }}>
+                <div className="modal-content" style={{ backgroundColor: 'var(--card-bg)', padding: '40px 30px', borderRadius: '15px', textAlign: 'center', maxWidth: '420px', width: '100%', margin: '20px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {statusModal.type === 'success' && (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(52, 211, 153, 0.1)', color: '#34d399', marginBottom: '20px' }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" style={{ width: '36px', height: '36px' }}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            </svg>
+                        </div>
+                    )}
+                    {statusModal.type === 'error' && (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', marginBottom: '20px' }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" style={{ width: '36px', height: '36px' }}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                            </svg>
+                        </div>
+                    )}
+                    {statusModal.type === 'confirm' && (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', marginBottom: '20px' }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" style={{ width: '36px', height: '36px' }}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                            </svg>
+                        </div>
+                    )}
+                    <h3 style={{ fontSize: '22px', marginBottom: '10px', color: '#fff', fontWeight: 'bold' }}>{statusModal.title}</h3>
+                    <p style={{ color: '#aaa', fontSize: '15px', marginBottom: '25px', lineHeight: '1.6' }}>{statusModal.message}</p>
+                    
+                    {statusModal.type === 'confirm' ? (
+                        <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
+                            <button onClick={() => setStatusModal(null)} className="btn btn-outline" style={{ flex: 1, padding: '12px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', border: '1px solid #444', borderRadius: '8px', background: 'transparent', color: '#aaa' }}>
+                                Đóng
+                            </button>
+                            <button onClick={statusModal.onConfirm} className="btn btn-primary" style={{ flex: 1, padding: '12px', fontSize: '15px', fontWeight: 'bold', border: 'none', backgroundColor: '#ff4d4f', color: '#fff', borderRadius: '8px', cursor: 'pointer' }}>
+                                Xác nhận
+                            </button>
+                        </div>
+                    ) : (
+                        <button onClick={statusModal.onConfirm || (() => setStatusModal(null))} className="btn btn-primary" style={{ width: '100%', padding: '12px', fontSize: '15px', fontWeight: 'bold', border: 'none', backgroundColor: '#ff4d4f', color: '#fff', borderRadius: '8px', cursor: 'pointer' }}>
+                            Đóng
+                        </button>
+                    )}
                 </div>
             </div>
         )}
