@@ -55,13 +55,21 @@ export default function Booking() {
     if (params?.showtimeId) {
       // Lấy thông tin showtime
       fetch(`${API_ENDPOINTS.SHOWTIMES_}${params.showtimeId}`)
-        .then(res => res.json())
+        .then(async res => {
+          const text = await res.text();
+          if (!res.ok) throw new Error(text || `HTTP error ${res.status}`);
+          return text ? JSON.parse(text) : {};
+        })
         .then(data => setShowtime(data))
         .catch(err => console.error('Lỗi khi tải showtime:', err));
 
       // Lấy danh sách ghế đã đặt
       fetch(`${API_ENDPOINTS.BOOKINGS_BOOKEDSEATS}?showtimeId=${params.showtimeId}`)
-        .then(res => res.json())
+        .then(async res => {
+          const text = await res.text();
+          if (!res.ok) throw new Error(text || `HTTP error ${res.status}`);
+          return text ? JSON.parse(text) : {};
+        })
         .then(data => setBookedSeats(data))
         .catch(err => console.error('Lỗi khi tải ghế:', err));
     }
@@ -98,7 +106,8 @@ export default function Booking() {
       });
 
       if (res.ok) {
-        const data = await res.json();
+        const text = await res.text();
+        const data = text ? JSON.parse(text) : {};
         router.push(`${APP_ROUTES.POS2}/payment/${data.id}`);
       } else {
         showAlert(AppMessage.POS_BOOKING_ERROR);

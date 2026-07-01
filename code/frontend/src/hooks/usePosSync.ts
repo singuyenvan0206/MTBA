@@ -162,12 +162,12 @@ export function usePosSync(isStaff: boolean) {
 
   // ─── Pathname Sync: broadcast khi staff navigate ───────────────────────────
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!isStaff || typeof window === 'undefined') return;
     const current = window.location.pathname;
     if (syncState.currentPath !== current) {
       pushState({ currentPath: current }, true);
     }
-  }, [pathname, pushState]);
+  }, [isStaff, pathname, pushState]);
 
 
   return { syncState, pushState };
