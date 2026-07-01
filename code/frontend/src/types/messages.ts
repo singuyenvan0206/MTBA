@@ -16,7 +16,7 @@ export enum AppMessage {
   PAYMENT_TRANSFER_SUCCESS = 'Thanh toán chuyển khoản thành công!',
 
   // --- Booking Cancellation ---
-  CANCEL_CONFIRM = 'Bạn có chắc chắn muốn hủy đơn đặt vé này và giải phóng các ghế đã chọn?',
+  CANCEL_CONFIRM = 'Bạn có chắc chắn muốn hủy đơn đặt vé này?',
   CANCEL_SUCCESS = 'Đã hủy đơn đặt vé thành công và giải phóng các ghế!',
   CANCEL_FAILED = 'Lỗi khi hủy đơn đặt vé',
   CANCEL_CONNECTION_ERROR = 'Lỗi kết nối server khi hủy đặt vé',
@@ -49,4 +49,7 @@ export enum AppMessage {
   TITLE_CANCEL_FAILED = 'Hủy vé thất bại',
   TITLE_QR_CODE = 'Mã QR Vé Xem Phim',
   TITLE_PAYMENT_SUCCESS = 'Thanh toán thành công!',
+  TITLE_SUCCESS = 'Thành công',
+  TITLE_NOTIFICATION = 'Thông báo',
+  TITLE_CONFIRM = 'Xác nhận',
 }

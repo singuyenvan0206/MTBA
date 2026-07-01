@@ -50,6 +50,24 @@ export default function MovieDetail() {
   const [user, setUser] = useState<any>(null);
   const [currentTime, setCurrentTime] = useState<string>('--:--:--');
 
+  const [statusModal, setStatusModal] = useState<{
+    show: boolean;
+    type: 'success' | 'error' | 'confirm';
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+  } | null>(null);
+
+  const showAlert = (message: string, type: 'success' | 'error' = 'error', onConfirm?: () => void) => {
+    setStatusModal({
+      show: true,
+      type,
+      title: type === 'success' ? AppMessage.TITLE_SUCCESS : AppMessage.TITLE_NOTIFICATION,
+      message,
+      onConfirm
+    });
+  };
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date().toLocaleTimeString('vi-VN'));
@@ -129,7 +147,7 @@ export default function MovieDetail() {
       newSelectedSeats = selectedSeats.filter(id => id !== seatId);
     } else {
       if (selectedSeats.length >= 8) {
-        alert(UI_MESSAGES.CH_____C_CH_N_T_I__A_8_GH);
+        showAlert(UI_MESSAGES.CH_____C_CH_N_T_I__A_8_GH);
         return;
       }
       newSelectedSeats = [...selectedSeats, seatId];
@@ -176,7 +194,8 @@ export default function MovieDetail() {
 
   const handleCheckout = async () => {
     if (selectedSeats.length === 0) {
-      return alert(AppMessage.POS_BOOKING_SELECT_SEAT);
+      showAlert(AppMessage.POS_BOOKING_SELECT_SEAT);
+      return;
     }
     if (!selectedShowtime) return;
 
@@ -202,10 +221,10 @@ export default function MovieDetail() {
         router.push(`${APP_ROUTES.POS2}/payment/${booking.id}`);
       } else {
         const errorData = await res.json().catch(() => null);
-        alert(errorData?.message || UI_MESSAGES.BOOKING_ERROR_OCCURRED);
+        showAlert(errorData?.message || UI_MESSAGES.BOOKING_ERROR_OCCURRED);
       }
     } catch (err) {
-      alert(UI_MESSAGES.L_I_K_T_N_I_SERVER_43);
+      showAlert(UI_MESSAGES.L_I_K_T_N_I_SERVER_43);
     }
   };
 
@@ -412,18 +431,18 @@ export default function MovieDetail() {
             <div className="legend-item"><span className="seat couple"></span> Ghế đôi</div>
           </div>
 
-          <div className="booking-summary">
-            <div className="summary-info">
-              <p>Ghế đã chọn: <strong className="selected-seats-text" style={{ color: '#ff4d4f' }}>{selectedSeats.length > 0 ? selectedSeats.join(', ') : 'Chưa chọn'}</strong></p>
-              <p>Tổng tiền: <strong className="total-price">{calculateTotalPrice().toLocaleString('vi-VN')}đ</strong></p>
-            </div>
-            <div className="summary-actions">
-              <button className="btn btn-outline" onClick={() => window.scrollTo(0, 0)}>Quay lại</button>
-              <button className="btn btn-primary" onClick={handleCheckout}>Thanh toán</button>
-            </div>
-          </div>
-        </section>
-      )}
+                <div className="booking-summary">
+                    <div className="summary-info">
+                        <p>Ghế đã chọn: <strong className="selected-seats-text" style={{ color: '#ff4d4f' }}>{selectedSeats.length > 0 ? selectedSeats.join(', ') : 'Chưa chọn'}</strong></p>
+                        <p>Tổng tiền: <strong className="total-price">{calculateTotalPrice().toLocaleString('vi-VN')}đ</strong></p>
+                    </div>
+                    <div className="summary-actions">
+                        <button className="btn btn-outline" onClick={() => window.scrollTo(0, 0)}>Quay lại</button>
+                        <button className="btn btn-primary" onClick={handleCheckout}>Thanh toán</button>
+                    </div>
+                </div>
+            </section>
+        )}
     </main>
   );
 }

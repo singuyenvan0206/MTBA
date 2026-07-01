@@ -395,7 +395,7 @@ export class BookingsService {
       }
 
       // Kiểm tra quyền sở hữu
-      if (role !== Role.ADMIN && booking.user_id !== userId) {
+      if (role !== Role.ADMIN && role !== Role.STAFF && booking.user_id !== userId) {
         throw new BadRequestException(ERROR_MESSAGES.BOOKING.NO_CANCEL_PERMISSION);
       }
 
