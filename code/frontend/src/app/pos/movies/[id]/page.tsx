@@ -35,16 +35,16 @@ export default function MovieDetail() {
   const [movie, setMovie] = useState<Movie | null>(null);
   const [showtimes, setShowtimes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const { syncState } = usePosSync(false); // Khách hàng
-  
+
   // Seat selection state
   const [selectedDate, setSelectedDate] = useState<string>('');
   const { selectedTheater } = useTheater();
   const [selectedShowtime, setSelectedShowtime] = useState<any>(null);
   const [dbSeats, setDbSeats] = useState<any[]>([]);
   const [bookedSeats, setBookedSeats] = useState<string[]>([]);
-  
+
   // Lấy dữ liệu ghế đang chọn từ syncState
   const selectedSeats = syncState.selectedSeats || [];
   const [prices, setPrices] = useState<any[]>([]);
@@ -69,7 +69,7 @@ export default function MovieDetail() {
     }
 
     if (!params?.id) return;
-    
+
     // Lấy bảng giá
     fetch(API_ENDPOINTS.PRICES)
       .then(res => res.json())
@@ -109,12 +109,12 @@ export default function MovieDetail() {
     setSelectedShowtime(showtime);
     setBookedSeats([]);
     setDbSeats([]);
-    
+
     if (showtime.screen_id) {
-        fetch(`${API_ENDPOINTS.SEATS}?screen_id=${showtime.screen_id}`)
-          .then(res => res.json())
-          .then(seats => setDbSeats(Array.isArray(seats) ? seats : []))
-          .catch(err => console.error('Lỗi khi tải ghế của phòng chiếu:', err));
+      fetch(`${API_ENDPOINTS.SEATS}?screen_id=${showtime.screen_id}`)
+        .then(res => res.json())
+        .then(seats => setDbSeats(Array.isArray(seats) ? seats : []))
+        .catch(err => console.error('Lỗi khi tải ghế của phòng chiếu:', err));
     }
 
     fetch(`${API_ENDPOINTS.BOOKINGS_BOOKEDSEATS}?showtimeId=${showtime.id}`)
@@ -124,16 +124,16 @@ export default function MovieDetail() {
   };
 
   const toggleSeat = (seatId: string) => {
-      // Khách hàng không được bấm
+    // Khách hàng không được bấm
   };
 
   const calculateTotalPrice = () => {
     if (!movie) return 0;
     const showtimeRoomtypeId = selectedShowtime?.screen?.roomtype_id;
-    
+
     const isWeekend = (dateString: string) => {
-        const day = new Date(dateString).getDay();
-        return day === 0 || day === 6;
+      const day = new Date(dateString).getDay();
+      return day === 0 || day === 6;
     };
     const showtimeDayType = selectedShowtime ? isWeekend(selectedShowtime.start_time) : false;
 
@@ -141,12 +141,12 @@ export default function MovieDetail() {
     selectedSeats.forEach(seatId => {
       const seat = dbSeats.find(s => s.seat_number === seatId);
       const seatType = seat?.type || SEAT_TYPES.STANDARD;
-      const priceConfig = prices.find(p => 
-        p.roomtype_id === showtimeRoomtypeId && 
-        p.type_seat === seatType && 
+      const priceConfig = prices.find(p =>
+        p.roomtype_id === showtimeRoomtypeId &&
+        p.type_seat === seatType &&
         p.day_type === showtimeDayType
       );
-      
+
       let price = 0;
       if (priceConfig) {
         price = priceConfig.price;
@@ -157,7 +157,7 @@ export default function MovieDetail() {
       }
       total += price;
     });
-    
+
     return total;
   };
 
@@ -186,7 +186,7 @@ export default function MovieDetail() {
   }, [syncState.showtimeId, showtimes, selectedShowtime]);
 
   const handleCheckout = async () => {
-      // Khách hàng không được bấm
+    // Khách hàng không được bấm
   };
 
   if (loading) return <div className="text-center py-20 text-[color:var(--text-secondary)]">Đang tải thông tin phim...</div>;
@@ -213,182 +213,203 @@ export default function MovieDetail() {
 
   return (
     <main className="main-content">
-        <section className="movie-banner">
-            <div className="movie-banner-bg" style={{ backgroundImage: `url(${movie.posterUrl || 'https://placehold.co/1440x600/222/FFF?text=Background'})` }}></div>
-            <div className="container movie-banner-content" id="movie-detail-container">
-                <div className="movie-poster">
-                    <img src={movie.posterUrl || 'https://placehold.co/300x450/333/FFF?text=Poster'} alt={`Poster ${movie.title}`} />
-                </div>
-                <div className="movie-info">
-                    <h1>{movie.title} <span className="badge">{movie.type?.replace(/^TYPE_/, '') || '2D'}</span></h1>
-                    <p className="movie-meta">{movie.genre} - {movie.duration} phút</p>
-                    
-                    <div className="movie-details">
-                        <p><strong>Đạo diễn:</strong> {movie.author || 'Đang cập nhật'}</p>
-                        <p><strong>Diễn viên:</strong> {movie.actors || 'Đang cập nhật'}</p>
-                        <p><strong>Khởi chiếu:</strong> {new Date(movie.releaseDate).toLocaleDateString('vi-VN')}</p>
-                    </div>
-                    
-                    <p className="movie-synopsis">
-                        {movie.description || 'Chưa có thông tin mô tả cho bộ phim này.'}
-                    </p>
-                    
-                    <p className="movie-warning">
-                        Kiểm duyệt: {movie.ageLimit || AGE_LIMITS.P} - {movie.ageLimitDescription || (movie.ageLimit === AGE_LIMITS.P ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.ageLimit === AGE_LIMITS.K ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.ageLimit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)}
-                    </p>
-                    
-                    <div className="movie-actions">
-                        {movie.trailer && (
-                            <a href={movie.trailer} target="_blank" rel="noreferrer" className="btn btn-outline text-primary border-primary">Xem trailer</a>
-                        )}
-                    </div>
-                </div>
+      <section className="movie-banner">
+        <div className="movie-banner-bg" style={{ backgroundImage: `url(${movie.posterUrl || 'https://placehold.co/1440x600/222/FFF?text=Background'})` }}></div>
+        <div className="container movie-banner-content" id="movie-detail-container">
+          <div className="movie-poster">
+            <img src={movie.posterUrl || 'https://placehold.co/300x450/333/FFF?text=Poster'} alt={`Poster ${movie.title}`} />
+          </div>
+          <div className="movie-info">
+            <h1>{movie.title}</h1>
+            <p className="movie-meta">
+              {movie.genre} - {movie.duration} phút
+            </p>
+            <div className="movie-formats" style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              {(movie.type ? movie.type.split(', ') : ['2D']).map((type: string, i: number) => (
+                <span key={i} className="badge">{type}</span>
+              ))}
             </div>
-        </section>
 
-        {/* Lịch chiếu */}
-        <section className="showtimes-section container">
-            <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
-                <div className="date-selector" id="dynamic-date-selector" style={{ margin: 0, pointerEvents: 'none', opacity: 0.8 }}>
-                    {availableDates.length === 0 ? (
-                        <p style={{ color: 'var(--text-color)' }}>Phim chưa có lịch chiếu.</p>
-                    ) : (
-                        availableDates.map(dateStr => {
-                            const d = new Date(dateStr);
-                            const dayName = dayNames[d.getDay()];
-                            const isSelected = dateStr === selectedDate;
-                            return (
-                                <button 
-                                    key={dateStr} 
-                                    className={`date-btn ${isSelected ? 'active' : ''}`} 
-                                    onClick={() => {
-                                        setSelectedDate(dateStr);
-                                        setSelectedShowtime(null);
-                                    }}
-                                >
-                                    <span className="day">{dayName}</span>
-                                    <span className="date">{d.getDate()}</span>
-                                    <span className="month">Tháng {d.getMonth() + 1}</span>
-                                </button>
-                            );
-                        })
-                    )}
-                </div>
+            <div className="movie-details">
+              <p><strong>Đạo diễn:</strong> {movie.author || 'Đang cập nhật'}</p>
+              <p><strong>Diễn viên:</strong> {movie.actors || 'Đang cập nhật'}</p>
+              <p><strong>Khởi chiếu:</strong> {new Date(movie.releaseDate).toLocaleDateString('vi-VN')}</p>
             </div>
-            
-            <p className="age-warning">Lưu ý: Khán giả dưới 13 tuổi chỉ chọn suất chiếu kết thúc trước 22h và khán giả dưới 16 tuổi chỉ chọn suất chiếu kết thúc trước 23h.</p>
-            
-            <div className="time-slots" id="dynamic-time-slots" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', pointerEvents: 'none', opacity: 0.9 }}>
-                {showtimesForDate.map(showtime => {
-                    const time = new Date(showtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-                    const isSelected = selectedShowtime?.id === showtime.id;
-                    return (
-                        <button 
-                            key={showtime.id} 
-                            className={`time-btn ${isSelected ? 'active' : ''}`} 
-                            style={{ 
-                                padding: '10px 20px', 
-                                backgroundColor: isSelected ? 'rgba(255,77,79,0.1)' : 'rgba(255,255,255,0.05)', 
-                                border: `1px solid ${isSelected ? '#ff4d4f' : '#444'}`, 
-                                borderRadius: '30px', 
-                                color: isSelected ? '#ff4d4f' : 'var(--text-color)', 
-                                textAlign: 'center', 
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                            onClick={() => handleSelectShowtime(showtime)}
-                        >
-                            <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{time}</div>
-                        </button>
-                    );
+
+            <p className="movie-synopsis">
+              {movie.description || 'Chưa có thông tin mô tả cho bộ phim này.'}
+            </p>
+
+            <p className="movie-warning">
+              Kiểm duyệt: {movie.ageLimit || AGE_LIMITS.P} - {movie.ageLimitDescription || (movie.ageLimit === AGE_LIMITS.P ? 'PHIM DÀNH CHO MỌI LỨA TUỔI' : movie.ageLimit === AGE_LIMITS.K ? 'DƯỚI 13 TUỔI XEM CÙNG CHA MẸ' : `PHIM DÀNH CHO KHÁN GIẢ TỪ ${movie.ageLimit?.replace('T', '') || '18'} TUỔI TRỞ LÊN`)}
+            </p>
+
+            <div className="movie-actions">
+              {movie.trailer && (
+                <a href={movie.trailer} target="_blank" rel="noreferrer" className="btn btn-outline text-primary border-primary">Xem trailer</a>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Lịch chiếu */}
+      <section className="showtimes-section container">
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
+          <div className="date-selector" id="dynamic-date-selector" style={{ margin: 0, pointerEvents: 'none', opacity: 0.8 }}>
+            {availableDates.length === 0 ? (
+              <p style={{ color: 'var(--text-color)' }}>Phim chưa có lịch chiếu.</p>
+            ) : (
+              availableDates.map(dateStr => {
+                const d = new Date(dateStr);
+                const dayName = dayNames[d.getDay()];
+                const isSelected = dateStr === selectedDate;
+                return (
+                  <button
+                    key={dateStr}
+                    className={`date-btn ${isSelected ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedDate(dateStr);
+                      setSelectedShowtime(null);
+                    }}
+                  >
+                    <span className="day">{dayName}</span>
+                    <span className="date">{d.getDate()}</span>
+                    <span className="month">Tháng {d.getMonth() + 1}</span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        <p className="age-warning">Lưu ý: Khán giả dưới 13 tuổi chỉ chọn suất chiếu kết thúc trước 22h và khán giả dưới 16 tuổi chỉ chọn suất chiếu kết thúc trước 23h.</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', pointerEvents: 'none', opacity: 0.9 }}>
+          {Object.entries(
+            showtimesForDate.reduce((acc, st) => {
+              const rName = `${st.screen?.name || 'Phòng chiếu'} (${st.screen?.roomtype?.name || '2D'})`;
+              if (!acc[rName]) acc[rName] = [];
+              acc[rName].push(st);
+              return acc;
+            }, {} as Record<string, any[]>)
+          ).map(([roomName, roomShowtimes]) => (
+            <div key={roomName} className="room-group" style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '10px', border: '1px solid var(--card-border)' }}>
+              <h3 style={{ fontSize: '18px', marginBottom: '15px', color: '#60a5fa' }}>{roomName}</h3>
+              <div className="time-slots" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                {(roomShowtimes as any[]).map(showtime => {
+                  const time = new Date(showtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                  const isSelected = selectedShowtime?.id === showtime.id;
+                  return (
+                    <button
+                      key={showtime.id}
+                      className={`time-btn ${isSelected ? 'active' : ''}`}
+                      style={{
+                        padding: '10px 20px',
+                        backgroundColor: isSelected ? 'rgba(255,77,79,0.1)' : 'rgba(255,255,255,0.05)',
+                        border: `1px solid ${isSelected ? '#ff4d4f' : '#444'}`,
+                        borderRadius: '30px',
+                        color: isSelected ? '#ff4d4f' : 'var(--text-color)',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onClick={() => handleSelectShowtime(showtime)}
+                    >
+                      <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{time}</div>
+                    </button>
+                  );
                 })}
+              </div>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Phần Chọn Ghế */}
+      {selectedShowtime && (
+        <section className="seat-selection-section container">
+          <div className="seat-header">
+            <p><strong>Giờ chiếu: {new Date(selectedShowtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - {new Date(selectedShowtime.start_time).toLocaleDateString('vi-VN')}</strong></p>
+            <p className="timer">Thời gian hiện tại: <span id="real-time-clock">{currentTime}</span></p>
+          </div>
+
+          <div className="screen-area" style={{ textAlign: 'center' }}>
+            <div className="screen-curve"></div>
+            <p style={{ color: '#888', fontSize: '18px', fontWeight: 'bold', letterSpacing: '8px', marginTop: '15px', textShadow: '0 0 10px rgba(255, 152, 0, 0.5)' }}>MÀN HÌNH</p>
+
+            <select id="screen-selector" style={{ maxWidth: '250px', margin: '0 auto 0', display: 'block', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', border: '1px solid #444', padding: '8px 15px', borderRadius: '5px', fontSize: '16px', outline: 'none', cursor: 'pointer' }} disabled>
+              <option value={selectedShowtime.screen?.id}>{selectedShowtime.screen?.name} ({selectedShowtime.screen?.seat_capacity || 140} ghế)</option>
+            </select>
+          </div>
+
+          <div className="seat-grid-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '40px', overflowX: 'auto', paddingBottom: '20px' }}>
+
+            {/* Cửa trái */}
+            <div style={{ textAlign: 'center', color: '#666', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '50px' }}>
+              <div style={{ width: '20px', height: '50px', border: '2px solid #555', borderRight: 'none', marginBottom: '10px', borderRadius: '5px 0 0 5px' }}></div>
+              <p style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', margin: 0, letterSpacing: '2px', fontSize: '12px', fontWeight: 'bold' }}>LỐI RA / VÀO ⬅</p>
+            </div>
+
+            <div className="seat-grid" id="seatGrid">
+              {dbRows.map(row => (
+                <div key={row} className="seat-row" style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+                  {rowMap.get(row)!.sort((a, b) => {
+                    // Extract numbers from seat_number (e.g., A1 -> 1, A10 -> 10)
+                    const numA = parseInt(a.seat_number.replace(/\D/g, '')) || 0;
+                    const numB = parseInt(b.seat_number.replace(/\D/g, '')) || 0;
+                    return numA - numB;
+                  }).map((seat: any) => {
+                    const seatId = seat.seat_number;
+                    const isSelected = selectedSeats.includes(seatId);
+                    const isBooked = bookedSeats.includes(seatId);
+
+                    let seatClass = 'standard';
+                    if (seat.type === SEAT_TYPES.VIP) seatClass = 'vip';
+                    if (seat.type === SEAT_TYPES.SWEETBOX) seatClass = 'couple';
+
+                    return (
+                      <div
+                        key={seatId}
+                        className={`seat ${seatClass} ${isBooked ? 'sold' : ''} ${isSelected ? 'selected' : ''}`}
+                        onClick={() => !isBooked && toggleSeat(seatId)}
+                      >
+                        {isBooked ? 'X' : seatId}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+
+            {/* Cửa phải */}
+            <div style={{ textAlign: 'center', color: '#666', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '50px' }}>
+              <div style={{ width: '20px', height: '50px', border: '2px solid #555', borderLeft: 'none', marginBottom: '10px', borderRadius: '0 5px 5px 0' }}></div>
+              <p style={{ writingMode: 'vertical-rl', margin: 0, letterSpacing: '2px', fontSize: '12px', fontWeight: 'bold' }}>➡ LỐI RA / VÀO</p>
+            </div>
+
+          </div>
+
+          <div className="seat-legend">
+            <div className="legend-item"><span className="seat sold">X</span> Đã đặt</div>
+            <div className="legend-item"><span className="seat selected"></span> Ghế bạn chọn</div>
+            <div className="legend-item"><span className="seat standard"></span> Ghế thường</div>
+            <div className="legend-item"><span className="seat vip"></span> Ghế VIP</div>
+            <div className="legend-item"><span className="seat couple"></span> Ghế đôi</div>
+          </div>
+
+          <div className="booking-summary">
+            <div className="summary-info">
+              <p>Ghế đã chọn: <strong className="selected-seats-text" style={{ color: '#ff4d4f' }}>{selectedSeats.length > 0 ? selectedSeats.join(', ') : 'Chưa chọn'}</strong></p>
+              <p>Tổng tiền: <strong className="total-price">{calculateTotalPrice().toLocaleString('vi-VN')}đ</strong></p>
+            </div>
+            <div className="summary-actions" style={{ display: 'none' }}>
+              <button className="btn btn-outline" onClick={() => window.scrollTo(0, 0)}>Quay lại</button>
+              <button className="btn btn-primary" onClick={handleCheckout}>Thanh toán</button>
+            </div>
+          </div>
         </section>
-
-        {/* Phần Chọn Ghế */}
-        {selectedShowtime && (
-            <section className="seat-selection-section container">
-                <div className="seat-header">
-                    <p><strong>Giờ chiếu: {new Date(selectedShowtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - {new Date(selectedShowtime.start_time).toLocaleDateString('vi-VN')}</strong></p>
-                    <p className="timer">Thời gian hiện tại: <span id="real-time-clock">{currentTime}</span></p>
-                </div>
-                
-                <div className="screen-area" style={{ textAlign: 'center' }}>
-                    <div className="screen-curve"></div>
-                    <p style={{ color: '#888', fontSize: '18px', fontWeight: 'bold', letterSpacing: '8px', marginTop: '15px', textShadow: '0 0 10px rgba(255, 152, 0, 0.5)' }}>MÀN HÌNH</p>
-
-                    <select id="screen-selector" style={{ maxWidth: '250px', margin: '0 auto 0', display: 'block', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', border: '1px solid #444', padding: '8px 15px', borderRadius: '5px', fontSize: '16px', outline: 'none', cursor: 'pointer' }} disabled>
-                        <option value={selectedShowtime.screen?.id}>{selectedShowtime.screen?.name} ({selectedShowtime.screen?.seat_capacity || 140} ghế)</option>
-                    </select>
-                </div>
-
-                <div className="seat-grid-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '40px', overflowX: 'auto', paddingBottom: '20px' }}>
-                    
-                    {/* Cửa trái */}
-                    <div style={{ textAlign: 'center', color: '#666', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '50px' }}>
-                        <div style={{ width: '20px', height: '50px', border: '2px solid #555', borderRight: 'none', marginBottom: '10px', borderRadius: '5px 0 0 5px' }}></div>
-                        <p style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', margin: 0, letterSpacing: '2px', fontSize: '12px', fontWeight: 'bold' }}>LỐI RA / VÀO ⬅</p>
-                    </div>
-
-                    <div className="seat-grid" id="seatGrid">
-                        {dbRows.map(row => (
-                            <div key={row} className="seat-row" style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-                                {rowMap.get(row)!.sort((a, b) => {
-                                    // Extract numbers from seat_number (e.g., A1 -> 1, A10 -> 10)
-                                    const numA = parseInt(a.seat_number.replace(/\D/g, '')) || 0;
-                                    const numB = parseInt(b.seat_number.replace(/\D/g, '')) || 0;
-                                    return numA - numB;
-                                }).map((seat: any) => {
-                                    const seatId = seat.seat_number;
-                                    const isSelected = selectedSeats.includes(seatId);
-                                    const isBooked = bookedSeats.includes(seatId);
-                                    
-                                    let seatClass = 'standard';
-                                    if (seat.type === SEAT_TYPES.VIP) seatClass = 'vip';
-                                    if (seat.type === SEAT_TYPES.SWEETBOX) seatClass = 'couple';
-
-                                    return (
-                                        <div
-                                            key={seatId}
-                                            className={`seat ${seatClass} ${isBooked ? 'sold' : ''} ${isSelected ? 'selected' : ''}`}
-                                            onClick={() => !isBooked && toggleSeat(seatId)}
-                                        >
-                                            {isBooked ? 'X' : seatId}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Cửa phải */}
-                    <div style={{ textAlign: 'center', color: '#666', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '50px' }}>
-                        <div style={{ width: '20px', height: '50px', border: '2px solid #555', borderLeft: 'none', marginBottom: '10px', borderRadius: '0 5px 5px 0' }}></div>
-                        <p style={{ writingMode: 'vertical-rl', margin: 0, letterSpacing: '2px', fontSize: '12px', fontWeight: 'bold' }}>➡ LỐI RA / VÀO</p>
-                    </div>
-                    
-                </div>
-
-                <div className="seat-legend">
-                    <div className="legend-item"><span className="seat sold">X</span> Đã đặt</div>
-                    <div className="legend-item"><span className="seat selected"></span> Ghế bạn chọn</div>
-                    <div className="legend-item"><span className="seat standard"></span> Ghế thường</div>
-                    <div className="legend-item"><span className="seat vip"></span> Ghế VIP</div>
-                    <div className="legend-item"><span className="seat couple"></span> Ghế đôi</div>
-                </div>
-
-                <div className="booking-summary">
-                    <div className="summary-info">
-                        <p>Ghế đã chọn: <strong className="selected-seats-text" style={{ color: '#ff4d4f' }}>{selectedSeats.length > 0 ? selectedSeats.join(', ') : 'Chưa chọn'}</strong></p>
-                        <p>Tổng tiền: <strong className="total-price">{calculateTotalPrice().toLocaleString('vi-VN')}đ</strong></p>
-                    </div>
-                    <div className="summary-actions" style={{ display: 'none' }}>
-                        <button className="btn btn-outline" onClick={() => window.scrollTo(0, 0)}>Quay lại</button>
-                        <button className="btn btn-primary" onClick={handleCheckout}>Thanh toán</button>
-                    </div>
-                </div>
-            </section>
-        )}
+      )}
     </main>
   );
 }
