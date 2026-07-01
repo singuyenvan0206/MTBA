@@ -14,6 +14,10 @@ Tài liệu này định nghĩa các quy tắc thiết kế, phát triển và c
 3.  **Tương tác tệp tin:**
     *   Khi phản hồi hoặc viết hướng dẫn, luôn liên kết đến các file mã nguồn liên quan bằng đường dẫn tuyệt đối dạng Markdown (ví dụ: `[schema.prisma](file:///c:/Users/Simsimi/OneDrive/M%C3%A1y%20t%C3%ADnh/MTBA/code/backend/prisma/schema.prisma)`).
     *   **QUAN TRỌNG:** Tuyệt đối không bao quanh thẻ liên kết bằng dấu nháy ngược (sử dụng `[tên](đường_dẫn)` thay vì `[`tên`](đường_dẫn)`).
+4.  **Tuyệt đối không viết Magic Strings:**
+    *   Không viết các chuỗi thô (magic strings) trực tiếp trong mã nguồn cho các thông báo giao diện, đường dẫn API, trạng thái, hoặc thông báo lỗi.
+    *   **Frontend**: Bắt buộc sử dụng hằng số/enum định nghĩa tập trung (như `UI_MESSAGES`, `APP_ROUTES`, `API_ENDPOINTS`).
+    *   **Backend**: Bắt buộc sử dụng hệ thống cấu hình tập trung (như `ERROR_MESSAGES`, `SUCCESS_MESSAGES`, các enum từ Prisma/DB).
 
 ---
 
@@ -33,16 +37,21 @@ Tài liệu này định nghĩa các quy tắc thiết kế, phát triển và c
         create(@Body() dto: CreateMovieDto) { ... }
         ```
 3.  **Quản lý lỗi tập trung (Centralized Error Handling):**
-    *   Tuyệt đối không hardcode chuỗi thông báo lỗi. Mọi thông báo lỗi nghiệp vụ phải sử dụng các trường trong enum `ErrorMessage` tại [error-messages.enum.ts](file:///c:/Users/Simsimi/OneDrive/M%C3%A1y%20t%C3%ADnh/MTBA/code/backend/src/common/error-messages.enum.ts).
+    *   Tuyệt đối không hardcode chuỗi thông báo lỗi. Mọi thông báo lỗi nghiệp vụ phải sử dụng các trường trong hằng số `ERROR_MESSAGES` định nghĩa tại [error-messages.constant.ts](file:///c:/Users/Simsimi/OneDrive/M%C3%A1y%20t%C3%ADnh/MTBA/code/backend/src/common/constants/error-messages.constant.ts).
     *   Ví dụ quăng lỗi:
         ```typescript
-        throw new ForbiddenException(ErrorMessage.AUTH_FORBIDDEN);
+        throw new BadRequestException(ERROR_MESSAGES.BOOKING.SEAT_LIMIT_EXCEEDED);
         ```
 4.  **Thay đổi Database Schema:**
     *   Mọi thay đổi cấu trúc bảng phải được cập nhật trong [schema.prisma](file:///c:/Users/Simsimi/OneDrive/M%C3%A1y%20t%C3%ADnh/MTBA/code/backend/prisma/schema.prisma).
     *   Sau khi sửa schema, luôn hướng dẫn người dùng chạy:
         1.  `npx prisma migrate dev --name <ten_migration>` để đồng bộ cơ sở dữ liệu.
         2.  `npx prisma generate` để cập nhật Prisma Client.
+5.  **Chuẩn hóa API Cập Nhật (API Update Method):**
+    *   Bắt buộc sử dụng phương thức HTTP `@Put(':id')` thay vì `@Patch(':id')` cho các API chỉnh sửa thông tin tài nguyên để thống nhất toàn bộ cấu trúc API của backend.
+6.  **Kiểm Tra Trùng Lặp Lịch Chiếu (Showtimes Overlap Check):**
+    *   Khi tạo hoặc sửa đổi lịch chiếu, bắt buộc kiểm tra sự chồng chéo khoảng thời gian (`start_time`, `end_time`) tại phòng chiếu (`screen_id`) tương ứng trong database.
+    *   Khoảng thời gian bị coi là trùng nếu: `new_start_time < existing_end_time` và `new_end_time > existing_start_time`. Ném lỗi `BadRequestException(ERROR_MESSAGES.SHOWTIME.OVERLAP)` nếu trùng.
 
 ---
 
@@ -55,8 +64,13 @@ Tài liệu này định nghĩa các quy tắc thiết kế, phát triển và c
     *   Sử dụng hệ thống utility classes của Tailwind CSS v4 để styling giao diện.
     *   Hạn chế tối đa việc viết CSS thuần hoặc inline styles tùy tiện để giữ tính thống nhất về mặt thẩm mỹ.
 3.  **Tích hợp & Xử lý lỗi API:**
-    *   Khi gọi API lên backend, phải xử lý đầy đủ các trạng thái loading, lỗi (error boundary), và thông báo lỗi rõ ràng cho người dùng cuối.
-
+    *   Khi gọi API lên backend bằng `fetch`, bắt buộc kiểm tra trạng thái phản hồi `res.ok`. Nếu không thành công, phải phân tích phản hồi (trích xuất thông báo lỗi từ server) và thông báo rõ ràng cho người dùng thay vì mặc định giả định thành công.
+    *   Để tránh lỗi `SyntaxError: Unexpected end of JSON input` khi server phản hồi trống, hãy đọc chuỗi text (`res.text()`) và parse thủ công hoặc xử lý lỗi ngoại lệ an toàn trước khi gọi `.json()`.
+4.  **Hộp thoại Custom thay thế Dialog trình duyệt:**
+    *   Nghiêm cấm sử dụng các hộp thoại mặc định của trình duyệt như `alert()` và `confirm()`. Bắt buộc thiết kế và sử dụng các Custom Modal/Dialog Component đồng bộ với ngôn ngữ thiết kế của ứng dụng.
+5.  **Đồng bộ hóa đường dẫn POS (Path Synchronization):**
+    *   Hệ thống đồng bộ hiển thị màn hình phụ của POS2 chỉ được phép đồng bộ một chiều: thiết bị Staff đẩy đường dẫn lên server, và thiết bị Khách hàng (Passive Display) lấy đường dẫn về.
+    *   Thiết bị Khách hàng tuyệt đối không được tự động đồng bộ ngược pathname lên server, tránh gây ra vòng lặp điều hướng vô hạn (endless routing ping-pong). Khi gọi `pushState` để đổi đường dẫn, phải truyền tham số `currentPath` tường minh để loại bỏ race condition. 
 ---
 
 ## 🔑 4. Nghiệp Vụ Đặc Thù & Bảo Mật (Core Domain Rules)
@@ -82,6 +96,8 @@ Tài liệu này định nghĩa các quy tắc thiết kế, phát triển và c
 2.  **Viết và chạy Unit Test:**
     *   Khi phát triển tính năng mới cho backend, luôn viết các unit test tương ứng trong file `*.spec.ts`.
     *   Sử dụng lệnh `npm run test -w code/backend` để chạy và kiểm tra xem các thay đổi có làm hỏng các test case cũ hay không.
+3.  **Xử lý xung đột cổng khi khởi chạy Local (Windows Port Collision):**
+    *   Khi gặp lỗi `EADDRINUSE: address already in use` cho cổng 3000 hoặc 3001 trên Windows, bắt buộc chạy lệnh `npx kill-port <port>` hoặc tìm PID và tắt qua `taskkill /PID <PID> /F` để giải phóng cổng trước khi chạy lại `npm run dev`.
 
 ---
 
