@@ -45,7 +45,6 @@ model festival {
   image      String?  @db.VarChar(255)
   start_time DateTime
   end_time   DateTime
-  content    String?  @db.Text
   news       news[]
 }
 
