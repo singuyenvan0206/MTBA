@@ -134,6 +134,60 @@ export default function AdminBookings() {
     }
   };
 
+  const handleExportCSV = () => {
+    const headers = [
+      'Mã Vé', 
+      'Tên Khách Hàng', 
+      'Email', 
+      'Số Điện Thoại', 
+      'Phim', 
+      'Suất Chiếu', 
+      'Ghế Ngồi', 
+      'Tổng Tiền (VNĐ)', 
+      'Ngày Đặt', 
+      'Trạng Thái Thanh Toán', 
+      'Phương Thức Thanh Toán'
+    ];
+    
+    const rows = filteredBookings.map((b: any) => {
+      const pm = b.payment?.[0] || {};
+      const fullName = b.user ? `"${`${b.user.first_name || ''} ${b.user.last_name || ''}`.trim().replace(/"/g, '""')}"` : '""';
+      const email = b.user?.email ? `"${b.user.email.replace(/"/g, '""')}"` : '""';
+      const phone = b.user?.phone ? `"${b.user.phone.replace(/"/g, '""')}"` : '""';
+      const movieTitle = b.showtime?.movie?.title ? `"${b.showtime.movie.title.replace(/"/g, '""')}"` : '""';
+      const startTime = b.showtime?.start_time ? `"${new Date(b.showtime.start_time).toLocaleString()}"` : '""';
+      const seats = `"${(b.bookingseat || []).map((bs: any) => bs.seat?.seat_number).filter(Boolean).join(', ')}"`;
+      const totalPrice = b.total_price_movie || 0;
+      const createdAt = b.created_at ? `"${new Date(b.created_at).toLocaleDateString()}"` : '""';
+      const paymentStatus = pm.payment_status || 'PENDING';
+      const paymentMethod = pm.payment_method || 'CASH';
+
+      return [
+        b.id,
+        fullName,
+        email,
+        phone,
+        movieTitle,
+        startTime,
+        seats,
+        totalPrice,
+        createdAt,
+        paymentStatus,
+        paymentMethod
+      ];
+    });
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `bao_cao_ve_dat_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
@@ -149,14 +203,22 @@ export default function AdminBookings() {
             </button>
           )}
         </div>
-        <input 
-          type="text" 
-          placeholder="Tìm theo Mã vé, Khách hàng, Tên phim..." 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="admin-input"
-          style={{ width: '350px', padding: '10px 15px', borderRadius: '8px', border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-color)' }}
-        />
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button
+            onClick={handleExportCSV}
+            style={{ padding: '10px 20px', backgroundColor: 'rgba(255,255,255,0.08)', color: 'var(--foreground)', border: '1px solid var(--card-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', transition: 'all 0.2s' }}
+          >
+            Xuất CSV
+          </button>
+          <input 
+            type="text" 
+            placeholder="Tìm theo Mã vé, Khách hàng, Tên phim..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="admin-input"
+            style={{ width: '350px', padding: '10px 15px', borderRadius: '8px', border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-color)' }}
+          />
+        </div>
       </div>
 
       <div className="premium-card" style={{ overflow: 'hidden' }}>

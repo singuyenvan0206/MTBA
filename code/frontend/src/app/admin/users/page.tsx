@@ -118,6 +118,151 @@ export default function AdminUsers() {
     }
   };
 
+  const handleExportCSV = () => {
+    const headers = ['User_ID', 'First_Name', 'Last_Name', 'Email', 'Phone', 'Address', 'Role', 'Status'];
+    const rows = users.map((u: any) => {
+      let currentRole = 'ROLE_USER';
+      if (u.userrole && u.userrole.length > 0) {
+        if (u.userrole.some((ur: any) => ur.role?.role_name === "ROLE_ADMIN")) currentRole = 'ROLE_ADMIN';
+        else if (u.userrole.some((ur: any) => ur.role?.role_name === "ROLE_STAFF")) currentRole = 'ROLE_STAFF';
+      }
+      return [
+        u.id,
+        `"${(u.first_name || '').replace(/"/g, '""')}"`,
+        `"${(u.last_name || '').replace(/"/g, '""')}"`,
+        `"${(u.email || '').replace(/"/g, '""')}"`,
+        `"${(u.phone || '').replace(/"/g, '""')}"`,
+        `"${(u.address || '').replace(/"/g, '""')}"`,
+        `"${currentRole}"`,
+        `"${u.status || 'ACTIVE'}"`
+      ];
+    });
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `danh_sach_nguoi_dung_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const text = evt.target?.result as string;
+      if (!text) return;
+
+      const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+      if (lines.length <= 1) {
+        alert('File CSV không có dữ liệu!');
+        return;
+      }
+
+      const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const firstNameIndex = header.findIndex(h => h.includes('first_name') || h.includes('họ') || h.includes('firstname'));
+      const lastNameIndex = header.findIndex(h => h.includes('last_name') || h.includes('tên') || h.includes('lastname'));
+      const emailIndex = header.findIndex(h => h.includes('email') || h.includes('thư điện tử'));
+      const phoneIndex = header.findIndex(h => h.includes('phone') || h.includes('sđt') || h.includes('số điện thoại'));
+      const addressIndex = header.findIndex(h => h.includes('address') || h.includes('địa chỉ'));
+      const roleIndex = header.findIndex(h => h.includes('role') || h.includes('vai trò'));
+      const statusIndex = header.findIndex(h => h.includes('status') || h.includes('trạng thái'));
+      const passwordIndex = header.findIndex(h => h.includes('password') || h.includes('mật khẩu'));
+
+      if (firstNameIndex === -1 || lastNameIndex === -1 || emailIndex === -1) {
+        alert('File CSV phải chứa ít nhất các cột: First_Name, Last_Name, và Email!');
+        return;
+      }
+
+      let importedCount = 0;
+      let errorCount = 0;
+      let errors: string[] = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i];
+        const cols: string[] = [];
+        let current = '';
+        let inQuotes = false;
+        for (let charIndex = 0; charIndex < row.length; charIndex++) {
+          const char = row[charIndex];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            cols.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        cols.push(current.trim());
+
+        const first_name = cols[firstNameIndex];
+        const last_name = cols[lastNameIndex];
+        const email = cols[emailIndex];
+
+        if (!first_name || !last_name || !email) {
+          errorCount++;
+          continue;
+        }
+
+        const phone = phoneIndex !== -1 ? cols[phoneIndex] : '';
+        const address = addressIndex !== -1 ? cols[addressIndex] : '';
+        const rawRole = roleIndex !== -1 ? cols[roleIndex].trim().toUpperCase() : 'ROLE_USER';
+        const role = rawRole.startsWith('ROLE_') ? rawRole : `ROLE_${rawRole}`;
+        const rawStatus = statusIndex !== -1 ? cols[statusIndex].trim().toUpperCase() : 'ACTIVE';
+        const status = rawStatus === 'ACTIVE' || rawStatus === 'HOẠT ĐỘNG' ? 'ACTIVE' : 'INACTIVE';
+        const password = passwordIndex !== -1 && cols[passwordIndex] ? cols[passwordIndex] : '123456';
+
+        const payload = {
+          first_name,
+          last_name,
+          email,
+          phone,
+          address,
+          role,
+          status,
+          password
+        };
+
+        try {
+          const res = await fetch(API_ENDPOINTS.USERS, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            const errMsg = Array.isArray(err.message) ? err.message[0] : (err.message || err.error || 'Lỗi khi thêm người dùng');
+            throw new Error(errMsg);
+          }
+
+          importedCount++;
+        } catch (err: any) {
+          errorCount++;
+          errors.push(`Dòng ${i + 1}: ${err.message}`);
+        }
+      }
+
+      let msg = `Đã nhập thành công ${importedCount} người dùng.`;
+      if (errorCount > 0) {
+        msg += ` Thất bại: ${errorCount} dòng.`;
+        if (errors.length > 0) {
+          msg += `\nChi tiết lỗi:\n` + errors.slice(0, 5).join('\n') + (errors.length > 5 ? '\n...' : '');
+        }
+      }
+      alert(msg);
+      fetchUsers();
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  };
+
   const getRoleBadge = (roles: any[]) => {
     if (!roles || roles.length === 0) return <span style={{ padding: '4px 8px', borderRadius: '4px', background: '#e0e0e0', color: '#333' }}>Khách</span>;
     const roleNames = roles.map(r => r.role?.role_name || '').join(', ');
@@ -133,12 +278,31 @@ export default function AdminUsers() {
     <div style={{ padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
         <h1 style={{ fontSize: '24px', margin: 0 }}>Quản lý Người dùng</h1>
-        <button 
-          onClick={() => handleOpenModal()}
-          style={{ padding: '10px 20px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-        >
-          + Thêm người dùng
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            onClick={handleExportCSV}
+            style={{ padding: '10px 20px', backgroundColor: 'rgba(255,255,255,0.08)', color: 'var(--foreground)', border: '1px solid var(--card-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', transition: 'all 0.2s' }}
+          >
+            Xuất CSV
+          </button>
+          <label
+            style={{ padding: '10px 20px', backgroundColor: 'rgba(255,255,255,0.08)', color: 'var(--foreground)', border: '1px solid var(--card-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'inline-block', transition: 'all 0.2s' }}
+          >
+            Nhập CSV
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleImportCSV}
+              style={{ display: 'none' }}
+            />
+          </label>
+          <button 
+            onClick={() => handleOpenModal()}
+            style={{ padding: '10px 20px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            + Thêm người dùng
+          </button>
+        </div>
       </div>
 
       <div className="premium-card" style={{ overflow: 'hidden' }}>

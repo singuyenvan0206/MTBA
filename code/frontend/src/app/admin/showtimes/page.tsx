@@ -345,11 +345,165 @@ export default function AdminShowtimes() {
     }
   };
 
+  const handleExportCSV = () => {
+    const headers = ['Showtime_ID', 'Movie_ID', 'Movie_Title', 'Screen_ID', 'Screen_Name', 'Start_Time', 'End_Time'];
+    const rows = filteredData.map((item: any) => [
+      item.id,
+      item.movie_id,
+      `"${(item.movie?.title || '').replace(/"/g, '""')}"`,
+      item.screen_id,
+      `"${(item.screen?.name || '').replace(/"/g, '""')}"`,
+      item.start_time,
+      item.end_time
+    ]);
+    
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    
+    // Add UTF-8 BOM to display Vietnamese characters correctly in Excel
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `lich_chieu_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const text = evt.target?.result as string;
+      if (!text) return;
+
+      const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+      if (lines.length <= 1) {
+        alert('File CSV không có dữ liệu!');
+        return;
+      }
+
+      // Parse header to map columns
+      const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const movieIndex = header.findIndex(h => h.includes('movie_id') || h.includes('phim') || h.includes('movie_title'));
+      const screenIndex = header.findIndex(h => h.includes('screen_id') || h.includes('phòng') || h.includes('screen_name'));
+      const startIndex = header.findIndex(h => h.includes('start_time') || h.includes('bắt đầu'));
+      const endIndex = header.findIndex(h => h.includes('end_time') || h.includes('kết thúc'));
+
+      if (movieIndex === -1 || screenIndex === -1 || startIndex === -1) {
+        alert('File CSV phải chứa ít nhất các cột: Movie_ID, Screen_ID, và Start_Time!');
+        return;
+      }
+
+      let importedCount = 0;
+      let errorCount = 0;
+      let errors: string[] = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i];
+        const cols: string[] = [];
+        let current = '';
+        let inQuotes = false;
+        for (let charIndex = 0; charIndex < row.length; charIndex++) {
+          const char = row[charIndex];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            cols.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        cols.push(current.trim());
+
+        const movieIdStr = cols[movieIndex];
+        const screenIdStr = cols[screenIndex];
+        const startTimeStr = cols[startIndex];
+        const endTimeStr = endIndex !== -1 ? cols[endIndex] : '';
+
+        if (!movieIdStr || !screenIdStr || !startTimeStr) {
+          errorCount++;
+          continue;
+        }
+
+        const movieId = parseInt(movieIdStr);
+        const screenId = parseInt(screenIdStr);
+        const startTime = new Date(startTimeStr);
+
+        if (isNaN(movieId) || isNaN(screenId) || isNaN(startTime.getTime())) {
+          errorCount++;
+          errors.push(`Dòng ${i + 1}: Dữ liệu không hợp lệ (MovieID, ScreenID hoặc StartTime không đúng định dạng)`);
+          continue;
+        }
+
+        // Check if start time is in the past
+        if (startTime < new Date()) {
+          errorCount++;
+          errors.push(`Dòng ${i + 1}: Thời gian bắt đầu không thể ở quá khứ`);
+          continue;
+        }
+
+        let endTime: Date;
+        if (endTimeStr) {
+          endTime = new Date(endTimeStr);
+          if (isNaN(endTime.getTime())) {
+            errorCount++;
+            errors.push(`Dòng ${i + 1}: Thời gian kết thúc không đúng định dạng`);
+            continue;
+          }
+        } else {
+          const movie = movies.find(m => m.id === movieId);
+          const duration = movie?.duration || 120;
+          endTime = new Date(startTime.getTime() + duration * 60000);
+        }
+
+        try {
+          const res = await fetch(API_ENDPOINTS.SHOWTIMES, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              movie_id: movieId,
+              screen_id: screenId,
+              start_time: startTime.toISOString(),
+              end_time: endTime.toISOString()
+            })
+          });
+
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            const errMsg = Array.isArray(err.message) ? err.message[0] : (err.message || err.error || 'Lỗi khi lưu lịch chiếu');
+            throw new Error(errMsg);
+          }
+
+          importedCount++;
+        } catch (err: any) {
+          errorCount++;
+          errors.push(`Dòng ${i + 1}: ${err.message}`);
+        }
+      }
+
+      let msg = `Đã nhập thành công ${importedCount} lịch chiếu.`;
+      if (errorCount > 0) {
+        msg += ` Thất bại: ${errorCount} dòng.`;
+        if (errors.length > 0) {
+          msg += `\nChi tiết lỗi:\n` + errors.slice(0, 5).join('\n') + (errors.length > 5 ? '\n...' : '');
+        }
+      }
+      alert(msg);
+      fetchData();
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0, color: 'var(--foreground)' }}>Quản lý Lịch Chiếu</h1>
-        <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {selectedIds.length > 0 && (
             <button
               onClick={handleDeleteSelected}
@@ -358,6 +512,23 @@ export default function AdminShowtimes() {
               Xóa {selectedIds.length} đã chọn
             </button>
           )}
+          <button
+            onClick={handleExportCSV}
+            style={{ padding: '10px 20px', backgroundColor: 'rgba(255,255,255,0.08)', color: 'var(--foreground)', border: '1px solid var(--card-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', transition: 'all 0.2s' }}
+          >
+            Xuất CSV
+          </button>
+          <label
+            style={{ padding: '10px 20px', backgroundColor: 'rgba(255,255,255,0.08)', color: 'var(--foreground)', border: '1px solid var(--card-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'inline-block', transition: 'all 0.2s' }}
+          >
+            Nhập CSV
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleImportCSV}
+              style={{ display: 'none' }}
+            />
+          </label>
           <button
             onClick={openAddModal}
             style={{ padding: '10px 20px', backgroundColor: 'var(--primary)', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}

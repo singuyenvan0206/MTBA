@@ -205,6 +205,177 @@ export default function AdminMovies() {
     }
   };
 
+  const handleExportCSV = () => {
+    const headers = ['Movie_ID', 'Title', 'Genres', 'Duration_Minutes', 'Release_Date', 'Age_Limit', 'Author', 'Actors', 'Description', 'Poster_URL', 'Banner_URL', 'Trailer_URL', 'Roomtypes'];
+    const rows = sortedMovies.map((m: any) => {
+      const genresStr = m.genres ? m.genres.join('; ') : (m.genre || '');
+      const rtypesStr = (m.roomtype_ids || []).map((id: number) => {
+        const match = roomtypes.find(r => r.id === id);
+        return match ? match.name : '';
+      }).filter(Boolean).join('; ');
+
+      return [
+        m.id,
+        `"${(m.title || '').replace(/"/g, '""')}"`,
+        `"${genresStr.replace(/"/g, '""')}"`,
+        m.duration || 0,
+        m.releaseDate ? new Date(m.releaseDate).toISOString().split('T')[0] : '',
+        `"${(m.ageLimit || '').replace(/"/g, '""')}"`,
+        `"${(m.author || '').replace(/"/g, '""')}"`,
+        `"${(m.actors || '').replace(/"/g, '""')}"`,
+        `"${(m.description || '').replace(/"/g, '""')}"`,
+        `"${(m.posterUrl || '').replace(/"/g, '""')}"`,
+        `"${(m.bannerUrl || '').replace(/"/g, '""')}"`,
+        `"${(m.trailer || '').replace(/"/g, '""')}"`,
+        `"${rtypesStr.replace(/"/g, '""')}"`
+      ];
+    });
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `danh_sach_phim_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const text = evt.target?.result as string;
+      if (!text) return;
+
+      const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+      if (lines.length <= 1) {
+        alert('File CSV không có dữ liệu!');
+        return;
+      }
+
+      const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const titleIndex = header.findIndex(h => h.includes('title') || h.includes('tên phim'));
+      const genresIndex = header.findIndex(h => h.includes('genres') || h.includes('thể loại'));
+      const durationIndex = header.findIndex(h => h.includes('duration') || h.includes('thời lượng'));
+      const releaseDateIndex = header.findIndex(h => h.includes('release_date') || h.includes('releasedate') || h.includes('ngày chiếu') || h.includes('ngày công chiếu'));
+      const ageLimitIndex = header.findIndex(h => h.includes('age_limit') || h.includes('agelimit') || h.includes('độ tuổi'));
+      const authorIndex = header.findIndex(h => h.includes('author') || h.includes('đạo diễn'));
+      const actorsIndex = header.findIndex(h => h.includes('actors') || h.includes('diễn viên'));
+      const descIndex = header.findIndex(h => h.includes('description') || h.includes('mô tả') || h.includes('nội dung'));
+      const posterIndex = header.findIndex(h => h.includes('poster') || h.includes('image'));
+      const bannerIndex = header.findIndex(h => h.includes('banner'));
+      const trailerIndex = header.findIndex(h => h.includes('trailer'));
+      const roomtypeIndex = header.findIndex(h => h.includes('roomtypes') || h.includes('loại phòng'));
+
+      if (titleIndex === -1) {
+        alert('File CSV phải chứa ít nhất cột Title (Tên Phim)!');
+        return;
+      }
+
+      let importedCount = 0;
+      let errorCount = 0;
+      let errors: string[] = [];
+
+      const adminUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USER) || '{}');
+
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i];
+        const cols: string[] = [];
+        let current = '';
+        let inQuotes = false;
+        for (let charIndex = 0; charIndex < row.length; charIndex++) {
+          const char = row[charIndex];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            cols.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        cols.push(current.trim());
+
+        const title = cols[titleIndex];
+        if (!title) {
+          errorCount++;
+          continue;
+        }
+
+        const genresStr = genresIndex !== -1 ? cols[genresIndex] : '';
+        const durationStr = durationIndex !== -1 ? cols[durationIndex] : '120';
+        const releaseDateStr = releaseDateIndex !== -1 ? cols[releaseDateIndex] : new Date().toISOString().split('T')[0];
+        const ageLimit = ageLimitIndex !== -1 ? cols[ageLimitIndex] : 'P';
+        const author = authorIndex !== -1 ? cols[authorIndex] : '';
+        const actors = actorsIndex !== -1 ? cols[actorsIndex] : '';
+        const description = descIndex !== -1 ? cols[descIndex] : '';
+        const posterUrl = posterIndex !== -1 ? cols[posterIndex] : 'https://placehold.co/300x450';
+        const bannerUrl = bannerIndex !== -1 ? cols[bannerIndex] : '';
+        const trailer = trailerIndex !== -1 ? cols[trailerIndex] : '';
+        const roomtypesStr = roomtypeIndex !== -1 ? cols[roomtypeIndex] : '';
+
+        const genres = genresStr ? genresStr.split(/[;;,]/).map(g => g.trim()).filter(Boolean) : [];
+        const roomtype_ids = roomtypesStr ? roomtypesStr.split(/[;;,]/).map(rt => rt.trim().toUpperCase()).map(rtName => {
+          const match = roomtypes.find(r => r.name.toUpperCase() === rtName);
+          return match ? String(match.id) : null;
+        }).filter(Boolean) : ['2'];
+
+        const payload = {
+          title,
+          genres,
+          duration: parseInt(durationStr) || 120,
+          releaseDate: new Date(releaseDateStr).toISOString(),
+          posterUrl,
+          bannerUrl,
+          roomtype_ids,
+          description,
+          author,
+          actors,
+          ageLimit,
+          trailer
+        };
+
+        try {
+          const res = await fetch(API_ENDPOINTS.MOVIES, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${adminUser.accessToken || ''}`
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            const errMsg = Array.isArray(err.message) ? err.message[0] : (err.message || err.error || 'Lỗi khi thêm phim');
+            throw new Error(errMsg);
+          }
+
+          importedCount++;
+        } catch (err: any) {
+          errorCount++;
+          errors.push(`Dòng ${i + 1}: ${err.message}`);
+        }
+      }
+
+      let msg = `Đã nhập thành công ${importedCount} phim.`;
+      if (errorCount > 0) {
+        msg += ` Thất bại: ${errorCount} dòng.`;
+        if (errors.length > 0) {
+          msg += `\nChi tiết lỗi:\n` + errors.slice(0, 5).join('\n') + (errors.length > 5 ? '\n...' : '');
+        }
+      }
+      alert(msg);
+      fetchMovies();
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  };
+
   const filteredMovies = movies.filter((movie: any) => {
     let match = true;
     if (searchTerm && !movie.title.toLowerCase().includes(searchTerm.toLowerCase())) match = false;
@@ -233,12 +404,31 @@ export default function AdminMovies() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0, color: 'var(--foreground)' }}>Danh sách Phim</h1>
-        <button
-          onClick={openAddModal}
-          style={{ padding: '10px 20px', backgroundColor: 'var(--primary)', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
-        >
-          + Thêm Phim Mới
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            onClick={handleExportCSV}
+            style={{ padding: '10px 20px', backgroundColor: 'rgba(255,255,255,0.08)', color: 'var(--foreground)', border: '1px solid var(--card-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', transition: 'all 0.2s' }}
+          >
+            Xuất CSV
+          </button>
+          <label
+            style={{ padding: '10px 20px', backgroundColor: 'rgba(255,255,255,0.08)', color: 'var(--foreground)', border: '1px solid var(--card-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'inline-block', transition: 'all 0.2s' }}
+          >
+            Nhập CSV
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleImportCSV}
+              style={{ display: 'none' }}
+            />
+          </label>
+          <button
+            onClick={openAddModal}
+            style={{ padding: '10px 20px', backgroundColor: 'var(--primary)', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
+          >
+            + Thêm Phim Mới
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', backgroundColor: 'var(--card-bg)', padding: '15px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
