@@ -67,14 +67,17 @@ export default function MovieDetail() {
   )).sort();
 
   const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedTheater, setSelectedTheater] = useState<string>('All');
+  const [selectedTheater, setSelectedTheater] = useState<string>('');
   const [selectedRoomType, setSelectedRoomType] = useState<string>('All');
 
   useEffect(() => {
     if (availableDates.length > 0 && !selectedDate) {
       setSelectedDate(availableDates[0]);
     }
-  }, [availableDates, selectedDate]);
+    if (availableTheaters.length > 0 && !selectedTheater) {
+      setSelectedTheater(availableTheaters[0]);
+    }
+  }, [availableDates, selectedDate, availableTheaters, selectedTheater]);
 
   const getDayName = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -91,8 +94,11 @@ export default function MovieDetail() {
     // Only show showtimes for room types that the movie supports
     if (movie?.roomtype_ids && !movie.roomtype_ids.includes(st.screen?.roomtype_id)) return false;
     
+    // Require theater to be selected
+    if (!selectedTheater) return false;
+    if (selectedTheater && (st.screen?.theater?.name || 'Rạp khác') !== selectedTheater) return false;
+    
     if (selectedDate && dateStr !== selectedDate) return false;
-    if (selectedTheater !== 'All' && (st.screen?.theater?.name || 'Rạp khác') !== selectedTheater) return false;
     if (selectedRoomType !== 'All' && (st.screen?.roomtype?.name || '2D') !== selectedRoomType) return false;
     return true;
   });
@@ -177,7 +183,6 @@ export default function MovieDetail() {
                     onChange={(e) => setSelectedTheater(e.target.value)}
                     style={{ padding: '10px 15px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', outline: 'none' }}
                   >
-                    <option value="All">Tất cả rạp</option>
                     {availableTheaters.map(t => (
                       <option key={t} value={t}>{t}</option>
                     ))}
