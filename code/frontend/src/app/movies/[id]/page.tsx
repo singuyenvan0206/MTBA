@@ -53,8 +53,16 @@ export default function MovieDetail() {
 
   // Extract unique dates and theaters
   const availableDates = Array.from(new Set(showtimes.map(st => {
-    // Convert to local YYYY-MM-DD
+    // Convert to local YYYY-MM-DD, keeping 0:00 times on the same day
     const d = new Date(st.start_time);
+    const hours = d.getHours();
+    const minutes = d.getMinutes();
+    
+    // If time is 0:00, subtract 1 minute to keep it on the previous day
+    if (hours === 0 && minutes === 0) {
+      d.setMinutes(d.getMinutes() - 1);
+    }
+    
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }))).sort();
 
@@ -89,6 +97,14 @@ export default function MovieDetail() {
 
   const filteredShowtimes = showtimes.filter(st => {
     const d = new Date(st.start_time);
+    const hours = d.getHours();
+    const minutes = d.getMinutes();
+    
+    // If time is 0:00, subtract 1 minute to keep it on the previous day
+    if (hours === 0 && minutes === 0) {
+      d.setMinutes(d.getMinutes() - 1);
+    }
+    
     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
     // Only show showtimes for room types that the movie supports
@@ -233,7 +249,18 @@ export default function MovieDetail() {
                   <div key={groupName} className="theater-group" style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '10px', border: '1px solid var(--card-border)' }}>
                     <h3 style={{ fontSize: '18px', marginBottom: '15px', color: '#60a5fa' }}>{groupName}</h3>
                     <div className="time-slots" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-                      {(roomShowtimes as any[]).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()).map(showtime => {
+                      {(roomShowtimes as any[]).sort((a, b) => {
+                        const dateA = new Date(a.start_time);
+                        const dateB = new Date(b.start_time);
+                        const hoursA = dateA.getHours();
+                        const hoursB = dateB.getHours();
+                        
+                        // Move times >= 0:00 (midnight) to end by adding 24 hours for sorting
+                        const timeA = hoursA === 0 ? dateA.getTime() + 24 * 60 * 60 * 1000 : dateA.getTime();
+                        const timeB = hoursB === 0 ? dateB.getTime() + 24 * 60 * 60 * 1000 : dateB.getTime();
+                        
+                        return timeA - timeB;
+                      }).map(showtime => {
                         const time = new Date(showtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                         return (
                           <Link href={`/booking/${showtime.id}`} key={showtime.id} className="time-btn" style={{ display: 'block', textDecoration: 'none' }}>
