@@ -376,125 +376,144 @@ export default function AdminShowtimes() {
 
     const reader = new FileReader();
     reader.onload = async (evt) => {
-      const text = evt.target?.result as string;
-      if (!text) return;
+      try {
+        const text = evt.target?.result as string;
+        if (!text) return;
 
-      const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-      if (lines.length <= 1) {
-        alert('File CSV không có dữ liệu!');
-        return;
-      }
+        const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+        if (lines.length <= 1) {
+          alert('File CSV không có dữ liệu!');
+          return;
+        }
 
-      // Parse header to map columns
-      const header = lines[0].split(',').map(h => h.trim().toLowerCase());
-      const movieIndex = header.findIndex(h => h.includes('movie_id') || h.includes('phim') || h.includes('movie_title'));
-      const screenIndex = header.findIndex(h => h.includes('screen_id') || h.includes('phòng') || h.includes('screen_name'));
-      const startIndex = header.findIndex(h => h.includes('start_time') || h.includes('bắt đầu'));
-      const endIndex = header.findIndex(h => h.includes('end_time') || h.includes('kết thúc'));
+        // Parse header to map columns
+        const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+        const movieIndex = header.findIndex(h => h.includes('movie_id') || h.includes('phim') || h.includes('movie_title'));
+        const screenIndex = header.findIndex(h => h.includes('screen_id') || h.includes('phòng') || h.includes('screen_name'));
+        const startIndex = header.findIndex(h => h.includes('start_time') || h.includes('bắt đầu'));
+        const endIndex = header.findIndex(h => h.includes('end_time') || h.includes('kết thúc'));
 
-      if (movieIndex === -1 || screenIndex === -1 || startIndex === -1) {
-        alert('File CSV phải chứa ít nhất các cột: Movie_ID, Screen_ID, và Start_Time!');
-        return;
-      }
+        if (movieIndex === -1 || screenIndex === -1 || startIndex === -1) {
+          alert('File CSV phải chứa ít nhất các cột: Movie_ID, Screen_ID, và Start_Time!');
+          return;
+        }
 
-      let importedCount = 0;
-      let errorCount = 0;
-      let errors: string[] = [];
+        let importedCount = 0;
+        let errorCount = 0;
+        let errors: string[] = [];
 
-      for (let i = 1; i < lines.length; i++) {
-        const row = lines[i];
-        const cols: string[] = [];
-        let current = '';
-        let inQuotes = false;
-        for (let charIndex = 0; charIndex < row.length; charIndex++) {
-          const char = row[charIndex];
-          if (char === '"') {
-            inQuotes = !inQuotes;
-          } else if (char === ',' && !inQuotes) {
-            cols.push(current.trim());
-            current = '';
-          } else {
-            current += char;
+        for (let i = 1; i < lines.length; i++) {
+          const row = lines[i];
+          const cols: string[] = [];
+          let current = '';
+          let inQuotes = false;
+          for (let charIndex = 0; charIndex < row.length; charIndex++) {
+            const char = row[charIndex];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              cols.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
           }
-        }
-        cols.push(current.trim());
+          cols.push(current.trim());
 
-        const movieIdStr = cols[movieIndex];
-        const screenIdStr = cols[screenIndex];
-        const startTimeStr = cols[startIndex];
-        const endTimeStr = endIndex !== -1 ? cols[endIndex] : '';
+          const movieIdStr = cols[movieIndex];
+          const screenIdStr = cols[screenIndex];
+          const startTimeStr = cols[startIndex];
+          const endTimeStr = endIndex !== -1 ? cols[endIndex] : '';
 
-        if (!movieIdStr || !screenIdStr || !startTimeStr) {
-          errorCount++;
-          continue;
-        }
-
-        const movieId = parseInt(movieIdStr);
-        const screenId = parseInt(screenIdStr);
-        const startTime = new Date(startTimeStr);
-
-        if (isNaN(movieId) || isNaN(screenId) || isNaN(startTime.getTime())) {
-          errorCount++;
-          errors.push(`Dòng ${i + 1}: Dữ liệu không hợp lệ (MovieID, ScreenID hoặc StartTime không đúng định dạng)`);
-          continue;
-        }
-
-        // Check if start time is in the past
-        if (startTime < new Date()) {
-          errorCount++;
-          errors.push(`Dòng ${i + 1}: Thời gian bắt đầu không thể ở quá khứ`);
-          continue;
-        }
-
-        let endTime: Date;
-        if (endTimeStr) {
-          endTime = new Date(endTimeStr);
-          if (isNaN(endTime.getTime())) {
+          if (!movieIdStr || !screenIdStr || !startTimeStr) {
             errorCount++;
-            errors.push(`Dòng ${i + 1}: Thời gian kết thúc không đúng định dạng`);
             continue;
           }
-        } else {
-          const movie = movies.find(m => m.id === movieId);
-          const duration = movie?.duration || 120;
-          endTime = new Date(startTime.getTime() + duration * 60000);
-        }
 
-        try {
-          const res = await fetch(API_ENDPOINTS.SHOWTIMES, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              movie_id: movieId,
-              screen_id: screenId,
-              start_time: startTime.toISOString(),
-              end_time: endTime.toISOString()
-            })
-          });
+          const movieId = parseInt(movieIdStr);
+          const screenId = parseInt(screenIdStr);
+          const startTime = new Date(startTimeStr);
 
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            const errMsg = Array.isArray(err.message) ? err.message[0] : (err.message || err.error || 'Lỗi khi lưu lịch chiếu');
-            throw new Error(errMsg);
+          if (isNaN(movieId) || isNaN(screenId) || isNaN(startTime.getTime())) {
+            errorCount++;
+            errors.push(`Dòng ${i + 1}: Dữ liệu không hợp lệ (MovieID, ScreenID hoặc StartTime không đúng định dạng)`);
+            continue;
           }
 
-          importedCount++;
-        } catch (err: any) {
-          errorCount++;
-          errors.push(`Dòng ${i + 1}: ${err.message}`);
-        }
-      }
+          // Check if start time is in the past
+          if (startTime < new Date()) {
+            errorCount++;
+            errors.push(`Dòng ${i + 1}: Thời gian bắt đầu không thể ở quá khứ`);
+            continue;
+          }
 
-      let msg = `Đã nhập thành công ${importedCount} lịch chiếu.`;
-      if (errorCount > 0) {
-        msg += ` Thất bại: ${errorCount} dòng.`;
-        if (errors.length > 0) {
-          msg += `\nChi tiết lỗi:\n` + errors.slice(0, 5).join('\n') + (errors.length > 5 ? '\n...' : '');
+          let endTime: Date;
+          if (endTimeStr) {
+            endTime = new Date(endTimeStr);
+            if (isNaN(endTime.getTime())) {
+              errorCount++;
+              errors.push(`Dòng ${i + 1}: Thời gian kết thúc không đúng định dạng`);
+              continue;
+            }
+          } else {
+            const movie = movies.find(m => m.id === movieId);
+            const duration = movie?.duration || 120;
+            endTime = new Date(startTime.getTime() + duration * 60000);
+          }
+
+          // Check for overlapping/duplicate showtimes client-side
+          const isOverlap = data.some((s: any) => 
+            s.screen_id === screenId &&
+            startTime < new Date(s.end_time) &&
+            endTime > new Date(s.start_time)
+          );
+
+          if (isOverlap) {
+            errorCount++;
+            errors.push(`Dòng ${i + 1}: Lịch chiếu bị trùng/chồng chéo thời gian tại phòng này`);
+            continue;
+          }
+
+          try {
+            const res = await fetch(API_ENDPOINTS.SHOWTIMES, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                movie_id: movieId,
+                screen_id: screenId,
+                start_time: startTime.toISOString(),
+                end_time: endTime.toISOString()
+              })
+            });
+
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              const errMsg = Array.isArray(err.message) ? err.message[0] : (err.message || err.error || 'Lỗi khi lưu lịch chiếu');
+              throw new Error(errMsg);
+            }
+
+            importedCount++;
+          } catch (err: any) {
+            errorCount++;
+            errors.push(`Dòng ${i + 1}: ${err.message}`);
+          }
         }
+
+        let msg = `Đã nhập thành công ${importedCount} lịch chiếu.`;
+        if (errorCount > 0) {
+          msg += ` Thất bại: ${errorCount} dòng.`;
+          if (errors.length > 0) {
+            msg += `\nChi tiết lỗi:\n` + errors.slice(0, 5).join('\n') + (errors.length > 5 ? '\n...' : '');
+          }
+        }
+        alert(msg);
+        fetchData();
+      } catch (globalErr: any) {
+        console.error('Import error:', globalErr);
+        alert('Đã xảy ra lỗi hệ thống khi xử lý file: ' + globalErr.message);
+      } finally {
+        e.target.value = '';
       }
-      alert(msg);
-      fetchData();
-      e.target.value = '';
     };
     reader.readAsText(file);
   };

@@ -28,8 +28,7 @@ export default function AdminSeats() {
   const [formData, setFormData] = useState({
     screen_id: '',
     seat_number: '',
-    type: SeatType.STANDARD,
-    is_booked: 'false'
+    type: SeatType.STANDARD
   });
 
   const [filterTheaterId, setFilterTheaterId] = useState<string>('');
@@ -59,7 +58,7 @@ export default function AdminSeats() {
 
   const openAddModal = () => {
     setEditingId(null);
-    setFormData({ screen_id: '', seat_number: '', type: SeatType.STANDARD, is_booked: 'false' });
+    setFormData({ screen_id: '', seat_number: '', type: SeatType.STANDARD });
     setShowModal(true);
   };
 
@@ -68,8 +67,7 @@ export default function AdminSeats() {
     setFormData({
       screen_id: String(item.screen_id),
       seat_number: item.seat_number || '',
-      type: (item.type as SeatType) || SeatType.STANDARD,
-      is_booked: String(item.is_booked || false)
+      type: (item.type as SeatType) || SeatType.STANDARD
     });
     setShowModal(true);
   };
@@ -94,8 +92,7 @@ export default function AdminSeats() {
     const payload = {
       screen_id: parseInt(formData.screen_id),
       seat_number: formData.seat_number,
-      type: formData.type,
-      is_booked: formData.is_booked === 'true'
+      type: formData.type
     };
 
     fetch(url, {
@@ -263,13 +260,12 @@ export default function AdminSeats() {
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Tên Ghế</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Phòng chiếu</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Loại Ghế</th>
-              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Trạng thái</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Hành động</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Đang tải dữ liệu...</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Đang tải dữ liệu...</td></tr>
             ) : filteredData.length > 0 ? (
               filteredData.map((item: any) => {
                 const isSelected = selectedIds.includes(item.id);
@@ -300,18 +296,13 @@ export default function AdminSeats() {
                     </span>
                   </td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
-                    <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '500', backgroundColor: item.is_booked ? 'rgba(220, 53, 69, 0.2)' : 'rgba(40, 167, 69, 0.2)', color: item.is_booked ? '#dc3545' : '#28a745' }}>
-                      {item.is_booked ? 'Đã đặt' : 'Trống'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
                     <button onClick={() => openEditModal(item)} style={{ padding: '8px 15px', backgroundColor: '#007bff', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', marginRight: '5px' }}>Sửa</button>
                     <button onClick={() => handleDelete(item.id)} style={{ padding: '8px 15px', backgroundColor: '#dc3545', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>Xóa</button>
                   </td>
                 </tr>
               )})
             ) : (
-              <tr><td colSpan={7} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Không có ghế nào.</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Không có ghế nào.</td></tr>
             )}
           </tbody>
         </table>
@@ -360,16 +351,6 @@ export default function AdminSeats() {
                 </select>
               </div>
 
-              <div style={{ marginBottom: '25px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Trạng thái</label>
-                <select 
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
-                  value={formData.is_booked} onChange={e => setFormData({...formData, is_booked: e.target.value})}
-                >
-                  <option value="false" style={{ color: '#000' }}>Trống</option>
-                  <option value="true" style={{ color: '#000' }}>Đã đặt</option>
-                </select>
-              </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" onClick={() => setShowModal(false)} style={{ padding: '10px 20px', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontWeight: '500' }}>
