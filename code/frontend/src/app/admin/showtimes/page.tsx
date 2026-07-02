@@ -69,16 +69,35 @@ export default function AdminShowtimes() {
   useEffect(() => {
     if (formData.screen_id && isBulkMode) {
       const selectedScreen = screens.find(s => s.id === parseInt(formData.screen_id));
-      if (selectedScreen?.roomtype?.name) {
-        const roomTypeName = selectedScreen.roomtype.name.toUpperCase();
+      if (selectedScreen) {
+        const roomName = selectedScreen.name || '';
+        const roomTypeName = (selectedScreen.roomtype?.name || '').toUpperCase();
         let defaultTimes = '09:00, 12:00, 15:00, 18:00, 20:00, 22:00';
 
-        if (roomTypeName === '3D') {
-          // 4 slots, 4hr gap, start 12:00
-          defaultTimes = '12:00, 16:00, 20:00, 00:00';
-        } else if (roomTypeName === 'IMAX') {
-          // 5 slots, 4hr gap, start 10:30
+        if (roomName.includes('Phòng 1')) {
+          defaultTimes = '09:00, 12:00, 15:00, 18:00, 21:00, 00:00';
+        } else if (roomName.includes('Phòng 2')) {
+          defaultTimes = '09:45, 12:45, 15:45, 18:45, 21:45, 00:45';
+        } else if (roomName.includes('Phòng 3')) {
+          defaultTimes = '11:00, 14:00, 17:00, 20:00, 23:00';
+        } else if (roomName.includes('Phòng 4')) {
+          defaultTimes = '09:30, 13:30, 17:30, 21:30';
+        } else if (roomName.includes('Phòng 5')) {
+          defaultTimes = '11:00, 15:00, 19:00, 23:00';
+        } else if (roomName.includes('Phòng 6')) {
+          defaultTimes = '11:45, 15:45, 19:45, 23:45';
+        } else if (roomName.includes('Phòng 7')) {
           defaultTimes = '10:30, 14:30, 18:30, 22:30, 02:30';
+        } else if (roomName.includes('Phòng 8')) {
+          defaultTimes = '11:15, 15:15, 19:15, 23:15, 03:15';
+        } else if (roomName.includes('Phòng 9')) {
+          defaultTimes = '12:30, 16:30, 20:30, 00:30, 04:30';
+        } else {
+          if (roomTypeName === '3D') {
+            defaultTimes = '12:00, 16:00, 20:00, 00:00';
+          } else if (roomTypeName === 'IMAX') {
+            defaultTimes = '10:30, 14:30, 18:30, 22:30, 02:30';
+          }
         }
 
         setWeeklySchedules({
