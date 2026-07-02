@@ -210,7 +210,21 @@ export default function MovieDetail() {
                     acc[groupName].push(st);
                     return acc;
                   }, {} as Record<string, any[]>)
-                ).map(([groupName, roomShowtimes]) => (
+                ).sort(([nameA, listA]: any, [nameB, listB]: any) => {
+                  const getWeight = (roomShowtimes: any[]) => {
+                    const name = (roomShowtimes[0]?.screen?.roomtype?.name || '').toUpperCase();
+                    if (name.includes('2D')) return 1;
+                    if (name.includes('3D')) return 2;
+                    if (name.includes('IMAX')) return 3;
+                    return 4;
+                  };
+                  const weightA = getWeight(listA);
+                  const weightB = getWeight(listB);
+                  if (weightA !== weightB) {
+                    return weightA - weightB;
+                  }
+                  return nameA.localeCompare(nameB);
+                }).map(([groupName, roomShowtimes]: any) => (
                   <div key={groupName} className="theater-group" style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '10px', border: '1px solid var(--card-border)' }}>
                     <h3 style={{ fontSize: '18px', marginBottom: '15px', color: '#60a5fa' }}>{groupName}</h3>
                     <div className="time-slots" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>

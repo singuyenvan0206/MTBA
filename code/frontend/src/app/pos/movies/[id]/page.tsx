@@ -293,11 +293,25 @@ export default function MovieDetail() {
               acc[rName].push(st);
               return acc;
             }, {} as Record<string, any[]>)
-          ).map(([roomName, roomShowtimes]) => (
+          ).sort(([nameA, listA]: any, [nameB, listB]: any) => {
+            const getWeight = (roomShowtimes: any[]) => {
+              const name = (roomShowtimes[0]?.screen?.roomtype?.name || '').toUpperCase();
+              if (name.includes('2D')) return 1;
+              if (name.includes('3D')) return 2;
+              if (name.includes('IMAX')) return 3;
+              return 4;
+            };
+            const weightA = getWeight(listA);
+            const weightB = getWeight(listB);
+            if (weightA !== weightB) {
+              return weightA - weightB;
+            }
+            return nameA.localeCompare(nameB);
+          }).map(([roomName, roomShowtimes]: any) => (
             <div key={roomName} className="room-group" style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '10px', border: '1px solid var(--card-border)' }}>
               <h3 style={{ fontSize: '18px', marginBottom: '15px', color: '#60a5fa' }}>{roomName}</h3>
               <div className="time-slots" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-                {(roomShowtimes as any[]).map(showtime => {
+                {([...roomShowtimes] as any[]).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()).map(showtime => {
                   const time = new Date(showtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                   const isSelected = selectedShowtime?.id === showtime.id;
                   return (

@@ -266,6 +266,20 @@ export default function AdminShowtimes() {
       if (`${hours}:${minutes}` !== filterTime) match = false;
     }
     return match;
+  }).sort((a: any, b: any) => {
+    const getWeight = (item: any) => {
+      const name = (item.screen?.roomtype?.name || '').toUpperCase();
+      if (name.includes('2D')) return 1;
+      if (name.includes('3D')) return 2;
+      if (name.includes('IMAX')) return 3;
+      return 4;
+    };
+    const weightA = getWeight(a);
+    const weightB = getWeight(b);
+    if (weightA !== weightB) {
+      return weightA - weightB;
+    }
+    return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
   });
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
