@@ -61,5 +61,6 @@ export const ERROR_MESSAGES = {
   },
   SHOWTIME: {
     OVERLAP: 'Lịch chiếu bị trùng lặp thời gian hoặc đã tồn tại trong phòng chiếu này!',
+    PAST_DATE: 'Thời gian bắt đầu lịch chiếu không thể ở quá khứ!',
   },
 };

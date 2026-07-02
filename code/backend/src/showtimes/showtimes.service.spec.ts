@@ -62,14 +62,27 @@ describe('ShowtimesService', () => {
   });
 
   describe('create', () => {
+    it('should throw BadRequestException if start_time is in the past', async () => {
+      const data = {
+        movie_id: 1,
+        screen_id: 1,
+        start_time: '2020-01-01T08:00:00Z',
+        end_time: '2020-01-01T10:00:00Z',
+      };
+
+      await expect(service.create(data)).rejects.toThrow(
+        new BadRequestException(ERROR_MESSAGES.SHOWTIME.PAST_DATE),
+      );
+    });
+
     it('should throw BadRequestException if showtime overlaps', async () => {
       mockPrisma.showtime.findFirst.mockResolvedValue({ id: 99 });
 
       const data = {
         movie_id: 1,
         screen_id: 1,
-        start_time: '2026-07-01T08:00:00Z',
-        end_time: '2026-07-01T10:00:00Z',
+        start_time: '2030-07-01T08:00:00Z',
+        end_time: '2030-07-01T10:00:00Z',
       };
 
       await expect(service.create(data)).rejects.toThrow(
@@ -85,8 +98,8 @@ describe('ShowtimesService', () => {
       const data = {
         movie_id: 1,
         screen_id: 1,
-        start_time: '2026-07-01T08:00:00Z',
-        end_time: '2026-07-01T10:00:00Z',
+        start_time: '2030-07-01T08:00:00Z',
+        end_time: '2030-07-01T10:00:00Z',
       };
 
       const result = await service.create(data);
@@ -95,14 +108,27 @@ describe('ShowtimesService', () => {
   });
 
   describe('update', () => {
+    it('should throw BadRequestException if start_time is in the past', async () => {
+      const data = {
+        movie_id: 1,
+        screen_id: 1,
+        start_time: '2020-01-01T08:00:00Z',
+        end_time: '2020-01-01T10:00:00Z',
+      };
+
+      await expect(service.update(1, data)).rejects.toThrow(
+        new BadRequestException(ERROR_MESSAGES.SHOWTIME.PAST_DATE),
+      );
+    });
+
     it('should throw BadRequestException if update overlaps with another showtime', async () => {
       mockPrisma.showtime.findFirst.mockResolvedValue({ id: 99 });
 
       const data = {
         movie_id: 1,
         screen_id: 1,
-        start_time: '2026-07-01T08:00:00Z',
-        end_time: '2026-07-01T10:00:00Z',
+        start_time: '2030-07-01T08:00:00Z',
+        end_time: '2030-07-01T10:00:00Z',
       };
 
       await expect(service.update(1, data)).rejects.toThrow(

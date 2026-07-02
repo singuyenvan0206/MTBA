@@ -50,6 +50,10 @@ export class ShowtimesService {
       throw new BadRequestException('Thông tin lịch chiếu không hợp lệ!');
     }
 
+    if (new Date(data.start_time) < new Date()) {
+      throw new BadRequestException(ERROR_MESSAGES.SHOWTIME.PAST_DATE);
+    }
+
     const overlap = await this.checkOverlap(screenId, data.start_time, data.end_time);
     if (overlap) {
       throw new BadRequestException(ERROR_MESSAGES.SHOWTIME.OVERLAP);
@@ -61,6 +65,10 @@ export class ShowtimesService {
   }
 
   async update(id: number, data: any) {
+    if (data.start_time && new Date(data.start_time) < new Date()) {
+      throw new BadRequestException(ERROR_MESSAGES.SHOWTIME.PAST_DATE);
+    }
+
     if (data.screen_id && data.start_time && data.end_time) {
       const screenId = parseInt(data.screen_id);
       const overlap = await this.checkOverlap(screenId, data.start_time, data.end_time, id);

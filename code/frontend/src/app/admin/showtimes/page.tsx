@@ -72,7 +72,7 @@ export default function AdminShowtimes() {
       if (selectedScreen?.roomtype?.name) {
         const roomTypeName = selectedScreen.roomtype.name.toUpperCase();
         let defaultTimes = '09:00, 12:00, 15:00, 18:00, 20:00, 22:00';
-        
+
         if (roomTypeName === '3D') {
           // 4 slots, 4hr gap, start 12:00
           defaultTimes = '12:00, 16:00, 20:00, 00:00';
@@ -80,7 +80,7 @@ export default function AdminShowtimes() {
           // 5 slots, 4hr gap, start 10:30
           defaultTimes = '10:30, 14:30, 18:30, 22:30, 02:30';
         }
-        
+
         setWeeklySchedules({
           'T2': { checked: false, times: defaultTimes },
           'T3': { checked: false, times: defaultTimes },
@@ -106,7 +106,7 @@ export default function AdminShowtimes() {
   const openEditModal = (item: Showtime) => {
     setEditingId(item.id);
     setIsBulkMode(false);
-    
+
     // Tìm rạp chứa phòng chiếu này để set selectedTheater
     const screen = screens.find(s => s.id === item.screen_id);
     if (screen) setSelectedTheater(String(screen.theater_id));
@@ -133,7 +133,7 @@ export default function AdminShowtimes() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.movie_id || !formData.screen_id) {
       alert(UI_MESSAGES.VUI_L_NG_CH_N_PHIM_V__PH_NG_CH);
       return;
@@ -141,7 +141,7 @@ export default function AdminShowtimes() {
 
     if (editingId || !isBulkMode) {
       // Single create/update
-      const url = editingId 
+      const url = editingId
         ? `${API_ENDPOINTS.SHOWTIMES_}${editingId}`
         : API_ENDPOINTS.SHOWTIMES;
       const method = editingId ? 'PUT' : 'POST';
@@ -182,7 +182,7 @@ export default function AdminShowtimes() {
         const dayMap: Record<number, string> = { 0: 'CN', 1: 'T2', 2: 'T3', 3: 'T4', 4: 'T5', 5: 'T6', 6: 'T7' };
         const movie = movies.find(m => m.id === parseInt(formData.movie_id));
         const duration = movie?.duration || 120;
-        
+
         let createdCount = 0;
         let hasError = false;
         let errorMsg = '';
@@ -192,7 +192,7 @@ export default function AdminShowtimes() {
           d.setDate(d.getDate() + i);
           const dayStr = dayMap[d.getDay()];
           const schedule = weeklySchedules[dayStr as keyof typeof weeklySchedules];
-          
+
           if (schedule && schedule.checked) {
             const times = schedule.times.split(',').map((t: string) => t.trim()).filter(Boolean);
             for (const timeStr of times) {
@@ -200,7 +200,7 @@ export default function AdminShowtimes() {
               if (hours && minutes) {
                 const stDate = new Date(d);
                 stDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-                
+
                 const res = await fetch(API_ENDPOINTS.SHOWTIMES, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -211,14 +211,14 @@ export default function AdminShowtimes() {
                     end_time: new Date(stDate.getTime() + duration * 60000).toISOString()
                   })
                 });
-                
+
                 if (!res.ok) {
                   hasError = true;
                   const err = await res.json().catch(() => ({}));
                   errorMsg = Array.isArray(err.message) ? err.message[0] : (err.message || err.error || 'Lỗi khi lưu lịch chiếu');
                   break;
                 }
-                
+
                 createdCount++;
               }
             }
@@ -322,14 +322,14 @@ export default function AdminShowtimes() {
         <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0, color: 'var(--foreground)' }}>Quản lý Lịch Chiếu</h1>
         <div>
           {selectedIds.length > 0 && (
-            <button 
+            <button
               onClick={handleDeleteSelected}
               style={{ padding: '10px 20px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', marginRight: '10px' }}
             >
               Xóa {selectedIds.length} đã chọn
             </button>
           )}
-          <button 
+          <button
             onClick={openAddModal}
             style={{ padding: '10px 20px', backgroundColor: 'var(--primary)', color: 'var(--text-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
           >
@@ -450,10 +450,10 @@ export default function AdminShowtimes() {
             <form onSubmit={handleSave}>
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Phim</label>
-                <select 
-                  required 
+                <select
+                  required
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                  value={formData.movie_id} onChange={e => setFormData({...formData, movie_id: e.target.value, screen_id: ''})}
+                  value={formData.movie_id} onChange={e => setFormData({ ...formData, movie_id: e.target.value, screen_id: '' })}
                 >
                   <option value="">-- Chọn Phim --</option>
                   {movies.map(m => (
@@ -464,9 +464,9 @@ export default function AdminShowtimes() {
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Cụm rạp</label>
-                <select 
+                <select
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                  value={selectedTheater} onChange={e => { setSelectedTheater(e.target.value); setFormData({...formData, screen_id: ''}); }}
+                  value={selectedTheater} onChange={e => { setSelectedTheater(e.target.value); setFormData({ ...formData, screen_id: '' }); }}
                 >
                   <option value="">-- Chọn Cụm Rạp --</option>
                   {theaters.map(t => (
@@ -474,13 +474,13 @@ export default function AdminShowtimes() {
                   ))}
                 </select>
               </div>
-              
+
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Phòng chiếu</label>
-                <select 
-                  required 
+                <select
+                  required
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
-                  value={formData.screen_id} onChange={e => setFormData({...formData, screen_id: e.target.value})}
+                  value={formData.screen_id} onChange={e => setFormData({ ...formData, screen_id: e.target.value })}
                   disabled={!selectedTheater && theaters.length > 0}
                 >
                   <option value="">-- Chọn Phòng chiếu --</option>
@@ -500,8 +500,8 @@ export default function AdminShowtimes() {
                 <>
                   <div style={{ marginBottom: '15px' }}>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Ngày bắt đầu áp dụng</label>
-                    <input 
-                      type="date" required 
+                    <input
+                      type="date" required
                       style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
                       value={baseDate} onChange={e => setBaseDate(e.target.value)}
                     />
@@ -514,8 +514,8 @@ export default function AdminShowtimes() {
                       {Object.entries(weeklySchedules).map(([dayKey, schedule]: any) => (
                         <div key={dayKey} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <label style={{ display: 'flex', alignItems: 'center', gap: '5px', width: '60px', cursor: 'pointer', color: 'var(--foreground)' }}>
-                            <input 
-                              type="checkbox" 
+                            <input
+                              type="checkbox"
                               checked={schedule.checked}
                               onChange={(e) => setWeeklySchedules({
                                 ...weeklySchedules,
@@ -524,15 +524,15 @@ export default function AdminShowtimes() {
                             />
                             {dayKey}
                           </label>
-                          <input 
+                          <input
                             type="text"
                             disabled={!schedule.checked}
                             placeholder="VD: 09:00, 12:00"
                             style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--card-border)', backgroundColor: schedule.checked ? 'transparent' : 'rgba(255,255,255,0.1)', color: 'var(--foreground)' }}
                             value={schedule.times}
                             onChange={(e) => setWeeklySchedules({
-                                ...weeklySchedules,
-                                [dayKey]: { ...schedule, times: e.target.value }
+                              ...weeklySchedules,
+                              [dayKey]: { ...schedule, times: e.target.value }
                             })}
                           />
                         </div>
@@ -544,19 +544,19 @@ export default function AdminShowtimes() {
                 <>
                   <div style={{ marginBottom: '15px' }}>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Thời gian bắt đầu</label>
-                    <input 
-                      type="datetime-local" required 
+                    <input
+                      type="datetime-local" required
                       style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
-                      value={formData.start_time} onChange={e => setFormData({...formData, start_time: e.target.value})}
+                      value={formData.start_time} onChange={e => setFormData({ ...formData, start_time: e.target.value })}
                     />
                   </div>
-                  
+
                   <div style={{ marginBottom: '20px' }}>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--foreground)' }}>Thời gian kết thúc</label>
-                    <input 
-                      type="datetime-local" required 
+                    <input
+                      type="datetime-local" required
                       style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }}
-                      value={formData.end_time} onChange={e => setFormData({...formData, end_time: e.target.value})}
+                      value={formData.end_time} onChange={e => setFormData({ ...formData, end_time: e.target.value })}
                     />
                   </div>
                 </>
