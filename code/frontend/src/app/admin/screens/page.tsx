@@ -52,8 +52,20 @@ export default function AdminScreens() {
     fetch(API_ENDPOINTS.SCREENS)
       .then(res => res.json())
       .then(d => {
-        if (Array.isArray(d)) setData(d);
-        else setData([]);
+        if (Array.isArray(d)) {
+          // Sort screens by room number extracted from name
+          const sortedData = d.sort((a: any, b: any) => {
+            const nameA = a.name || a.screen_name || '';
+            const nameB = b.name || b.screen_name || '';
+            // Extract room number (e.g., "Phòng 2" -> 2, "Phòng 10" -> 10)
+            const numA = parseInt(nameA.match(/\d+/)?.[0] || '0');
+            const numB = parseInt(nameB.match(/\d+/)?.[0] || '0');
+            return numA - numB;
+          });
+          setData(sortedData);
+        } else {
+          setData([]);
+        }
         setLoading(false);
         setSelectedIds([]);
       })

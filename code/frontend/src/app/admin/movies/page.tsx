@@ -93,7 +93,13 @@ export default function AdminMovies() {
     fetchMovies();
     fetch(API_ENDPOINTS.GENRES)
       .then(res => res.json())
-      .then(data => setGenres(data))
+      .then(data => {
+        // Sort genres alphabetically by genre_name
+        const sortedGenres = data.sort((a: any, b: any) => 
+          a.genre_name.localeCompare(b.genre_name, 'vi-VN')
+        );
+        setGenres(sortedGenres);
+      })
       .catch(err => console.error(err));
     fetch(API_ENDPOINTS.AGELIMITS)
       .then(res => res.json())

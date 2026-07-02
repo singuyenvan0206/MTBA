@@ -65,6 +65,35 @@ export default function AdminShowtimes() {
   const [baseDate, setBaseDate] = useState<string>(''); // For weekly generation
   const [isBulkMode, setIsBulkMode] = useState<boolean>(true); // Mode to switch
 
+  // Auto-update weekly schedules based on room type
+  useEffect(() => {
+    if (formData.screen_id && isBulkMode) {
+      const selectedScreen = screens.find(s => s.id === parseInt(formData.screen_id));
+      if (selectedScreen?.roomtype?.name) {
+        const roomTypeName = selectedScreen.roomtype.name.toUpperCase();
+        let defaultTimes = '09:00, 12:00, 15:00, 18:00, 20:00, 22:00';
+        
+        if (roomTypeName === '3D') {
+          // 4 slots, 4hr gap, start 12:00
+          defaultTimes = '12:00, 16:00, 20:00, 00:00';
+        } else if (roomTypeName === 'IMAX') {
+          // 5 slots, 4hr gap, start 10:30
+          defaultTimes = '10:30, 14:30, 18:30, 22:30, 02:30';
+        }
+        
+        setWeeklySchedules({
+          'T2': { checked: false, times: defaultTimes },
+          'T3': { checked: false, times: defaultTimes },
+          'T4': { checked: false, times: defaultTimes },
+          'T5': { checked: false, times: defaultTimes },
+          'T6': { checked: false, times: defaultTimes },
+          'T7': { checked: false, times: defaultTimes },
+          'CN': { checked: false, times: defaultTimes }
+        });
+      }
+    }
+  }, [formData.screen_id, screens, isBulkMode]);
+
   const openAddModal = () => {
     setEditingId(null);
     setSelectedTheater('');

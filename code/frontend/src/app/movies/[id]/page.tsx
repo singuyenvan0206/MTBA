@@ -22,6 +22,7 @@ type Movie = {
   actors: string;
   ageLimit?: string;
   ageLimitDescription?: string;
+  roomtype_ids?: number[];
 };
 
 export default function MovieDetail() {
@@ -58,9 +59,16 @@ export default function MovieDetail() {
   }))).sort();
 
   const availableTheaters = Array.from(new Set(showtimes.map(st => st.screen?.theater?.name || 'Rạp khác'))).sort();
+  // Filter room types to only include those supported by the movie
+  const availableRoomTypes = Array.from(new Set(
+    showtimes
+      .filter(st => movie?.roomtype_ids?.includes(st.screen?.roomtype_id))
+      .map(st => st.screen?.roomtype?.name || '2D')
+  )).sort();
 
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTheater, setSelectedTheater] = useState<string>('All');
+  const [selectedRoomType, setSelectedRoomType] = useState<string>('All');
 
   useEffect(() => {
     if (availableDates.length > 0 && !selectedDate) {
@@ -80,8 +88,12 @@ export default function MovieDetail() {
     const d = new Date(st.start_time);
     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
+    // Only show showtimes for room types that the movie supports
+    if (movie?.roomtype_ids && !movie.roomtype_ids.includes(st.screen?.roomtype_id)) return false;
+    
     if (selectedDate && dateStr !== selectedDate) return false;
     if (selectedTheater !== 'All' && (st.screen?.theater?.name || 'Rạp khác') !== selectedTheater) return false;
+    if (selectedRoomType !== 'All' && (st.screen?.roomtype?.name || '2D') !== selectedRoomType) return false;
     return true;
   });
 
@@ -171,6 +183,19 @@ export default function MovieDetail() {
                     ))}
                   </select>
                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontWeight: 'bold', color: '#888' }}>Chọn Cụm Phòng:</span>
+                  <select
+                    value={selectedRoomType}
+                    onChange={(e) => setSelectedRoomType(e.target.value)}
+                    style={{ padding: '10px 15px', borderRadius: '6px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', outline: 'none' }}
+                  >
+                    <option value="All">Tất cả phòng</option>
+                    {availableRoomTypes.map(rt => (
+                      <option key={rt} value={rt}>{rt}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -189,7 +214,7 @@ export default function MovieDetail() {
                   <div key={groupName} className="theater-group" style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '10px', border: '1px solid var(--card-border)' }}>
                     <h3 style={{ fontSize: '18px', marginBottom: '15px', color: '#60a5fa' }}>{groupName}</h3>
                     <div className="time-slots" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-                      {(roomShowtimes as any[]).map(showtime => {
+                      {(roomShowtimes as any[]).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()).map(showtime => {
                         const time = new Date(showtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                         return (
                           <Link href={`/booking/${showtime.id}`} key={showtime.id} className="time-btn" style={{ display: 'block', textDecoration: 'none' }}>
