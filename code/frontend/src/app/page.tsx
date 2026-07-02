@@ -21,7 +21,8 @@ export default function Home() {
   // Auto-rotate hero movie mỗi 8 giây
   useEffect(() => {
     if (showingMovies.length <= 1) return;
-    const t = setInterval(() => setHeroIndex(i => (i + 1) % Math.min(showingMovies.length, 5)), 8000);
+    const limit = Math.min(showingMovies.length, 6);
+    const t = setInterval(() => setHeroIndex(i => (i + 1) % limit), 8000);
     return () => clearInterval(t);
   }, [showingMovies.length]);
 
@@ -57,8 +58,11 @@ export default function Home() {
       .catch(() => setLoading(false));
   }, []);
 
-  const heroMovie = showingMovies[heroIndex];
-  const thumbnailMovies = showingMovies.filter((_, i) => i !== heroIndex).slice(0, 5);
+  const heroLimit = Math.min(showingMovies.length, 6);
+  const rotatingMovies = showingMovies.slice(0, heroLimit);
+  const safeHeroIndex = heroIndex >= heroLimit ? 0 : heroIndex;
+  const heroMovie = rotatingMovies[safeHeroIndex];
+  const thumbnailMovies = rotatingMovies.filter((_, i) => i !== safeHeroIndex);
 
   return (
     <main className="main-content">
@@ -260,19 +264,19 @@ export default function Home() {
               </div>
 
               {/* Dots chuyển phim */}
-              {showingMovies.length > 1 && (
+              {rotatingMovies.length > 1 && (
                 <div style={{ display: 'flex', gap: '6px', marginTop: '24px' }}>
-                  {showingMovies.slice(0, 5).map((_, idx) => (
+                  {rotatingMovies.map((_, idx) => (
                     <button
                       key={idx}
                       id={`hero-dot-${idx}`}
                       onClick={() => setHeroIndex(idx)}
                       style={{
-                        width: idx === heroIndex ? '24px' : '8px',
+                        width: idx === safeHeroIndex ? '24px' : '8px',
                         height: '8px',
                         borderRadius: '4px',
                         border: 'none',
-                        background: idx === heroIndex ? '#ff4d4f' : 'rgba(255,255,255,0.35)',
+                        background: idx === safeHeroIndex ? '#ff4d4f' : 'rgba(255,255,255,0.35)',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
                         padding: 0,
@@ -320,7 +324,7 @@ export default function Home() {
                   e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
                   e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
                 }}
-                onClick={() => setHeroIndex(showingMovies.findIndex(sm => sm.id === m.id))}
+                onClick={() => setHeroIndex(rotatingMovies.findIndex(sm => sm.id === m.id))}
               >
                 <img
                   src={m.posterUrl || 'https://placehold.co/50x70/1a1a1a/444'}
