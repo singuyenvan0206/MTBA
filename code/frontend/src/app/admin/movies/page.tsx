@@ -35,6 +35,24 @@ export default function AdminMovies() {
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [filterAgeLimit, setFilterAgeLimit] = useState<string>('');
 
+  const [sortKey, setSortKey] = useState<string>('id');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  const SortIcon = ({ col }: { col: string }) => (
+    <span style={{ marginLeft: '4px', opacity: sortKey === col ? 1 : 0.3, fontSize: '11px' }}>
+      {sortKey === col ? (sortDir === 'asc' ? '▲' : '▼') : '▲'}
+    </span>
+  );
+
   const [showModal, setShowModal] = useState(false);
   const [genres, setGenres] = useState<any[]>([]);
   const [ageLimits, setAgeLimits] = useState<any[]>([]);
@@ -193,6 +211,18 @@ export default function AdminMovies() {
     return match;
   });
 
+  const sortedMovies = [...filteredMovies].sort((a: any, b: any) => {
+    let valA: any, valB: any;
+    if (sortKey === 'id') { valA = a.id; valB = b.id; }
+    else if (sortKey === 'title') { valA = a.title?.toLowerCase(); valB = b.title?.toLowerCase(); }
+    else if (sortKey === 'duration') { valA = a.duration; valB = b.duration; }
+    else if (sortKey === 'releaseDate') { valA = new Date(a.releaseDate).getTime(); valB = new Date(b.releaseDate).getTime(); }
+    else { valA = a[sortKey]; valB = b[sortKey]; }
+    if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
@@ -236,12 +266,12 @@ export default function AdminMovies() {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
-              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>ID</th>
+              <th onClick={() => handleSort('id')} style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>ID <SortIcon col="id" /></th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Poster</th>
-              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Tên Phim</th>
+              <th onClick={() => handleSort('title')} style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Tên Phim <SortIcon col="title" /></th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Thể loại</th>
-              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Thời lượng</th>
-              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Trạng thái</th>
+              <th onClick={() => handleSort('duration')} style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Thời lượng <SortIcon col="duration" /></th>
+              <th onClick={() => handleSort('releaseDate')} style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Trạng thái <SortIcon col="releaseDate" /></th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Hành động</th>
             </tr>
           </thead>
@@ -250,8 +280,8 @@ export default function AdminMovies() {
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Đang tải dữ liệu...</td>
               </tr>
-            ) : filteredMovies.length > 0 ? (
-              filteredMovies.map((movie: any) => {
+            ) : sortedMovies.length > 0 ? (
+              sortedMovies.map((movie: any) => {
                 const releaseDateObj = new Date(movie.releaseDate);
                 const isComingSoon = releaseDateObj > new Date();
                 const statusText = isComingSoon ? 'Sắp chiếu' : 'Đang chiếu';

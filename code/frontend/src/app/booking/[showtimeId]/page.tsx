@@ -200,6 +200,7 @@ export default function Booking() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.accessToken || ''}`,
           'x-user-role': 'customer',
           'x-user-id': String(user.id || '')
         },
@@ -215,11 +216,21 @@ export default function Booking() {
         const data = await res.json();
         router.push(`${APP_ROUTES.PAYMENT}/${data.id}`);
       } else {
-        const errData = await res.json();
+        // Đọc text trước, parse JSON sau để tránh SyntaxError
+        const text = await res.text();
+        let errMsg: AppMessage | string = AppMessage.BOOKING_CONNECTION_ERROR;
+        try {
+          const errData = JSON.parse(text);
+          errMsg = Array.isArray(errData.message)
+            ? errData.message[0]
+            : (errData.message || errData.error || errMsg);
+        } catch (_) {
+          errMsg = text || `HTTP ${res.status}`;
+        }
         setAlertModal({
           show: true,
           title: AppMessage.TITLE_BOOKING_FAILED,
-          message: errData.message || AppMessage.BOOKING_CONNECTION_ERROR,
+          message: errMsg,
           type: 'error'
         });
       }
@@ -227,7 +238,7 @@ export default function Booking() {
       setAlertModal({
         show: true,
         title: AppMessage.TITLE_CONNECTION_ERROR,
-        message: AppMessage.BOOKING_CONNECTION_ERROR,
+        message: (err as any)?.message || AppMessage.BOOKING_CONNECTION_ERROR,
         type: 'error'
       });
     }

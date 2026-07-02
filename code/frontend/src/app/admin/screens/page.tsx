@@ -19,6 +19,20 @@ export default function AdminScreens() {
   const [data, setData] = useState<Screen[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [sortKey, setSortKey] = useState<string>('id');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  };
+
+  const SortIcon = ({ col }: { col: string }) => (
+    <span style={{ marginLeft: '4px', opacity: sortKey === col ? 1 : 0.3, fontSize: '11px' }}>
+      {sortKey === col ? (sortDir === 'asc' ? '▲' : '▼') : '▲'}
+    </span>
+  );
+
   const [showModal, setShowModal] = useState(false);
   const [theaters, setTheaters] = useState<any[]>([]);
   const [roomtypes, setRoomtypes] = useState<any[]>([]);
@@ -144,9 +158,24 @@ export default function AdminScreens() {
     return match;
   });
 
+  const sortedFilteredData = [...filteredData].sort((a: any, b: any) => {
+    let valA: any, valB: any;
+    if (sortKey === 'id') { valA = a.id; valB = b.id; }
+    else if (sortKey === 'name') { valA = (a.name || a.screen_name || '').toLowerCase(); valB = (b.name || b.screen_name || '').toLowerCase(); }
+    else if (sortKey === 'capacity') { valA = a.seat_capacity || a.capacity || 0; valB = b.seat_capacity || b.capacity || 0; }
+    else if (sortKey === 'theater') {
+      valA = (theaters.find((t: any) => t.id === a.theater_id)?.name || '').toLowerCase();
+      valB = (theaters.find((t: any) => t.id === b.theater_id)?.name || '').toLowerCase();
+    }
+    else { valA = a[sortKey]; valB = b[sortKey]; }
+    if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      setSelectedIds(filteredData.map(item => item.id));
+      setSelectedIds(sortedFilteredData.map(item => item.id));
     } else {
       setSelectedIds([]);
     }
@@ -203,23 +232,23 @@ export default function AdminScreens() {
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', width: '40px' }}>
                 <input 
                   type="checkbox" 
-                  checked={filteredData.length > 0 && selectedIds.length === filteredData.length}
+                  checked={sortedFilteredData.length > 0 && selectedIds.length === sortedFilteredData.length}
                   onChange={handleSelectAll}
                 />
               </th>
-              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>ID</th>
-              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Tên Phòng</th>
+              <th onClick={() => handleSort('id')} style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>ID <SortIcon col="id" /></th>
+              <th onClick={() => handleSort('name')} style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Tên Phòng <SortIcon col="name" /></th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Loại phòng</th>
-              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Cụm Rạp</th>
-              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Sức chứa</th>
+              <th onClick={() => handleSort('theater')} style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Cụm Rạp <SortIcon col="theater" /></th>
+              <th onClick={() => handleSort('capacity')} style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Sức chứa <SortIcon col="capacity" /></th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Hành động</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan={7} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Đang tải dữ liệu...</td></tr>
-            ) : filteredData.length > 0 ? (
-              filteredData.map((item) => (
+            ) : sortedFilteredData.length > 0 ? (
+              sortedFilteredData.map((item) => (
                 <tr key={item.id} style={{ backgroundColor: selectedIds.includes(item.id) ? 'rgba(255,255,255,0.05)' : 'transparent' }}>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>
                     <input 

@@ -213,6 +213,7 @@ export default function AdminShowtimes() {
 
   const [filterMovieId, setFilterMovieId] = useState<string>('');
   const [filterTheaterId, setFilterTheaterId] = useState<string>('');
+  const [filterScreenId, setFilterScreenId] = useState<string>('');
   const [filterDate, setFilterDate] = useState<string>('');
   const [filterTime, setFilterTime] = useState<string>('');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -224,6 +225,7 @@ export default function AdminShowtimes() {
       const theaterId = item.screen?.theater_id || screens.find(s => s.id === item.screen_id)?.theater_id;
       if (String(theaterId) !== filterTheaterId) match = false;
     }
+    if (filterScreenId && String(item.screen_id) !== filterScreenId) match = false;
     if (filterDate) {
       const itemDate = new Date(item.start_time).toISOString().slice(0, 10);
       if (itemDate !== filterDate) match = false;
@@ -303,9 +305,31 @@ export default function AdminShowtimes() {
         </div>
         <div style={{ flex: 1 }}>
           <label style={{ display: 'block', fontSize: '13px', marginBottom: '5px', color: 'var(--text-muted)' }}>Lọc theo Cụm Rạp</label>
-          <select value={filterTheaterId} onChange={e => setFilterTheaterId(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}>
+          <select
+            value={filterTheaterId}
+            onChange={e => { setFilterTheaterId(e.target.value); setFilterScreenId(''); }}
+            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
+          >
             <option value="">-- Tất cả rạp --</option>
             {theaters.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', fontSize: '13px', marginBottom: '5px', color: 'var(--text-muted)' }}>Lọc theo Phòng chiếu</label>
+          <select
+            value={filterScreenId}
+            onChange={e => setFilterScreenId(e.target.value)}
+            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' }}
+          >
+            <option value="">-- Tất cả phòng --</option>
+            {screens
+              .filter(s => !filterTheaterId || String(s.theater_id) === filterTheaterId)
+              .map(s => (
+                <option key={s.id} value={s.id}>
+                  {s.name || s.screen_name}{s.roomtype?.name ? ` (${s.roomtype.name})` : ''}
+                </option>
+              ))
+            }
           </select>
         </div>
         <div style={{ flex: 1 }}>
@@ -317,7 +341,7 @@ export default function AdminShowtimes() {
           <input type="time" value={filterTime} onChange={e => setFilterTime(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--card-border)', backgroundColor: 'transparent', color: 'var(--foreground)' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-          <button onClick={() => { setFilterMovieId(''); setFilterTheaterId(''); setFilterDate(''); setFilterTime(''); }} style={{ padding: '8px 15px', backgroundColor: 'rgba(255,255,255,0.1)', color: 'var(--foreground)', border: 'none', borderRadius: '4px', cursor: 'pointer', height: '37px' }}>Xóa bộ lọc</button>
+          <button onClick={() => { setFilterMovieId(''); setFilterTheaterId(''); setFilterScreenId(''); setFilterDate(''); setFilterTime(''); }} style={{ padding: '8px 15px', backgroundColor: 'rgba(255,255,255,0.1)', color: 'var(--foreground)', border: 'none', borderRadius: '4px', cursor: 'pointer', height: '37px' }}>Xóa bộ lọc</button>
         </div>
       </div>
 

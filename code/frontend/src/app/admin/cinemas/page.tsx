@@ -17,6 +17,20 @@ export default function AdminCinemas() {
   const [data, setData] = useState<Theater[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [sortKey, setSortKey] = useState<string>('id');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  };
+
+  const SortIcon = ({ col }: { col: string }) => (
+    <span style={{ marginLeft: '4px', opacity: sortKey === col ? 1 : 0.3, fontSize: '11px' }}>
+      {sortKey === col ? (sortDir === 'asc' ? '▲' : '▼') : '▲'}
+    </span>
+  );
+
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -90,6 +104,17 @@ export default function AdminCinemas() {
       .catch(err => alert(UI_MESSAGES.L_I_KHI_L_U_R_P));
   };
 
+  const sortedData = [...data].sort((a: any, b: any) => {
+    let valA: any = a[sortKey]?.toString().toLowerCase() ?? '';
+    let valB: any = b[sortKey]?.toString().toLowerCase() ?? '';
+    if (sortKey === 'id') { valA = a.id; valB = b.id; }
+    else if (sortKey === 'name') { valA = (a.name || a.theater_name || '').toLowerCase(); valB = (b.name || b.theater_name || '').toLowerCase(); }
+    else if (sortKey === 'location') { valA = (a.location || a.address || '').toLowerCase(); valB = (b.location || b.address || '').toLowerCase(); }
+    if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
@@ -106,9 +131,9 @@ export default function AdminCinemas() {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
-              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>ID</th>
-              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Tên Rạp</th>
-              <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Địa chỉ</th>
+              <th onClick={() => handleSort('id')} style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>ID <SortIcon col="id" /></th>
+              <th onClick={() => handleSort('name')} style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Tên Rạp <SortIcon col="name" /></th>
+              <th onClick={() => handleSort('location')} style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Địa chỉ <SortIcon col="location" /></th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>SĐT Liên hệ</th>
               <th style={{ padding: '15px', textAlign: 'left', borderBottom: '1px solid var(--card-border)', color: 'var(--text-muted)', fontWeight: '500' }}>Hành động</th>
             </tr>
@@ -116,8 +141,8 @@ export default function AdminCinemas() {
           <tbody>
             {loading ? (
               <tr><td colSpan={5} style={{ textAlign: 'center', padding: '15px', borderBottom: '1px solid var(--card-border)' }}>Đang tải dữ liệu...</td></tr>
-            ) : data.length > 0 ? (
-              data.map((item) => (
+            ) : sortedData.length > 0 ? (
+              sortedData.map((item) => (
                 <tr key={item.id}>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)' }}>#{item.id}</td>
                   <td style={{ padding: '15px', borderBottom: '1px solid var(--card-border)', fontWeight: 'bold', color: 'var(--foreground)' }}>{item.name || item.theater_name}</td>

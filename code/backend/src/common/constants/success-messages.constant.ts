@@ -14,5 +14,8 @@ export const SUCCESS_MESSAGES = {
     WEBHOOK_SKIPPED_NO_MATCH: 'Skipped: Nội dung chuyển khoản không khớp mã đặt vé',
     WEBHOOK_ALREADY_PAID: (bookingId: number | string) => `Booking #${bookingId} đã được thanh toán`,
     WEBHOOK_SUCCESS: (bookingId: number | string) => `Thanh toán đơn #${bookingId} thành công`,
+  },
+  SHOWTIME: {
+    AUTO_CLEANUP: (count: number) => `[CRON] Đã tự động xóa ${count} lịch chiếu đã kết thúc.`,
   }
 };

@@ -16,6 +16,9 @@ const roboto = Roboto({
 export const metadata: Metadata = {
   title: "Hệ thống Đặt vé xem phim - Trang chủ",
   description: "Trang web đặt vé xem phim trực tuyến",
+  icons: {
+    icon: "/chatgpt_logo.png",
+  },
 };
 
 export default function RootLayout({
