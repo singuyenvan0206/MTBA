@@ -203,6 +203,7 @@ export default function AdminShowtimes() {
         const duration = movie?.duration || 120;
 
         let createdCount = 0;
+        let skippedCount = 0;
         let hasError = false;
         let errorMsg = '';
 
@@ -219,6 +220,12 @@ export default function AdminShowtimes() {
               if (hours && minutes) {
                 const stDate = new Date(d);
                 stDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+                // Bỏ qua nếu lịch chiếu ở quá khứ
+                if (stDate < new Date()) {
+                  skippedCount++;
+                  continue;
+                }
 
                 const res = await fetch(API_ENDPOINTS.SHOWTIMES, {
                   method: 'POST',
@@ -249,7 +256,10 @@ export default function AdminShowtimes() {
           throw new Error(errorMsg);
         }
 
-        alert(UI_MESSAGES.CREATE_SUCCESS_SHOWTIMES);
+        const successMsg = skippedCount > 0
+          ? `${UI_MESSAGES.CREATE_SUCCESS_SHOWTIMES} (Đã tự động bỏ qua ${skippedCount} suất chiếu ở quá khứ)`
+          : UI_MESSAGES.CREATE_SUCCESS_SHOWTIMES;
+        alert(successMsg);
         setShowModal(false);
         fetchData();
       } catch (err: any) {
